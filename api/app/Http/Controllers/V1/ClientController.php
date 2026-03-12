@@ -13,9 +13,10 @@ use App\Models\V1\{Clients};
 
 class ClientController extends Controller
 {
-    public function getNumbers(Request $request) {
+    public function getNumbers(Request $request)
+    {
         try {
-            $client = Clients::select('id', 'phone', 'name')->where('phone', $request->phone)->first();
+            $client = Clients::select('id', 'phone', 'cellphone', 'name', 'surname', 'cpf', 'email')->where('cellphone', $request->phone)->first();
             if (!isset($client)) {
                 throw new ItemNotFoundException('Telefone não cadastrado');
             }
@@ -28,6 +29,37 @@ class ClientController extends Controller
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
     }
+
+    public function updateProfile(Request $request)
+    {
+        try {
+            $validator = \Validator::make($request->all(), [
+                'client_id' => 'required|exists:clients,id',
+                'cpf' => 'required|string|max:20',
+                'email' => 'required|email|max:255',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(["success" => false, "msg" => $validator->errors()->first()], 422);
+            }
+
+            $client = Clients::find($request->client_id);
+            $client->update([
+                'cpf' => $request->cpf,
+                'email' => $request->email
+            ]);
+
+            return response()->json([
+                "success" => true,
+                "msg" => "Perfil atualizado com sucesso!",
+                "client" => $client
+            ], 200);
+
+        } catch (Exception $e) {
+            return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
+        }
+    }
+
 
 
 }
