@@ -69,14 +69,77 @@
         }
     }
 
-    // Monitor DOM changes to inject fields when modals open
+    // Monitor DOM changes to inject fields
     const observer = new MutationObserver((mutations) => {
         injectFields();
+        injectDashboardSettings();
     });
 
     observer.observe(document.body, { childList: true, subtree: true });
 
+    function injectDashboardSettings() {
+        if (!window.location.pathname.includes('/config')) return; // Adjust based on dash route
+
+        const settingsTitle = Array.from(document.querySelectorAll('h1, h2, h3')).find(el => el.textContent.includes('Configurações') || el.textContent.includes('Site'));
+        if (!settingsTitle) return;
+
+        const mpSection = document.querySelector('input[name="secretmercadopago"]')?.closest('div')?.parentElement;
+        if (mpSection && !document.getElementById('cyber-settings-group')) {
+            console.log('Injecting Cyber Settings into Dashboard...');
+
+            const cyberGroup = document.createElement('div');
+            cyberGroup.id = 'cyber-settings-group';
+            cyberGroup.style.padding = '20px';
+            cyberGroup.style.border = '1px solid #eee';
+            cyberGroup.style.borderRadius = '8px';
+            cyberGroup.style.marginTop = '20px';
+            cyberGroup.style.background = '#f9f9f9';
+
+            cyberGroup.innerHTML = `
+                <h4 style="margin-bottom:15px; font-weight:bold;">Gateway de Pagamento</h4>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; margin-bottom:5px;">Selecionar GatewayAtivo</label>
+                    <select id="dash-gateway" name="gateway" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc;">
+                        <option value="mercadopago">Mercado Pago</option>
+                        <option value="cyber">Escale Cyber</option>
+                    </select>
+                </div>
+                
+                <div id="cyber-keys-fields" style="display:none;">
+                    <div style="margin-bottom:15px;">
+                        <label style="display:block; margin-bottom:5px;">Cyber Public Key</label>
+                        <input type="text" id="dash-cyber-public" name="cyber_public" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc;">
+                    </div>
+                    <div style="margin-bottom:15px;">
+                        <label style="display:block; margin-bottom:5px;">Cyber Secret Key</label>
+                        <input type="text" id="dash-cyber-secret" name="cyber_secret" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc;">
+                    </div>
+                </div>
+            `;
+
+            mpSection.parentNode.insertBefore(cyberGroup, mpSection.nextSibling);
+
+            const gatewaySelect = document.getElementById('dash-gateway');
+            const cyberKeysFields = document.getElementById('cyber-keys-fields');
+
+            gatewaySelect.addEventListener('change', (e) => {
+                cyberKeysFields.style.display = e.target.value === 'cyber' ? 'block' : 'none';
+            });
+
+            // Try to load existing values
+            fetch(`${CONFIG.apiBase}/dashboard/site-settings`).then(r => r.json()).then(res => {
+                if (res.success && res.data) {
+                    gatewaySelect.value = res.data.gateway || 'mercadopago';
+                    document.getElementById('dash-cyber-public').value = res.data.cyberPublicKey || '';
+                    document.getElementById('dash-cyber-secret').value = res.data.cyberSecretKey || '';
+                    if (gatewaySelect.value === 'cyber') cyberKeysFields.style.display = 'block';
+                }
+            });
+        }
+    }
+
     // Polling logic for auto-closing QR code modal
+
     let pollingInterval = null;
     function startPolling(rifaPayId) {
         if (pollingInterval) clearInterval(pollingInterval);

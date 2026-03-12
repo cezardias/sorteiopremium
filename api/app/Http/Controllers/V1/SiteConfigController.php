@@ -15,7 +15,8 @@ use App\Models\V1\SiteConfig;
 
 class SiteConfigController extends Controller
 {
-    public function getUserSiteConfig() {
+    public function getUserSiteConfig()
+    {
         try {
             $configData = SiteConfig::select('meta_pixel', 'instagram_link', 'whatsapp_link', 'url_logo_site', 'url_favicon_site', 'site_name', 'plataform_name')->where("id", "1")->first();
             if (!$configData) {
@@ -48,7 +49,8 @@ class SiteConfigController extends Controller
         File::put($envFile, $updatedContents);
     }
 
-    private function parseMetaPixel($pixel) {
+    private function parseMetaPixel($pixel)
+    {
         if (is_numeric($pixel)) {
             return $pixel;
         } else {
@@ -69,6 +71,8 @@ class SiteConfigController extends Controller
             $configData->email = User::orderBy("updated_at", "desc")->first()->email;
             $configData->mercadoPagoAccessToken = env('MERCADO_PAGO_ACCESS_TOKEN');
             $configData->mercadoPagoPublic = env('MERCADO_PAGO_PUBLIC_KEY');
+            $configData->cyberPublicKey = env('CYBER_PAYMENT_PUBLIC_KEY');
+            $configData->cyberSecretKey = env('CYBER_PAYMENT_SECRET_KEY');
 
             return response()->json(["success" => true, "data" => $configData], 200);
         } catch (Exception $e) {
@@ -89,6 +93,9 @@ class SiteConfigController extends Controller
                 'whatsapp_link' => $request->linkwppsite,
                 'site_name' => $request->nomesite,
                 'plataform_name' => $request->plataforma,
+                'gateway' => $request->gateway ?? 'mercadopago',
+                'cyber_public_key' => $request->cyber_public,
+                'cyber_secret_key' => $request->cyber_secret,
             ];
             if ($request->file("faviconsite")) {
                 $favicon = $request->file("faviconsite");
@@ -106,15 +113,21 @@ class SiteConfigController extends Controller
                 $logoUrl = asset($logoRelativePath);
                 $dataArray['url_logo_site'] = $logoUrl;
             }
-            $this->updateEnvFile(['MERCADO_PAGO_ACCESS_TOKEN' => str_replace(" ", '', $request->secretmercadopago), 'MERCADO_PAGO_PUBLIC_KEY' => str_replace(" ",'',$request->publickeymercado)]);
+            $this->updateEnvFile([
+                'MERCADO_PAGO_ACCESS_TOKEN' => str_replace(" ", '', $request->secretmercadopago),
+                'MERCADO_PAGO_PUBLIC_KEY' => str_replace(" ", '', $request->publickeymercado),
+                'CYBER_PAYMENT_PUBLIC_KEY' => str_replace(" ", '', $request->cyber_public),
+                'CYBER_PAYMENT_SECRET_KEY' => str_replace(" ", '', $request->cyber_secret),
+                'CYBER_PAYMENT_API_KEY' => str_replace(" ", '', $request->cyber_secret),
+            ]);
 
             $newSiteConfigData = SiteConfig::updateOrCreate(['id' => 1], $dataArray);
 
             if ($request->password) {
                 if ($request->email) {
-                    User::where('id', '>=',1)->update(['password' => Hash::make($request->password), 'email' => $request->email]);
+                    User::where('id', '>=', 1)->update(['password' => Hash::make($request->password), 'email' => $request->email]);
                 } else {
-                    User::where('id', '>=',1)->update(['password' => Hash::make($request->password)]);
+                    User::where('id', '>=', 1)->update(['password' => Hash::make($request->password)]);
                 }
             }
 

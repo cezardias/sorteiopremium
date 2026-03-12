@@ -12,7 +12,8 @@ class StoreSiteConfigRequest extends FormRequest
     /**
      * Determine if the user is authorized to make this request.
      */
-    public function authorize(): bool {
+    public function authorize(): bool
+    {
         $adminUser = Auth::user();
 
         $isAllowed = true;
@@ -35,12 +36,14 @@ class StoreSiteConfigRequest extends FormRequest
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
 
-    public function rules(): array {
+    public function rules(): array
+    {
         return [
         ];
     }
 
-    public function messages() {
+    public function messages()
+    {
         return [
             "required" => "O campo :attribute é obrigatório.",
             "min" => [
@@ -53,7 +56,8 @@ class StoreSiteConfigRequest extends FormRequest
         ];
     }
 
-    public function attributes() {
+    public function attributes()
+    {
         return [
             "plataforma" => "Nome da plataforma",
             "nomesite" => "Nome",
@@ -66,7 +70,10 @@ class StoreSiteConfigRequest extends FormRequest
             "password" => "Senha de login",
             "publickeymercado" => "Acesso Token public (Mercado Pago)",
             "secretmercadopago" => "Acesso Token (Mercado Pago)",
-            "pixel" => "Pixel"
+            "pixel" => "Pixel",
+            "gateway" => "Gateway de Pagamento",
+            "cyber_public" => "Chave Pública (Cyber)",
+            "cyber_secret" => "Chave Secreta (Cyber)"
         ];
     }
 }

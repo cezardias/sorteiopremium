@@ -20,6 +20,6 @@ class SiteConfig extends Model
      *
      * @var array
      */
-    protected $fillable = ['meta_pixel', 'instagram_link', 'whatsapp_link', 'url_logo_site', 'url_favicon_site', 'site_name', 'plataform_name'];
+    protected $fillable = ['meta_pixel', 'instagram_link', 'whatsapp_link', 'url_logo_site', 'url_favicon_site', 'site_name', 'plataform_name', 'gateway', 'cyber_public_key', 'cyber_secret_key'];
 
 }

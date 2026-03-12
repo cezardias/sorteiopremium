@@ -8,6 +8,7 @@ use App\Models\V1\Cotas;
 use App\Models\V1\RifaNumber;
 use App\Models\V1\RifaPay;
 use App\Models\V1\Rifas;
+use App\Models\V1\SiteConfig;
 use App\Models\V1\AwardedQuota;
 use App\Services\CyberPaymentService;
 use App\Services\RifaService;
@@ -33,6 +34,14 @@ class CyberPaymentController extends Controller
      */
     public function buyRifa(Request $request, $afiliadoId = null)
     {
+        $config = SiteConfig::find(1);
+        if ($config && $config->gateway !== 'cyber') {
+            return response()->json([
+                "success" => false,
+                "msg" => "Gateway Cyber não está ativo nas configurações do site."
+            ], 403);
+        }
+
         try {
             $validator = Validator::make($request->all(), [
                 'client_id' => 'required|integer|exists:clients,id',
