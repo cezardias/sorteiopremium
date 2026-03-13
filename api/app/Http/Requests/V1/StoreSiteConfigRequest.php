@@ -68,8 +68,6 @@ class StoreSiteConfigRequest extends FormRequest
             "linkinstasite" => "Link do Instagram",
             "email" => "Email de login",
             "password" => "Senha de login",
-            "publickeymercado" => "Acesso Token public (Mercado Pago)",
-            "secretmercadopago" => "Acesso Token (Mercado Pago)",
             "pixel" => "Pixel",
             "gateway" => "Gateway de Pagamento",
             "cyber_public" => "Chave Pública (Cyber)",

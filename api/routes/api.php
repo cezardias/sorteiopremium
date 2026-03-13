@@ -3,7 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
-use App\Http\Controllers\V1\{AuthController, AdminController, ClientController, CyberPaymentController, MercadoPagoController, RifasController, PixController, SiteConfigController};
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\V1\{AuthController, AdminController, ClientController, CyberPaymentController, RifasController, SiteConfigController};
 use App\Http\Controllers\{RewardAdminController, RewardPublicController};
 
 /*
@@ -173,10 +174,8 @@ Route::get('client/pedidos', [ClientController::class, 'getNumbers']);
 Route::post("/get-numbers", [ClientController::class, "getNumbers"]);
 
 Route::get("/config", [SiteConfigController::class, "getUserSiteConfig"]);
-Route::post("/pix", [PixController::class, "index"]);
-Route::post("/pay-cota", [MercadoPagoController::class, "getQr"]);
+Route::post("/pix", [CyberPaymentController::class, "buyRifa"]); // Redirecionamento de segurança
 Route::post('cyber-webhook', [CyberPaymentController::class, 'webhook']);
-Route::post('mercado-pago-payments', [PixController::class, 'checkPaymentStatus']);
 
 
 // routes/api.php
@@ -192,7 +191,29 @@ Route::middleware('auth.client')->group(function () { // <<< troquei sanctum por
 Route::middleware(['auth:sanctum', 'checkAdmin:admin,superadmin'])->get('/admin/rewards/{rifa}', [RewardAdminController::class, 'show']);
 Route::middleware(['auth:sanctum', 'checkAdmin:admin,superadmin'])->post('/admin/rewards/{rifa}', [RewardAdminController::class, 'store']);
 
-// Rota Temporária para rodar migrations (Remover após uso)
+// Rota de Debug do Banco de Dados
+Route::get('/db-debug', function () {
+    try {
+        $tables = DB::select('SHOW TABLES');
+        $dbName = "Tables_in_" . env('DB_DATABASE');
+        $output = [];
+
+        foreach ($tables as $table) {
+            $tableName = $table->$dbName;
+            $columns = DB::select("SHOW COLUMNS FROM $tableName");
+            $output[$tableName] = $columns;
+        }
+
+        return response()->json([
+            "success" => true,
+            "database" => env('DB_DATABASE'),
+            "schema" => $output
+        ]);
+    } catch (\Exception $e) {
+        return "Erro ao ler banco: " . $e->getMessage();
+    }
+});
+
 Route::get('/run-migrations', function () {
     try {
         Artisan::call('migrate', ['--force' => true]);

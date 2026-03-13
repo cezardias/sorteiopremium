@@ -69,8 +69,6 @@ class SiteConfigController extends Controller
                 return response()->json(["success" => true], 200);
             }
             $configData->email = User::orderBy("updated_at", "desc")->first()->email;
-            $configData->mercadoPagoAccessToken = env('MERCADO_PAGO_ACCESS_TOKEN');
-            $configData->mercadoPagoPublic = env('MERCADO_PAGO_PUBLIC_KEY');
             $configData->cyberPublicKey = env('CYBER_PAYMENT_PUBLIC_KEY');
             $configData->cyberSecretKey = env('CYBER_PAYMENT_SECRET_KEY');
 
@@ -114,8 +112,6 @@ class SiteConfigController extends Controller
                 $dataArray['url_logo_site'] = $logoUrl;
             }
             $this->updateEnvFile([
-                'MERCADO_PAGO_ACCESS_TOKEN' => str_replace(" ", '', $request->secretmercadopago),
-                'MERCADO_PAGO_PUBLIC_KEY' => str_replace(" ", '', $request->publickeymercado),
                 'CYBER_PAYMENT_PUBLIC_KEY' => str_replace(" ", '', $request->cyber_public),
                 'CYBER_PAYMENT_SECRET_KEY' => str_replace(" ", '', $request->cyber_secret),
                 'CYBER_PAYMENT_API_KEY' => str_replace(" ", '', $request->cyber_secret),
