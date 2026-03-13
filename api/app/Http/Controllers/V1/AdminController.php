@@ -16,7 +16,6 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Auth;
-use ApiGratis\ApiBrasil;
 use App\Models\User;
 use App\Http\Requests\V1\{UserRequest};
 use GuzzleHttp\Client;
@@ -731,7 +730,7 @@ class AdminController extends Controller
     public function getConfigSite()
     {
         try {
-            $settings = SiteSetting::first();
+            $settings = SiteConfig::first();
             return response()->json(["success" => true, "data" => $settings], 200);
         } catch (Exception $e) {
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
@@ -768,8 +767,8 @@ class AdminController extends Controller
         try {
             // Total de pedidos e valores
             $totalPedido = RifaPay::getAllCompraAtivo()->sum('value');
-            $pedidosAprovados = RifaPay::getAllCompraAtivo()->count('status');
-            $pedidosAguardando = RifaPay::getAllCompraAguardando()->count('status');
+            $pedidosAprovados = RifaPay::getAllCompraAtivo()->count();
+            $pedidosAguardando = RifaPay::getAllCompraAguardando()->count();
             $totalPedidoAguardando = RifaPay::getAllCompraAguardando()->sum('value');
 
             // Faturamento por hora do dia
@@ -1056,12 +1055,12 @@ class AdminController extends Controller
                 ->sum('value');
 
             // Faturamento Horário
-            $horaDoDia = $this->faturamentoPorHora($id, $inicio, $fim);
+            $horaDoDia = $this->faturamentoPorHora($id);
 
             // Faturamento Semanal
             $inicioDaSemana = $inicio->copy()->startOfWeek();
             $fimDaSemana = $inicio->copy()->endOfWeek();
-            $faturamentoSemanal = $this->faturamentoSemanalPorDia($id, $inicioDaSemana, $fimDaSemana);
+            $faturamentoSemanal = $this->faturamentoSemanalPorDia($id);
 
             // Faturamento do Dia Atual
             $faturamentoDoDia = RifaPay::getOneCompraAtivo($id)
@@ -1102,8 +1101,8 @@ class AdminController extends Controller
 
             // Lógica existente
             $totalPedido = RifaPay::getOneCompraAtivo($id)->sum('value');
-            $pedidosAprovados = RifaPay::getOneCompraAtivo($id)->count('status');
-            $pedidosAguardando = RifaPay::getOneCompraAguardando($id)->count('status');
+            $pedidosAprovados = RifaPay::getOneCompraAtivo($id)->count();
+            $pedidosAguardando = RifaPay::getOneCompraAguardando($id)->count();
             $totalPedidoAguardando = RifaPay::getOneCompraAguardando($id)->sum('value');
 
             // Faturamento Horário
@@ -1362,7 +1361,7 @@ class AdminController extends Controller
     public function getAllAfiliado()
     {
         try {
-            $afiliados = Afiliado::findAllAfiliado(['ganhoAfiliado', 'client']);
+            $afiliados = Afiliado::findAllAfiliado();
             if (!$afiliados) {
                 return response()->json(["success" => false, "msg" => 'Não tem nenhum afiliado no momento'], 500);
             }
