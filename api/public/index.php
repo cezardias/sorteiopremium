@@ -1,9 +1,17 @@
 <?php
 
+header("Content-Type: text/plain");
+echo "DEBUG: STAGE 1 - index.php started\n";
+ob_end_flush();
+flush();
+
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
+
+echo "DEBUG: STAGE 2 - imports done\n";
+flush();
 
 /*
 |--------------------------------------------------------------------------
