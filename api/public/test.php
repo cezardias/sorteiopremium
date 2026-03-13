@@ -1,3 +1,9 @@
 <?php
-require __DIR__ . '/../vendor/autoload.php';
-echo "BLESSED TEST WITH AUTOLOADER: Time: " . date("Y-m-d H:i:s");
+echo "DEBUG FILE SYSTEM\n";
+$dir = __DIR__ . '/../vendor';
+if (file_exists($dir)) {
+    echo "Vendor exists. Contents:\n";
+    print_r(scandir($dir));
+} else {
+    echo "Vendor DOES NOT EXIST at $dir\n";
+}
