@@ -15,7 +15,7 @@ use Carbon\Carbon;
 use App\Http\Requests\V1\{StoreRifasRequest, UpdateRifasRequest, PaymentRequest, OrderRifaRequest, WinnerRequest};
 use App\Http\Resources\V1\{RifasResource};
 use App\Models\V1\{Rifas, RifaWinner, RifaPay, AwardedQuota, DiscountPackage, RifaUpsell, RifaImage, Cotas, RifasAwarded, RifasOthers, RifasPayment};
-use App\Services\{RifaService, MercadoPagoService, Pay2MService, RewardEngineService};
+use App\Services\{RifaService, Pay2MService, RewardEngineService};
 use Illuminate\Support\Facades\Validator;
 
 
@@ -31,13 +31,13 @@ class RifasController extends Controller
     protected $notFound = 404;
     protected $serverError = 500;
 
-      public function __construct(RifaService $rifaService, MercadoPagoService $mercadoPagoService, Pay2MService $pay2MService)
+    public function __construct(RifaService $rifaService, Pay2MService $pay2MService)
     {
         $this->rifaService = $rifaService;
-        $this->mercadoPagoService = $mercadoPagoService;
         $this->pay2MService = $pay2MService;
     }
-    public function index() {
+    public function index()
+    {
         try {
             $rifasData = Rifas::getAllRifasActivas()->where('emphasis', 'sim')->first();
 
@@ -47,7 +47,8 @@ class RifasController extends Controller
         }
     }
 
-    public function getAllRifasAdmin(Request $request) {
+    public function getAllRifasAdmin(Request $request)
+    {
         try {
             $perPage = $request->input('per_page', 10);
 
@@ -106,17 +107,22 @@ class RifasController extends Controller
     }
 
 
-    public function getAllRifasAdminFiltro(Request $request) {
+    public function getAllRifasAdminFiltro(Request $request)
+    {
         try {
             $query = Rifas::with(['cota', 'rifaImage'])
                 ->withSum('rifaPayActiva as fat_total', 'value')
                 ->withSum('rifaPayToday as fat_hoje', 'value')
-                ->withCount(['rifaNumberActive as qntd_numeros' => function ($query) {
-                    $query->select(DB::raw("SUM(LENGTH(numbers) - LENGTH(REPLACE(numbers, ',', '')) + 1) as number_count"));
-                }])
-                ->withCount(['rifaNumberReservado as qntd_numeros_reservado' => function ($query) {
-                    $query->select(DB::raw("SUM(LENGTH(numbers) - LENGTH(REPLACE(numbers, ',', '')) + 1) as number_count"));
-                }]);
+                ->withCount([
+                    'rifaNumberActive as qntd_numeros' => function ($query) {
+                        $query->select(DB::raw("SUM(LENGTH(numbers) - LENGTH(REPLACE(numbers, ',', '')) + 1) as number_count"));
+                    }
+                ])
+                ->withCount([
+                    'rifaNumberReservado as qntd_numeros_reservado' => function ($query) {
+                        $query->select(DB::raw("SUM(LENGTH(numbers) - LENGTH(REPLACE(numbers, ',', '')) + 1) as number_count"));
+                    }
+                ]);
 
             // Adiciona filtros se os parâmetros estiverem presentes e não estiverem vazios
             if ($request->has('title') && $request->input('title') != '') {
@@ -141,7 +147,8 @@ class RifasController extends Controller
 
 
 
-    public function allRifas() {
+    public function allRifas()
+    {
         try {
             $rifasData = Rifas::getAllRifas();
 
@@ -156,7 +163,8 @@ class RifasController extends Controller
     }
 
 
-    public function storeRifa(StoreRifasRequest $request) {
+    public function storeRifa(StoreRifasRequest $request)
+    {
 
         try {
             // $isMakeRifa = Rifas::RifaActiva();
@@ -166,16 +174,17 @@ class RifasController extends Controller
             // }
             $rifa = $this->rifaService->createRifas($request);
 
-            if(!$rifa) {
-                return response()->json(["success" => true, "msg" => "Ocorreu um erro ao cadastrar" ], 422 );
+            if (!$rifa) {
+                return response()->json(["success" => true, "msg" => "Ocorreu um erro ao cadastrar"], 422);
             }
-            return response()->json(["success" => true, "msg" => "Rifa criada com sucesso" ], $this->success);
+            return response()->json(["success" => true, "msg" => "Rifa criada com sucesso"], $this->success);
         } catch (Exception $e) {
             return response()->json(["response" => false, "msg" => "Ocorreu um erro interno ao cadastrar a rifa", "error" => $e->getMessage()], $this->serverError);
         }
     }
 
-    public function getOneRifa($id) {
+    public function getOneRifa($id)
+    {
         try {
             $rifasData = Rifas::getOneRifa($id);
             if (!$rifasData) {
@@ -187,22 +196,24 @@ class RifasController extends Controller
             return response()->json(["success" => false, "msg" => $e->getMessage()], $this->serverError);
         }
     }
-    public function editRifa($id, Request $request) {
+    public function editRifa($id, Request $request)
+    {
         try {
-            $rifasData = Rifas::getOneRifa( $id);
+            $rifasData = Rifas::getOneRifa($id);
             if (!$rifasData) {
-                return response()->json(["success" => false, "msg" => "Rifa não encontrada" ], 404);
+                return response()->json(["success" => false, "msg" => "Rifa não encontrada"], 404);
             }
 
             $rifa = $this->rifaService->createRifas($request);
-            return response()->json(["success" => true, "msg" => "Rifa editada com sucesso" ], $this->success);
+            return response()->json(["success" => true, "msg" => "Rifa editada com sucesso"], $this->success);
 
 
         } catch (Exception $e) {
             return response()->json(["response" => false, "msg" => "Ocorreu um erro interno ao cadastrar a rifa", "error" => $e->getMessage()], $this->serverError);
         }
     }
-    public function excluirRifa($id) {
+    public function excluirRifa($id)
+    {
         try {
             $rifasData = Rifas::getOneRifa($id);
             if (!$rifasData) {
@@ -231,7 +242,8 @@ class RifasController extends Controller
 
 
 
-    public function storeBilhetePremiado(Request $request) {
+    public function storeBilhetePremiado(Request $request)
+    {
         try {
             $qntdCota = $request->qntd_cota;
             $rifaId = $request->rifas_id;
@@ -241,7 +253,7 @@ class RifasController extends Controller
                 return response()->json(['response' => false, 'msg' => 'Bilhete não encontrada'], 404);
             }
 
-            $qntdCotaExist = AwardedQuota::where('rifas_id', $rifaId)->where('number_cota',$request->qntd_cota )->first();
+            $qntdCotaExist = AwardedQuota::where('rifas_id', $rifaId)->where('number_cota', $request->qntd_cota)->first();
 
             if (!$qntdCotaExist) {
                 $bilhetePremiado = AwardedQuota::createAwardedQuota($qntdCota, $request->award, $request->show_site, $request->status, $rifaId);
@@ -261,7 +273,8 @@ class RifasController extends Controller
             return response()->json(["response" => false, "msg" => "Ocorreu um erro interno ao cadastrar a rifa", "error" => $e->getMessage()], 500);
         }
     }
-    public function editarBilhetePremiado(Request $request) {
+    public function editarBilhetePremiado(Request $request)
+    {
         try {
             $bilheteId = $request->id;
             $rifaId = $request->rifas_id;
@@ -283,7 +296,8 @@ class RifasController extends Controller
             return response()->json(["response" => false, "msg" => "Ocorreu um erro interno ao editar a bilhete", "error" => $e->getMessage()], 500);
         }
     }
-    public function destroyBilhetePremiado(Request $request) {
+    public function destroyBilhetePremiado(Request $request)
+    {
         try {
             $bilheteId = $request->id;
             $rifaId = $request->rifaId;
@@ -305,7 +319,8 @@ class RifasController extends Controller
             return response()->json(["response" => false, "msg" => "Ocorreu um erro interno ao editar a bilhete", "error" => $e->getMessage()], 500);
         }
     }
-    public function getAllBilhetePremiado($id) {
+    public function getAllBilhetePremiado($id)
+    {
         try {
             $nomeRifa = Rifas::where('id', $id)->first();
 
@@ -318,7 +333,7 @@ class RifasController extends Controller
             if ($qntdCotaExist->isEmpty()) {
                 return response()->json(['response' => false, 'msg' => 'Bilhete não encontrada'], 404);
             }
-            return  response()->json(["success" => true, "data" => $qntdCotaExist, 'nomeRifa' => $nomeRifa], 200);
+            return response()->json(["success" => true, "data" => $qntdCotaExist, 'nomeRifa' => $nomeRifa], 200);
 
 
 
@@ -327,7 +342,8 @@ class RifasController extends Controller
             return response()->json(["response" => false, "msg" => "Ocorreu um erro interno ao cadastrar a rifa", "error" => $e->getMessage()], 500);
         }
     }
-    public function getBilhetePremiadoFiltro(Request $request, $id) {
+    public function getBilhetePremiadoFiltro(Request $request, $id)
+    {
         try {
             $rifa = Rifas::find($id);
             if ($rifa == null) {
@@ -362,20 +378,22 @@ class RifasController extends Controller
 
 
 
-    public function getOneBilhetePremiado($id) {
+    public function getOneBilhetePremiado($id)
+    {
         try {
             $bilhete = AwardedQuota::getOneBilhetePremiado($id);
             if (!$bilhete) {
                 return response()->json(['response' => false, 'msg' => 'bilhete não encontrada'], 404);
             }
 
-            return  response()->json(["success" => true, "data" => $bilhete], 200);
+            return response()->json(["success" => true, "data" => $bilhete], 200);
 
         } catch (Exception $e) {
             return response()->json(["response" => false, "msg" => "Ocorreu um erro interno", "error" => $e->getMessage()], 500);
         }
     }
-    public function storePacote(Request $request) {
+    public function storePacote(Request $request)
+    {
         try {
             $rifaId = $request->rifas_id;
 
@@ -387,8 +405,8 @@ class RifasController extends Controller
             $pacote = DiscountPackage::createDiscountPackage($request);
 
             if ($pacote) {
-                $pacote =  DiscountPackage::getAllPacotes($rifaId);
-                return response()->json(["success" => true, "msg" => "Pacote criado com sucesso", 'data' =>  $pacote], 200);
+                $pacote = DiscountPackage::getAllPacotes($rifaId);
+                return response()->json(["success" => true, "msg" => "Pacote criado com sucesso", 'data' => $pacote], 200);
             }
 
             return response()->json(['response' => false, 'msg' => 'Erro ao criar o pacote'], 500);
@@ -397,7 +415,8 @@ class RifasController extends Controller
             return response()->json(["response" => false, "msg" => "Ocorreu um erro interno ao cadastrar a rifa", "error" => $e->getMessage()], 500);
         }
     }
-    public function editarPacote(Request $request) {
+    public function editarPacote(Request $request)
+    {
         try {
             $rifaId = $request->rifas_id;
 
@@ -419,7 +438,8 @@ class RifasController extends Controller
             return response()->json(["response" => false, "msg" => "Ocorreu um erro", "error" => $e->getMessage()], 500);
         }
     }
-    public function deletePacote(Request $request) {
+    public function deletePacote(Request $request)
+    {
         try {
 
             $packageId = $request->id;
@@ -441,7 +461,8 @@ class RifasController extends Controller
         }
     }
 
-    public function getAllPacotes($id) {
+    public function getAllPacotes($id)
+    {
         try {
             $nomeRifa = Rifas::where('id', $id)->first();
             $pacotes = DiscountPackage::getAllPacotes($id);
@@ -449,14 +470,15 @@ class RifasController extends Controller
                 return response()->json(['response' => false, 'msg' => 'Pacote não encontrada'], 404);
             }
 
-            return response()->json(["success" => true, "data" => $pacotes, 'nomeRifa' => $nomeRifa ], 200);
+            return response()->json(["success" => true, "data" => $pacotes, 'nomeRifa' => $nomeRifa], 200);
 
 
         } catch (Exception $e) {
             return response()->json(["response" => false, "msg" => "Ocorreu um erro interno ao cadastrar a rifa", "error" => $e->getMessage()], 500);
         }
     }
-    public function getOnePacotes($id) {
+    public function getOnePacotes($id)
+    {
         try {
 
             $pacote = DiscountPackage::getOnePacote($id);
@@ -464,14 +486,15 @@ class RifasController extends Controller
                 return response()->json(['response' => false, 'msg' => 'Pacote não encontrada'], 404);
             }
 
-            return response()->json(["success" => true, "data" => $pacote ], 200);
+            return response()->json(["success" => true, "data" => $pacote], 200);
 
 
         } catch (Exception $e) {
             return response()->json(["response" => false, "msg" => "Ocorreu um erro interno ao cadastrar a rifa", "error" => $e->getMessage()], 500);
         }
     }
-    public function filtroPacotes(Request $request, $id) {
+    public function filtroPacotes(Request $request, $id)
+    {
         try {
             // Inicializa a query base, filtrando pelo 'rifas_id'
             $query = DiscountPackage::where('rifas_id', $id);
@@ -536,11 +559,12 @@ class RifasController extends Controller
 
 
 
-    public function getUpsellRifa($id) {
+    public function getUpsellRifa($id)
+    {
         try {
             $nomeRifa = Rifas::where('id', $id)->first();
 
-            $upsell = RifaUpsell::getAllUpsellRifa( $id);
+            $upsell = RifaUpsell::getAllUpsellRifa($id);
 
             if (!$upsell) {
                 return response()->json(["success" => false, "msg" => "Upsell não encontrado"], 404);
@@ -554,7 +578,8 @@ class RifasController extends Controller
 
     }
 
-    public function storeUpsell(Request $request) {
+    public function storeUpsell(Request $request)
+    {
         try {
             $rifaId = $request->rifas_id;
 
@@ -563,7 +588,7 @@ class RifasController extends Controller
                 return response()->json(['response' => false, 'msg' => 'Rifa não encontrada'], 404);
             }
 
-            $upsell = RifaUpsell::createUpsell( $request->id ?? null, $request->qntd_cota, $request->price_cota, $request->price_total, $request->qntd_min, $request->qntd_max, $request->localizacao, $request->status ?? 'ativo', $rifaId);
+            $upsell = RifaUpsell::createUpsell($request->id ?? null, $request->qntd_cota, $request->price_cota, $request->price_total, $request->qntd_min, $request->qntd_max, $request->localizacao, $request->status ?? 'ativo', $rifaId);
 
             if (!$upsell) {
                 return response()->json(['response' => false, 'msg' => 'Erro ao criar o pacote'], 500);
@@ -576,7 +601,8 @@ class RifasController extends Controller
         }
     }
 
-    public function storeImagem(Request $request) {
+    public function storeImagem(Request $request)
+    {
         try {
             // Validar a entrada
             $request->validate([
@@ -596,7 +622,8 @@ class RifasController extends Controller
         }
     }
 
-    public function getImagens($id) {
+    public function getImagens($id)
+    {
         try {
             $nomeRifa = Rifas::where('id', $id)->first();
 
@@ -605,14 +632,15 @@ class RifasController extends Controller
                 return response()->json(['response' => false, 'msg' => 'Imagem não encontrada'], 404);
             }
 
-            return response()->json(["success" => true, "data" => $imagens, 'nomeRifa' => $nomeRifa ], 200);
+            return response()->json(["success" => true, "data" => $imagens, 'nomeRifa' => $nomeRifa], 200);
 
 
         } catch (Exception $e) {
             return response()->json(["response" => false, "msg" => "Ocorreu um erro interno", "error" => $e->getMessage()], 500);
         }
     }
-    public function destroyImagem($id) {
+    public function destroyImagem($id)
+    {
         try {
 
             $img = RifaImage::getOneRifaImagens($id);
@@ -620,7 +648,7 @@ class RifasController extends Controller
                 return response()->json(['response' => false, 'msg' => 'Imagem não encontrada'], 404);
             }
             $img->delete();
-            return response()->json(["success" => true, "msg" => 'Imagem deletada com sucesso' ], 200);
+            return response()->json(["success" => true, "msg" => 'Imagem deletada com sucesso'], 200);
 
 
         } catch (Exception $e) {
@@ -630,19 +658,19 @@ class RifasController extends Controller
 
     public function finalizarRifa($id)
     {
-        $rifa = Rifas::where('id',$id);
-        if (!$rifa ) {
+        $rifa = Rifas::where('id', $id);
+        if (!$rifa) {
             return response()->json(["response" => true, "msg" => "Nenhuma rifa encontrada."], 404);
         }
 
         $hoje = Carbon::now();
-        $rifa->update(['status' => 'finalizadas', 'end_rifa' =>  $hoje]);
+        $rifa->update(['status' => 'finalizadas', 'end_rifa' => $hoje]);
         return response()->json(["response" => true, "msg" => "Rifa finalizada com sucesso."]);
     }
     public function ativarRifa($id)
     {
-        $rifa = Rifas::where('id',$id);
-        if (!$rifa ) {
+        $rifa = Rifas::where('id', $id);
+        if (!$rifa) {
             return response()->json(["response" => true, "msg" => "Nenhuma rifa encontrada."], 404);
         }
 
@@ -652,7 +680,8 @@ class RifasController extends Controller
     }
 
 
-    public function show($slug, $id) {
+    public function show($slug, $id)
+    {
         try {
             $rifaData = Rifas::getOneRifa($id);
 
@@ -671,12 +700,13 @@ class RifasController extends Controller
             $ranking = RifaNumber::getRankingRifa($id);
             $data = ['rifa' => $rifaData, 'ranking' => $ranking];
 
-            return response()->json(["success" => true, "data" => $data, "aa" =>$initialSaleDate, 'aaaaa' => $todayDate], $this->success);
+            return response()->json(["success" => true, "data" => $data, "aa" => $initialSaleDate, 'aaaaa' => $todayDate], $this->success);
         } catch (Exception $e) {
             return response()->json(["success" => false, "msg" => $e->getMessage()], $this->serverError);
         }
     }
-    public function buyRifa(Request $request, $afiliadoId = null) {
+    public function buyRifa(Request $request, $afiliadoId = null)
+    {
         try {
             $validator = Validator::make($request->all(), [
                 'client_id' => 'required|integer|exists:clients,id',
@@ -690,9 +720,9 @@ class RifasController extends Controller
                 return response()->json(["success" => false, "msg" => $validator->errors()], 422);
             }
 
-            $isBuyRifa =  $this->rifaService->isBuy($request);
-            if(!$isBuyRifa['success']) {
-                return response()->json(["success" => false, "msg" => $isBuyRifa['msg']], 409 );
+            $isBuyRifa = $this->rifaService->isBuy($request);
+            if (!$isBuyRifa['success']) {
+                return response()->json(["success" => false, "msg" => $isBuyRifa['msg']], 409);
             }
 
             $rifa = Rifas::with(['rifaPayment', 'discountPackage'])->findOrFail($request->rifas_id);
@@ -701,7 +731,7 @@ class RifasController extends Controller
 
 
             $unitPrice = $rifa->price ?? 0;
-            $qntdNumber = (int)$request->qntd_number;
+            $qntdNumber = (int) $request->qntd_number;
 
             if ($request->pacote_promo != 0) {
                 $discountPackage = $rifa->discountPackage->where('id', $request->pacote_promo)->first();
@@ -715,8 +745,8 @@ class RifasController extends Controller
                 $calculatedValue = $unitPrice * $qntdNumber;
             }
 
-            if($request->cotas_double == 1) {
-                $request->qntd_number =  $qntdNumber * 2;
+            if ($request->cotas_double == 1) {
+                $request->qntd_number = $qntdNumber * 2;
             }
 
             $calculatedValue = round($calculatedValue, 2);
@@ -749,24 +779,14 @@ class RifasController extends Controller
 
             $result = RifaNumber::applyRifa($rifaPayDetails);
 
-            if(!$result) {
+            if (!$result) {
                 $rifaPayDetails->delete();
-                return response()->json(["success" => false, "msg" => "Quantidade de número invalido"], 409 );
+                return response()->json(["success" => false, "msg" => "Quantidade de número invalido"], 409);
             }
 
 
-            $payment = $this->mercadoPagoService->createPayment($rifaPayDetails, 'Rei do Pix, [Compra da rifa '.$rifaPayDetails->rifa->title. ']');
-
-            if (!$payment || isset($payment['status']) && $payment['status'] === false) {
-                return response()->json(["success" => false, "msg" => "Erro ao gerar pagamento", "details" => $payment], 500);
-            }
-
-            $rifaPayDetails->pixId = $payment['hash'] ?? null;
-            $rifaPayDetails->qrCode = $payment['payment'] ?? null;
-            $rifaPayDetails->qrCodeBase64 = $payment['payment'] ?? null;
-
-
-            RifaPay::addPix($rifaPay->id, $rifaPayDetails->pixId, $rifaPayDetails->qrCode, $rifaPayDetails->qrCodeBase64);
+            // Mercado Pago Removido
+            return response()->json(["success" => false, "msg" => "Método de pagamento Mercado Pago não está mais disponível. Use Cyber Payment."], 403);
 
             if ($afiliadoId) {
                 $this->rifaService->calcularGanhoAfiliado($afiliadoId, $rifaPay);
@@ -780,49 +800,11 @@ class RifasController extends Controller
         }
     }
 
-    public function checkPaymentStatus($paymentId) {
-        $paymentStatus =  $this->mercadoPagoService->checkPaymentStatus($paymentId);
-
-
-        if (!$paymentStatus) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Falha ao verificar o status do pagamento.'
-            ]);
-        }
-
-
-        $payments = RifaPay::with('client')->where('pix_id', $paymentId)->first();
-
-
-        if (!$payments) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Pagamento não encontrado ou já processado.'
-            ]);
-        }
-
-
-        $checkPaymentStatus = $paymentStatus['data']['status'];
-        if ($checkPaymentStatus == 1) {
-            $payments->update(['status' => 1]);
-            RifaNumber::where('pay_id', $payments->id)->update(['status' => 1]);
-
-            $numbers = RifaNumber::where('pay_id', $payments->id)->pluck('numbers')->toArray();
-            $rifaPay = RifaPay::find($payments->id);
-           AwardedQuota::ganhadorBilhetePremiado($numbers, $rifaPay->client_id, $rifaPay->rifas_id, $rifaPay->id);
-
-           $numbersBought = count($numbers);
-            RewardPassService::grantFromApprovedPayment($rifaPay);
-            return response()->json([
-                'status' => true,
-                'message' => 'Pagamento aprovado.'
-            ]);
-        }
-
+    public function checkPaymentStatus($paymentId)
+    {
         return response()->json([
             'status' => false,
-            'message' => 'Aguardando pagamento.'
+            'message' => 'Método de pagamento Mercado Pago não está mais disponível.'
         ]);
     }
 
@@ -831,24 +813,26 @@ class RifasController extends Controller
 
 
 
-        public function getCompra($id) {
-            try {
-                $buy = RifaPay::getOneCompra($id);
-                if (!$buy) {
-                    return response()->json(["success" => false, "msg" => "Pedido não encontrado"], $this->notFound);
-                }
-                return response()->json(["success" => true, "data"=> $buy], $this->success);
-            } catch (Exception $e) {
-                return response()->json(["success" => false, "msg" => $e->getMessage()], $this->serverError);
+    public function getCompra($id)
+    {
+        try {
+            $buy = RifaPay::getOneCompra($id);
+            if (!$buy) {
+                return response()->json(["success" => false, "msg" => "Pedido não encontrado"], $this->notFound);
             }
+            return response()->json(["success" => true, "data" => $buy], $this->success);
+        } catch (Exception $e) {
+            return response()->json(["success" => false, "msg" => $e->getMessage()], $this->serverError);
         }
-    public function getCompraClient($id) {
+    }
+    public function getCompraClient($id)
+    {
         try {
             $buy = RifaPay::getAllCompraClient($id);
             // if (!$buy) {
             //     return response()->json(["success" => false, "msg" => "Pedidos não encontrado"], $this->notFound);
             // }
-            return response()->json(["success" => true, "data"=> $buy], $this->success);
+            return response()->json(["success" => true, "data" => $buy], $this->success);
         } catch (Exception $e) {
             return response()->json(["success" => false, "msg" => $e->getMessage()], $this->serverError);
         }
@@ -856,7 +840,8 @@ class RifasController extends Controller
 
 
 
-    public function defineWinners(WinnerRequest $request) {
+    public function defineWinners(WinnerRequest $request)
+    {
         try {
 
             $winners = RifaWinner::defineWinner($request);
@@ -867,7 +852,8 @@ class RifasController extends Controller
             return response()->json(["success" => false, "msg" => $e->getMessage()], $this->serverError);
         }
     }
-    public function makeQuotaAwarded(WinnerRequest $request) {
+    public function makeQuotaAwarded(WinnerRequest $request)
+    {
         try {
 
             $winners = RifaWinner::defineWinner($request);
@@ -879,11 +865,12 @@ class RifasController extends Controller
         }
     }
 
-    public function getAllWinners() {
+    public function getAllWinners()
+    {
         try {
             $winners = RifaWinner::getAllWinners();
 
-            if(!$winners) {
+            if (!$winners) {
                 return response()->json(["success" => false, "msg" => "Ganhadores não encontrado"], 404);
             }
             return response()->json(["success" => true, "data" => $winners], $this->success);
@@ -941,7 +928,7 @@ class RifasController extends Controller
                 }
             }
             $data = [
-                "title" =>  strip_tags($request->get("title")),
+                "title" => strip_tags($request->get("title")),
                 "description" => $request->get("description"),
                 "rifa_status" => $request->get("rifaStatus"),
                 "rifa_date" => $request->get("rifaDate"),
@@ -979,7 +966,7 @@ class RifasController extends Controller
         try {
             $rifaData = Rifas::find($id);
             if ($rifaData) {
-                $postImage =  $rifaData->thumbnail;
+                $postImage = $rifaData->thumbnail;
 
                 $imagePath = parse_url($postImage, PHP_URL_PATH);
 
@@ -991,7 +978,8 @@ class RifasController extends Controller
                 return response()->json(["success" => true, "msg" => "Rifa has been deleted"], $this->success);
             } else {
                 throw new Exception("Rifa has not been found.");
-            };
+            }
+            ;
         } catch (Exception $e) {
             return response()->json(["success" => false, "msg" => $e->getMessage()], $this->serverError);
         }
@@ -1018,7 +1006,8 @@ class RifasController extends Controller
         }
     }
 
-    public function orders($id) {
+    public function orders($id)
+    {
         try {
             $rifaData = Rifas::find($id);
 
@@ -1033,7 +1022,8 @@ class RifasController extends Controller
         }
     }
 
-    public function searchOrder(Request $request) {
+    public function searchOrder(Request $request)
+    {
         try {
             $rifaData = Rifas::find($request->id);
 
@@ -1051,7 +1041,7 @@ class RifasController extends Controller
                 array_push($conditions, $buyId);
             }
             if ($request->phone) {
-                $phone = $getWhere." clients.phone = $request->phone ";
+                $phone = $getWhere . " clients.phone = $request->phone ";
                 array_push($conditions, $phone);
             }
             if (count($conditions) > 0) {
@@ -1068,7 +1058,8 @@ class RifasController extends Controller
     }
 
 
-    public function defineWinner(Request $request) {
+    public function defineWinner(Request $request)
+    {
         try {
             $rifaData = Rifas::find($request->id);
 

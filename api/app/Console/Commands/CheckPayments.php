@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\V1\RifaPay;
-use App\Services\MercadoPagoService;
+use App\Services\CyberPaymentService;
 use Illuminate\Console\Command;
 
 class CheckPayments extends Command
@@ -20,44 +20,42 @@ class CheckPayments extends Command
      *
      * @var string
      */
-    protected $description = 'Verifica o status dos pagamentos pendentes';
+    protected $description = 'Verifica o status dos pagamentos pendentes usando Cyber Payment Service';
 
+    protected $cyberPaymentService;
 
-
-    public function __construct(MercadoPagoService $mercadoPagoService)
+    public function __construct(CyberPaymentService $cyberPaymentService)
     {
         parent::__construct();
-        $this->mercadoPagoService = $mercadoPagoService;
+        $this->cyberPaymentService = $cyberPaymentService;
     }
+
     public function handle()
     {
         $payments = RifaPay::with('client')->where('status', 0)->whereNotNull('pix_id')->get();
 
         foreach ($payments as $payment) {
-            $paymentStatusResponse = $this->mercadoPagoService->checkPaymentStatus($payment->pix_id);
+            // No Cyber Payment, o status é verificado pelo ID da transação (RifaPay ID ou pix_id)
+            $response = $this->cyberPaymentService->checkStatus($payment->id);
 
-            if ($paymentStatusResponse['status']) {
-                $paymentStatus = $paymentStatusResponse['data']['status'];
+            if ($response['success']) {
+                $status = $response['status']; // 1 = Aprovado, 0 = Pendente, 2 = Expirado/Cancelado
 
-                if ($paymentStatus === 1) {
+                if ($status == 1) {
                     $payment->update(['status' => 1]);
                     $clientName = $payment->client ? $payment->client->name : 'Cliente não encontrado';
                     $this->info("O pagamento de {$clientName} com o ID {$payment->id} foi aprovado.");
-                } elseif ($paymentStatus === 0) {
-                    $payment->update(['status' => 0]);
-                    $clientName = $payment->client ? $payment->client->name : 'Cliente não encontrado';
-                    $this->info("O pagamento de {$clientName} com o ID {$payment->id} está pendente.");
+                } elseif ($status == 0) {
+                    $this->info("O pagamento de {$payment->id} ainda está pendente.");
                 } else {
-                    $clientName = $payment->client ? $payment->client->name : 'Cliente não encontrado';
-                    $this->info("O pagamento de {$clientName} com o ID {$payment->id} foi expirado.");
+                    $payment->update(['status' => 2]);
+                    $this->info("O pagamento de {$payment->id} expirou ou foi cancelado.");
                 }
             } else {
-                $clientName = $payment->client ? "{$payment->client->name} {$payment->client->surname}" : 'Cliente não encontrado';
-                $this->error("Erro ao verificar pagamento do(a) {$clientName}, ID do pix: {$payment->pix_id}");
+                $this->error("Erro ao verificar pagamento ID: {$payment->id}");
             }
         }
 
         $this->info('Fim da verificação de pagamento.');
-
     }
 }
