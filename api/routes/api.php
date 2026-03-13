@@ -200,19 +200,27 @@ Route::get('/db-debug', function () {
             $tableArray = (array) $table;
             $tableName = reset($tableArray);
             if ($tableName) {
-                $columns = DB::select("SHOW COLUMNS FROM $tableName");
-                $output[$tableName] = $columns;
+                try {
+                    $columns = DB::select("SHOW COLUMNS FROM $tableName");
+                    $output[$tableName] = $columns;
+                } catch (\Exception $colError) {
+                    $output[$tableName] = "Erro ao ler colunas: " . $colError->getMessage();
+                }
             }
         }
 
         return response()->json([
             "success" => true,
+            "database" => config('database.connections.mysql.database'),
+            "tables_count" => count($output),
             "schema" => $output
         ]);
     } catch (\Exception $e) {
         return response()->json([
             "success" => false,
-            "msg" => "Erro ao ler banco: " . $e->getMessage()
+            "error_type" => get_class($e),
+            "msg" => "Erro ao ler banco: " . $e->getMessage(),
+            "trace" => substr($e->getTraceAsString(), 0, 500)
         ], 500);
     }
 });

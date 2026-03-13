@@ -22,6 +22,9 @@ class SiteConfigResource extends JsonResource
             'urlFaviconSite' => $this->url_favicon_site,
             'siteName' => $this->site_name,
             'plataformName' => $this->plataform_name,
+            'gateway' => $this->gateway,
+            'cyberPublicKey' => $this->cyber_public_key ?? env('CYBER_PAYMENT_PUBLIC_KEY'),
+            'cyberSecretKey' => $this->cyber_secret_key ?? env('CYBER_PAYMENT_SECRET_KEY'),
         ];
     }
 }

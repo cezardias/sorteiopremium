@@ -26,6 +26,8 @@ use Illuminate\Support\Facades\Validator;
 class RifasController extends Controller
 {
 
+    protected $rifaService;
+    protected $pay2MService;
     protected $success = 200;
     protected $postSuccess = 201;
     protected $notFound = 404;
@@ -62,7 +64,7 @@ class RifasController extends Controller
                 ->paginate($perPage);
 
             // Agora vamos montar os dados adicionais no PHP
-            $rifas->getCollection()->transform(function ($rifa) {
+            $rifas->through(function ($rifa) {
 
                 // Faturamento total
                 $fatTotal = $rifa->rifaPay()->where('status', 1)->sum('value');

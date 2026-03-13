@@ -18,7 +18,7 @@ class SiteConfigController extends Controller
     public function getUserSiteConfig()
     {
         try {
-            $configData = SiteConfig::select('meta_pixel', 'instagram_link', 'whatsapp_link', 'url_logo_site', 'url_favicon_site', 'site_name', 'plataform_name')->where("id", "1")->first();
+            $configData = SiteConfig::select('meta_pixel', 'instagram_link', 'whatsapp_link', 'url_logo_site', 'url_favicon_site', 'site_name', 'plataform_name', 'gateway')->where("id", "1")->first();
             if (!$configData) {
                 return response()->json(["success" => true], 200);
             }
@@ -91,7 +91,7 @@ class SiteConfigController extends Controller
                 'whatsapp_link' => $request->linkwppsite,
                 'site_name' => $request->nomesite,
                 'plataform_name' => $request->plataforma,
-                'gateway' => $request->gateway ?? 'mercadopago',
+                'gateway' => $request->gateway ?? 'cyber',
                 'cyber_public_key' => $request->cyber_public,
                 'cyber_secret_key' => $request->cyber_secret,
             ];

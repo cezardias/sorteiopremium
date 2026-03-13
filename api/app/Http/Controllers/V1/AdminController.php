@@ -5,7 +5,7 @@ namespace App\Http\Controllers\V1;
 use App\Http\Controllers\Controller;
 use App\Models\Afiliado;
 use App\Models\PaymentInfo;
-use App\Models\SiteSetting;
+use App\Models\V1\SiteConfig;
 use App\Models\V1\{Clients, Rifas, RifaWinner, RifaPay, AwardedQuota};
 use App\Models\RewardTypes;
 use App\Models\RewardItems;
@@ -34,7 +34,8 @@ class AdminController extends Controller
     {
         $this->rifaService = $rifaService;
     }
-    public function storeUser(UserRequest $request) {
+    public function storeUser(UserRequest $request)
+    {
         try {
             $user = User::createUser($request->validated());
             return response()->json(['response' => 'Usuário criado com sucesso', 'user' => $user], 201);
@@ -42,12 +43,13 @@ class AdminController extends Controller
             return response()->json(['response' => 'Ocorreu um erro interno', 'error' => $e->getMessage()], 500);
         }
     }
-    public function destroyUser($id) {
+    public function destroyUser($id)
+    {
         $this->authorize('create', User::class);
         try {
             $user = User::find($id);
-            if (!$user ) {
-                return response()->json(["success" => false, "msg" =>"Usuario não encontrado"], 404);
+            if (!$user) {
+                return response()->json(["success" => false, "msg" => "Usuario não encontrado"], 404);
             }
             $user->delete();
             return response()->json(['response' => 'Usuário deletado com sucesso'], 201);
@@ -56,7 +58,8 @@ class AdminController extends Controller
         }
     }
 
-    public function login(Request $request) {
+    public function login(Request $request)
+    {
         try {
             $credentials = $request->only('email', 'password');
 
@@ -72,7 +75,8 @@ class AdminController extends Controller
         }
     }
 
-    public function logout(Request $request) {
+    public function logout(Request $request)
+    {
         try {
             $request->user()->currentAccessToken()->delete();
             return response()->json(['response' => 'Logout efetuado com sucesso'], 200);
@@ -81,7 +85,8 @@ class AdminController extends Controller
         }
     }
 
-    public function procurarGanhadorPeloNumero(Request $request) {
+    public function procurarGanhadorPeloNumero(Request $request)
+    {
         $this->authorize('view', User::class);
         try {
             $ganhador = $this->rifaService->procurarGanhador($request->numeroWinner, $request->rifa_id);
@@ -96,7 +101,8 @@ class AdminController extends Controller
         }
     }
 
-    public function procurarClientCellphone(Request $request) {
+    public function procurarClientCellphone(Request $request)
+    {
         $this->authorize('view', User::class);
         try {
 
@@ -111,8 +117,9 @@ class AdminController extends Controller
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
     }
-    public function definirGanhador(Request $request) {
-         $this->authorize('create', User::class);
+    public function definirGanhador(Request $request)
+    {
+        $this->authorize('create', User::class);
         try {
             $ganhador = $this->rifaService->definirGanhador($request->numeroSorteado, $request->novoGanhadorPhone, $request->rifa_id);
 
@@ -121,13 +128,14 @@ class AdminController extends Controller
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
     }
-    public function cadastrarGanhador(Request $request) {
+    public function cadastrarGanhador(Request $request)
+    {
         $this->authorize('create', User::class);
         try {
             $image = $this->rifaService->saveImage($request->img, $request->rifas_id);
-            $client = Clients::findClient( $request->cellphone);
-            if (!$client ) {
-                return response()->json(["success" => false, "msg" =>"Cliente não encontrado"], 404);
+            $client = Clients::findClient($request->cellphone);
+            if (!$client) {
+                return response()->json(["success" => false, "msg" => "Cliente não encontrado"], 404);
             }
             $winnerId = RifaWinner::defineWinner($request, $client->id, $image['imgName']);
             $winner = RifaWinner::findWinner($winnerId->id);
@@ -137,12 +145,13 @@ class AdminController extends Controller
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
     }
-    public function getOneGanhador($id) {
+    public function getOneGanhador($id)
+    {
         $this->authorize('view', User::class);
         try {
             $winner = RifaWinner::findWinner($id);
-            if (!$winner ) {
-                return response()->json(["success" => false, "msg" =>"Vencedor não encontrado"], 404);
+            if (!$winner) {
+                return response()->json(["success" => false, "msg" => "Vencedor não encontrado"], 404);
             }
 
             return response()->json(["success" => true, "data" => $winner], 200);
@@ -150,22 +159,23 @@ class AdminController extends Controller
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
     }
-    public function editarGanhador(Request $request) {
+    public function editarGanhador(Request $request)
+    {
         $this->authorize('update', User::class);
         try {
             $winner = RifaWinner::findWinner($request->id);
-            if (!$winner ) {
-                return response()->json(["success" => false, "msg" =>"Vencedor não encontrado"], 404);
+            if (!$winner) {
+                return response()->json(["success" => false, "msg" => "Vencedor não encontrado"], 404);
             }
 
             // $tel = $request->cellphone ?? $request->client->cellphone;
             $client = Clients::findClient($request->cellphone);
-            if (!$client ) {
-                return response()->json(["success" => false, "msg" =>"Cliente não encontrado"], 404);
+            if (!$client) {
+                return response()->json(["success" => false, "msg" => "Cliente não encontrado"], 404);
             }
 
             $isImg = preg_match('#^data:image/(?<type>.+);base64,#', $request->img);
-            if($isImg) {
+            if ($isImg) {
                 $image = $this->rifaService->saveImage($request->img, $request->rifas_id);
                 RifaWinner::editarWinner($request, $client->id, $image['imgName']);
             } else {
@@ -180,34 +190,36 @@ class AdminController extends Controller
         }
     }
 
-    public function destroyGanhador($id) {
+    public function destroyGanhador($id)
+    {
         $this->authorize('delete', User::class);
         try {
             $winner = RifaWinner::findWinner($id);
-            if (!$winner ) {
-                return response()->json(["success" => false, "msg" =>"Vencedor não encontrado"], 404);
+            if (!$winner) {
+                return response()->json(["success" => false, "msg" => "Vencedor não encontrado"], 404);
             }
             $winner->delete();
             $winners = RifaWinner::getAllWinners();
-            return response()->json(["success" => true, "msg" => "Ganhador excluído com sucesso!", "data" =>$winners], 201);
+            return response()->json(["success" => true, "msg" => "Ganhador excluído com sucesso!", "data" => $winners], 201);
         } catch (Exception $e) {
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
     }
-    public function adicionarNumerosRifas(Request $request) {
+    public function adicionarNumerosRifas(Request $request)
+    {
         $this->authorize('create', User::class);
         try {
 
-            if($request->tipo == "aleatorio") {
+            if ($request->tipo == "aleatorio") {
                 $client = $this->rifaService->adicionarNumerosRifasClient($request->cellphone, $request->qntd_number, $request->rifa_id);
 
-                if(!$client['success']) {
+                if (!$client['success']) {
                     return response()->json(["success" => true, "msg" => $client['msg']], 404);
                 }
-            } else if($request->tipo == "definir") {
+            } else if ($request->tipo == "definir") {
                 $client = $this->rifaService->adicionarNumerosDefinidoRifasClient($request->cellphone, $request->qntd_number, $request->rifa_id);
 
-                if(!$client['success']) {
+                if (!$client['success']) {
                     return response()->json(["success" => true, "msg" => $client['msg']], 404);
                 }
             } else {
@@ -218,12 +230,13 @@ class AdminController extends Controller
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
     }
-    public function adicionarBilhetePremiado(Request $request) {
+    public function adicionarBilhetePremiado(Request $request)
+    {
         $this->authorize('create', User::class);
         try {
             $client = $this->rifaService->addBilhetePremiado($request->cellphone, $request->numero_premiado, $request->rifa_id);
 
-            if(!$client['success']) {
+            if (!$client['success']) {
                 return response()->json(["success" => true, "msg" => $client['msg']], 404);
             }
 
@@ -232,11 +245,12 @@ class AdminController extends Controller
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
     }
-    public function rifaAtivas() {
+    public function rifaAtivas()
+    {
         try {
             $rifas = Rifas::getAllRifasActivas();
 
-            if(!$rifas) {
+            if (!$rifas) {
                 return response()->json(["success" => true, "msg" => 'rifas não encontradas'], 404);
             }
 
@@ -246,11 +260,12 @@ class AdminController extends Controller
         }
     }
 
-    public function consultaCota($id) {
+    public function consultaCota($id)
+    {
         try {
             $rifas = Rifas::getOneRifa($id);
 
-            if(!$rifas) {
+            if (!$rifas) {
                 return response()->json(["success" => true, "msg" => 'rifas não encontradas'], 404);
             }
 
@@ -260,74 +275,75 @@ class AdminController extends Controller
         }
     }
 
-   public function consultaCotaMinAndMax(Request $request) {
-    try {
-        $rifaId = intval($request->rifa_id);
-        $data = $request->date;
-        $type = $request->type;
-        $search = $request->search;
+    public function consultaCotaMinAndMax(Request $request)
+    {
+        try {
+            $rifaId = intval($request->rifa_id);
+            $data = $request->date;
+            $type = $request->type;
+            $search = $request->search;
 
-        // Formata a data corretamente
-        $dataFormatada = $data ? Carbon::parse($data)->toDateString() : null;
+            // Formata a data corretamente
+            $dataFormatada = $data ? Carbon::parse($data)->toDateString() : null;
 
-        // Filtra os números da rifa na data especificada (se houver)
-        $query = RifaNumber::where('rifas_id', $rifaId)
-            ->where('status', 1);
+            // Filtra os números da rifa na data especificada (se houver)
+            $query = RifaNumber::where('rifas_id', $rifaId)
+                ->where('status', 1);
 
-        if ($dataFormatada) {
-            $query->whereDate('created_at', $dataFormatada);
-        }
+            if ($dataFormatada) {
+                $query->whereDate('created_at', $dataFormatada);
+            }
 
-        $query = $query->get();
+            $query = $query->get();
 
-        // Mapeia os números e os transforma em strings com zeros à esquerda
-        $allNumbers = $query->flatMap(function($item) {
-            return collect(json_decode($item->numbers, true))
-                ->map(function($number) {
-                    return str_pad((string) $number, 5, '0', STR_PAD_LEFT);
-                });
-        })->toArray();
+            // Mapeia os números e os transforma em strings com zeros à esquerda
+            $allNumbers = $query->flatMap(function ($item) {
+                return collect(json_decode($item->numbers, true))
+                    ->map(function ($number) {
+                        return str_pad((string) $number, 5, '0', STR_PAD_LEFT);
+                    });
+            })->toArray();
 
-        $result = null;
-        $searchResult = null;
+            $result = null;
+            $searchResult = null;
 
-        if ($type === 'min') {
-            $minNumber = !empty($allNumbers) ? min($allNumbers) : null;
-            if ($minNumber !== null) {
-                $resultQuery = RifaNumber::where('rifas_id', $rifaId)
-                    ->whereJsonContains('numbers', $minNumber)
-                    ->with(['rifa', 'client']);
+            if ($type === 'min') {
+                $minNumber = !empty($allNumbers) ? min($allNumbers) : null;
+                if ($minNumber !== null) {
+                    $resultQuery = RifaNumber::where('rifas_id', $rifaId)
+                        ->whereJsonContains('numbers', $minNumber)
+                        ->with(['rifa', 'client']);
 
-                if ($dataFormatada) {
-                    $resultQuery->whereDate('created_at', $dataFormatada);
+                    if ($dataFormatada) {
+                        $resultQuery->whereDate('created_at', $dataFormatada);
+                    }
+
+                    $result = $resultQuery->first();
                 }
+                $searchResult = $minNumber;
+            } elseif ($type === 'max') {
+                $maxNumber = !empty($allNumbers) ? max($allNumbers) : null;
+                if ($maxNumber !== null) {
+                    $result = RifaNumber::where('rifas_id', $rifaId)
+                        ->whereJsonContains('numbers', $maxNumber)
+                        ->with(['rifa', 'client'])
+                        ->first();
+                }
+                $searchResult = $maxNumber;
+            } else {
+                $result = $this->rifaService->procurarGanhador($search, $rifaId);
+                return response()->json(['data' => $result, 'search' => $search], 200);
+            }
 
-                $result = $resultQuery->first();
-            }
-            $searchResult = $minNumber;
-        } elseif ($type === 'max') {
-            $maxNumber = !empty($allNumbers) ? max($allNumbers) : null;
-            if ($maxNumber !== null) {
-                $result = RifaNumber::where('rifas_id', $rifaId)
-                    ->whereJsonContains('numbers', $maxNumber)
-                    ->with(['rifa', 'client'])
-                    ->first();
-            }
-            $searchResult = $maxNumber;
-        } else {
-            $result = $this->rifaService->procurarGanhador($search, $rifaId);
-            return response()->json(['data' => $result, 'search' => $search], 200);
+            return response()->json(['data' => $result, 'search' => $searchResult], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Ocorreu um erro ao processar a solicitação.',
+                'message' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json(['data' => $result, 'search' => $searchResult], 200);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'error' => 'Ocorreu um erro ao processar a solicitação.',
-            'message' => $e->getMessage()
-        ], 500);
     }
-}
 
 
 
@@ -341,19 +357,21 @@ class AdminController extends Controller
 
 
 
-    public function getPedidos() {
+    public function getPedidos()
+    {
         try {
             $buy = RifaPay::getAllCompra();
             if (!$buy) {
                 return response()->json(["success" => false, "msg" => "Pedido não encontrado"], 404);
             }
-            return response()->json(["success" => true, "data"=> $buy], 200);
+            return response()->json(["success" => true, "data" => $buy], 200);
         } catch (Exception $e) {
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
     }
 
-    public function getPedidosFiltro(Request $request) {
+    public function getPedidosFiltro(Request $request)
+    {
         try {
             $filters = $request->all();
             $buy = RifaPay::getPedidosFiltro($filters);
@@ -415,30 +433,33 @@ class AdminController extends Controller
 
 
 
-    public function getOnePedidos($idRifa, $idClient) {
+    public function getOnePedidos($idRifa, $idClient)
+    {
         try {
             $buy = RifaPay::getOneCompraClientByRifa($idRifa, $idClient);
             if (!$buy) {
                 return response()->json(["success" => false, "msg" => "Pedido não encontrado"], 404);
             }
-            return response()->json(["success" => true, "data"=> $buy], 200);
+            return response()->json(["success" => true, "data" => $buy], 200);
         } catch (Exception $e) {
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
     }
-    public function cancelarPedidos($id) {
+    public function cancelarPedidos($id)
+    {
         try {
             $buy = RifaPay::cancelarCompra($id);
-            RifaNumber::cancelarCompra($id );
+            RifaNumber::cancelarCompra($id);
             if (!$buy) {
                 return response()->json(["success" => false, "msg" => "Pedido não encontrado"], 404);
             }
-            return response()->json(["success" => true, "data"=> "Compra cancelada"], 200);
+            return response()->json(["success" => true, "data" => "Compra cancelada"], 200);
         } catch (Exception $e) {
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
     }
-    public function aprovarPedidos($id) {
+    public function aprovarPedidos($id)
+    {
         try {
             $buy = RifaPay::aprovarCompra($id);
             RifaNumber::aprovarCompra($id);
@@ -448,25 +469,27 @@ class AdminController extends Controller
             if (!$buy) {
                 return response()->json(["success" => false, "msg" => "Pedido não encontrado"], 404);
             }
-            return response()->json(["success" => true, "data"=> "Compra cancelada"], 200);
+            return response()->json(["success" => true, "data" => "Compra cancelada"], 200);
         } catch (Exception $e) {
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
     }
 
-    public function allClients() {
+    public function allClients()
+    {
         try {
             $clientes = Clients::getAllClient();
             if (!$clientes) {
                 return response()->json(["success" => false, "msg" => "Pedido não encontrado"], 404);
             }
-            return response()->json(["success" => true, "data"=> $clientes], 200);
+            return response()->json(["success" => true, "data" => $clientes], 200);
         } catch (Exception $e) {
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
     }
 
-    public function allClientsFiltro(Request $request) {
+    public function allClientsFiltro(Request $request)
+    {
         try {
             $query = Clients::query();
 
@@ -482,7 +505,7 @@ class AdminController extends Controller
                     foreach ($nameParts as $part) {
                         $q->where(function ($subQ) use ($part) {
                             $subQ->where('name', 'like', '%' . $part . '%')
-                                 ->orWhere('surname', 'like', '%' . $part . '%');
+                                ->orWhere('surname', 'like', '%' . $part . '%');
                         });
                     }
                 });
@@ -506,42 +529,46 @@ class AdminController extends Controller
     }
 
 
-    public function getOneClient($id) {
+    public function getOneClient($id)
+    {
         try {
             $clientes = Clients::findClientById($id);
             if (!$clientes) {
                 return response()->json(["success" => false, "msg" => "Pedido não encontrado"], 404);
             }
-            return response()->json(["success" => true, "data"=> $clientes], 200);
+            return response()->json(["success" => true, "data" => $clientes], 200);
         } catch (Exception $e) {
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
     }
-    public function editarClients(Request $request) {
+    public function editarClients(Request $request)
+    {
         try {
             $cliente = Clients::editarClient($request);
             if (!$cliente) {
                 return response()->json(["success" => false, "msg" => "Cliente não atualizado"], 404);
             }
-            return response()->json(["success" => true, "data"=> $cliente], 200);
+            return response()->json(["success" => true, "data" => $cliente], 200);
         } catch (Exception $e) {
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
     }
-    public function rankingGeral() {
+    public function rankingGeral()
+    {
         try {
             $ranking = RifaNumber::getRankingRifaGeral();
             if (!$ranking) {
                 return response()->json(["success" => false, "msg" => "Ranking não atualizado"], 404);
             }
 
-            return response()->json(["success" => true, "data"=> $ranking], 200);
+            return response()->json(["success" => true, "data" => $ranking], 200);
         } catch (Exception $e) {
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
     }
 
-    public function rankingGeralFiltro(Request $request) {
+    public function rankingGeralFiltro(Request $request)
+    {
         try {
             $ranking = RifaNumber::getRankingRifaGeralFiltro(
                 $request->input('total_numbers'),
@@ -561,20 +588,22 @@ class AdminController extends Controller
     }
 
 
-    public function getAllUsers() {
+    public function getAllUsers()
+    {
         try {
             $users = User::allUsers();
             if (!$users) {
                 return response()->json(["success" => false, "msg" => "Usarios não encontrados"], 404);
             }
 
-            return response()->json(["success" => true, "data"=> $users], 200);
+            return response()->json(["success" => true, "data" => $users], 200);
         } catch (Exception $e) {
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
     }
 
-    public function getAllUsersFiltro(Request $request) {
+    public function getAllUsersFiltro(Request $request)
+    {
         try {
             $input = $request->input('query');
             $users = User::allUsersFiltro($input);
@@ -589,19 +618,21 @@ class AdminController extends Controller
         }
     }
 
-    public function getOneUser($id) {
+    public function getOneUser($id)
+    {
         try {
             $user = User::getOneUser($id);
             if (!$user) {
                 return response()->json(["success" => false, "msg" => "Usarios não encontrados"], 404);
             }
 
-            return response()->json(["success" => true, "data"=> $user], 200);
+            return response()->json(["success" => true, "data" => $user], 200);
         } catch (Exception $e) {
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
     }
-    public function editarUsers(Request $request) {
+    public function editarUsers(Request $request)
+    {
         try {
             $validatedData = $request->validate([
                 'id' => 'required|integer|exists:users,id',
@@ -620,13 +651,14 @@ class AdminController extends Controller
 
             $user->update($validatedData);
 
-            return response()->json(["success" => true, "data"=> "Usuário editado com sucesso"], 200);
+            return response()->json(["success" => true, "data" => "Usuário editado com sucesso"], 200);
         } catch (Exception $e) {
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
     }
 
-    public function getAllGateway() {
+    public function getAllGateway()
+    {
         try {
             $paymentInfos = PaymentInfo::all();
             return response()->json(["success" => true, "data" => $paymentInfos], 200);
@@ -634,7 +666,8 @@ class AdminController extends Controller
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
     }
-    public function showGateway($id) {
+    public function showGateway($id)
+    {
         try {
             $paymentInfo = PaymentInfo::findOrFail($id);
             return response()->json(["success" => true, "data" => $paymentInfo], 200);
@@ -642,7 +675,8 @@ class AdminController extends Controller
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
     }
-    public function storeGateway(Request $request) {
+    public function storeGateway(Request $request)
+    {
         try {
             $data = $request->validate([
                 'name' => 'sometimes|required|max:255',
@@ -660,7 +694,8 @@ class AdminController extends Controller
         }
 
     }
-    public function updateGateway(Request $request) {
+    public function updateGateway(Request $request)
+    {
         try {
             $paymentInfo = PaymentInfo::findOrFail($request->id);
 
@@ -680,7 +715,8 @@ class AdminController extends Controller
         }
 
     }
-    public function destroyGateway($id) {
+    public function destroyGateway($id)
+    {
         try {
             $paymentInfo = PaymentInfo::findOrFail($id);
             $paymentInfo->delete();
@@ -692,7 +728,8 @@ class AdminController extends Controller
 
     }
 
-    public function getConfigSite() {
+    public function getConfigSite()
+    {
         try {
             $settings = SiteSetting::first();
             return response()->json(["success" => true, "data" => $settings], 200);
@@ -708,7 +745,7 @@ class AdminController extends Controller
             $data = $request->all();
 
             if (isset($request->id)) {
-                $config = SiteSetting::find($request->id);
+                $config = SiteConfig::find($request->id);
 
                 if (!$config) {
                     return response()->json(["success" => false, "msg" => "Configuração não encontrada"], 404);
@@ -717,7 +754,7 @@ class AdminController extends Controller
                 $config->update($data);
                 $setting = $config;
             } else {
-                $setting = SiteSetting::create($data);
+                $setting = SiteConfig::updateOrCreate(['id' => 1], $data);
             }
 
             return response()->json(["success" => true, "data" => $setting], 201);
@@ -726,7 +763,8 @@ class AdminController extends Controller
         }
     }
 
-    public function getVendas() {
+    public function getVendas()
+    {
         try {
             // Total de pedidos e valores
             $totalPedido = RifaPay::getAllCompraAtivo()->sum('value');
@@ -790,33 +828,35 @@ class AdminController extends Controller
         }
     }
 
-    private function faturamentoPorHoraAll() {
+    private function faturamentoPorHoraAll()
+    {
 
-         // Inicializa um array de 24 horas com valor 0
-         $resultados = array_fill(0, 24, 0);
+        // Inicializa um array de 24 horas com valor 0
+        $resultados = array_fill(0, 24, 0);
 
-         // Obtém as compras ativas
-         $compraAtivo = RifaPay::getAllCompraAtivo();
+        // Obtém as compras ativas
+        $compraAtivo = RifaPay::getAllCompraAtivo();
 
-         foreach ($compraAtivo as $compra) {
-             // Extrai a hora do timestamp da compra
-             $hora = Carbon::parse($compra->created_at)->format('H');
+        foreach ($compraAtivo as $compra) {
+            // Extrai a hora do timestamp da compra
+            $hora = Carbon::parse($compra->created_at)->format('H');
 
-             // Converte a hora para inteiro
-             $horaInt = (int)$hora;
+            // Converte a hora para inteiro
+            $horaInt = (int) $hora;
 
-             // Adiciona o valor ao índice correspondente
-             if (isset($resultados[$horaInt])) {
-                 $resultados[$horaInt] += $compra->value;
-             }
-         }
+            // Adiciona o valor ao índice correspondente
+            if (isset($resultados[$horaInt])) {
+                $resultados[$horaInt] += $compra->value;
+            }
+        }
 
-         return $resultados;
+        return $resultados;
 
     }
 
     // Faturamento Diário
-    private function faturamentoDiarioAll() {
+    private function faturamentoDiarioAll()
+    {
         $hoje = Carbon::now();
         $inicioDoDia = $hoje->copy()->subDays(5)->startOfDay(); // Data de 5 dias atrás
         $fimDoDia = $hoje->endOfDay(); // Data do final do dia de hoje
@@ -844,7 +884,8 @@ class AdminController extends Controller
         return $resultados;
     }
 
-    public function faturamentoAcumuladoAll() {
+    public function faturamentoAcumuladoAll()
+    {
         $resultados = [];
         $datas = $this->obterDatasAll(); // Obtém as datas de hoje e dos últimos 3 dias
 
@@ -865,7 +906,8 @@ class AdminController extends Controller
     }
 
 
-    public function obterDatasAll() {
+    public function obterDatasAll()
+    {
         $datas = [];
         $hoje = Carbon::now();
         $datas[] = $hoje->format('Y-m-d'); // Data de hoje
@@ -878,7 +920,8 @@ class AdminController extends Controller
     }
 
     // Faturamento Semanal por Dia da Semana
-    private function faturamentoSemanalPorDiaAll() {
+    private function faturamentoSemanalPorDiaAll()
+    {
         $resultados = [
             'Monday' => ['totalPedidos' => 0, 'totalAprovado' => 0],
             'Tuesday' => ['totalPedidos' => 0, 'totalAprovado' => 0],
@@ -915,7 +958,8 @@ class AdminController extends Controller
     }
 
 
-    public function vendasFiltro(Request $request) {
+    public function vendasFiltro(Request $request)
+    {
         try {
             // Parâmetros de data inicial e final
             $dataInicio = $request->input('startDate');
@@ -982,7 +1026,8 @@ class AdminController extends Controller
         }
     }
 
-    public function vendasFiltroOne(Request $request, $id) {
+    public function vendasFiltroOne(Request $request, $id)
+    {
         try {
             // Parâmetros de data inicial e final
             $dataInicio = $request->input('startDate');
@@ -1050,7 +1095,8 @@ class AdminController extends Controller
 
 
 
-    public function getOneVendas($id) {
+    public function getOneVendas($id)
+    {
         try {
             $nomeRifa = Rifas::where('id', $id)->first();
 
@@ -1098,17 +1144,20 @@ class AdminController extends Controller
             // Faturamento Semanal por Dia da Semana
             $semanalPorDia = $this->faturamentoSemanalPorDia($id);
 
-            $afiliados = Afiliado::with(['client', 'ganhoAfiliado' => function($query) use ($id) {
-                $query->where('rifas_id', $id);
-            }])->get();
+            $afiliados = Afiliado::with([
+                'client',
+                'ganhoAfiliado' => function ($query) use ($id) {
+                    $query->where('rifas_id', $id);
+                }
+            ])->get();
 
             if ($afiliados->isEmpty()) {
                 return response()->json(["success" => false, "msg" => 'Afiliado não existe'], 500);
             }
             foreach ($afiliados as $afiliado) {
-                $afiliado->totalPedidos = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->count() :  0;
-                $afiliado->faturamento = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('faturamento') :  0;
-                $afiliado->comissao = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('comissao') :  0;
+                $afiliado->totalPedidos = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->count() : 0;
+                $afiliado->faturamento = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('faturamento') : 0;
+                $afiliado->comissao = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('comissao') : 0;
             }
 
             return response()->json([
@@ -1133,7 +1182,8 @@ class AdminController extends Controller
         }
     }
 
-    private function faturamentoDiario($id, $mes, $ano) {
+    private function faturamentoDiario($id, $mes, $ano)
+    {
         $hoje = Carbon::now();
         $inicioDoDia = $hoje->copy()->subDays(5)->startOfDay(); // Data de 5 dias atrás
         $fimDoDia = $hoje->endOfDay(); // Data do final do dia de hoje
@@ -1161,7 +1211,8 @@ class AdminController extends Controller
         return $resultados;
     }
 
-    private function faturamentoAcumulado($id, $ano) {
+    private function faturamentoAcumulado($id, $ano)
+    {
         $resultados = [];
         $datas = $this->obterDatas();
 
@@ -1184,17 +1235,18 @@ class AdminController extends Controller
 
         return $resultados;
     }
-    public function obterDatas() {
-    $datas = [];
-    $hoje = Carbon::now();
-    $datas[] = $hoje->format('Y-m-d'); // Data de hoje
+    public function obterDatas()
+    {
+        $datas = [];
+        $hoje = Carbon::now();
+        $datas[] = $hoje->format('Y-m-d'); // Data de hoje
 
-    for ($i = 1; $i <= 3; $i++) {
-        $datas[] = $hoje->copy()->subDays($i)->format('Y-m-d');
+        for ($i = 1; $i <= 3; $i++) {
+            $datas[] = $hoje->copy()->subDays($i)->format('Y-m-d');
+        }
+
+        return $datas;
     }
-
-    return $datas;
-}
     private function faturamentoSemanalPorDia($id)
     {
         // Definindo os dias da semana
@@ -1251,7 +1303,8 @@ class AdminController extends Controller
         return $resultados;
     }
 
-    private function faturamentoPorHora($id) {
+    private function faturamentoPorHora($id)
+    {
         // Inicializa um array de 24 horas com valor 0
         $resultados = array_fill(0, 24, 0);
 
@@ -1263,7 +1316,7 @@ class AdminController extends Controller
             $hora = Carbon::parse($compra->created_at)->format('H');
 
             // Converte a hora para inteiro
-            $horaInt = (int)$hora;
+            $horaInt = (int) $hora;
 
             // Adiciona o valor ao índice correspondente
             if (isset($resultados[$horaInt])) {
@@ -1279,23 +1332,25 @@ class AdminController extends Controller
 
 
 
-    public function me(Request $request) {
+    public function me(Request $request)
+    {
         return response()->json($request->user());
     }
 
-    public function createAfiliado(Request $request) {
+    public function createAfiliado(Request $request)
+    {
 
         try {
             $client = Clients::findClient($request->cellphone);
             $afiliado = Afiliado::findAfiliado($request->cellphone);
 
-            if(!$client) {
-                return response()->json(["success" => false, "msg" =>'Cliente não encontrado!'], 500);
+            if (!$client) {
+                return response()->json(["success" => false, "msg" => 'Cliente não encontrado!'], 500);
             }
-            if($afiliado) {
-                return response()->json(["success" => false, "msg" =>'Afiliado já existe!'], 500);
+            if ($afiliado) {
+                return response()->json(["success" => false, "msg" => 'Afiliado já existe!'], 500);
             }
-            $afiliado =  Afiliado::createAfiliado($request, $client);
+            $afiliado = Afiliado::createAfiliado($request, $client);
 
             return response()->json(["success" => true, "data" => 'criado com sucesso'], 201);
         } catch (\Throwable $e) {
@@ -1304,53 +1359,59 @@ class AdminController extends Controller
 
     }
 
-    public function getAllAfiliado(){
+    public function getAllAfiliado()
+    {
         try {
             $afiliados = Afiliado::findAllAfiliado(['ganhoAfiliado', 'client']);
-            if(!$afiliados) {
-                return response()->json(["success" => false, "msg" =>'Não tem nenhum afiliado no momento'], 500);
+            if (!$afiliados) {
+                return response()->json(["success" => false, "msg" => 'Não tem nenhum afiliado no momento'], 500);
             }
             foreach ($afiliados as $afiliado) {
-                $afiliado->totalPedidos = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->count() :  0;
-                $afiliado->faturamento = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('faturamento') :  0;
-                $afiliado->comissao = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('comissao') :  0;
+                $afiliado->totalPedidos = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->count() : 0;
+                $afiliado->faturamento = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('faturamento') : 0;
+                $afiliado->comissao = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('comissao') : 0;
 
             }
 
-            return response()->json(["success" => true, "data" =>  $afiliados], 200);
+            return response()->json(["success" => true, "data" => $afiliados], 200);
         } catch (\Throwable $e) {
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
     }
-    public function getOneAfiliado($id){
+    public function getOneAfiliado($id)
+    {
         try {
             $afiliado = Afiliado::findOneAfiliadoById($id);
-            if(!$afiliado) {
-                return response()->json(["success" => false, "msg" =>'Afiliado não existe'], 500);
+            if (!$afiliado) {
+                return response()->json(["success" => false, "msg" => 'Afiliado não existe'], 500);
             }
-            $afiliado->totalPedidos = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->count() :  0;
-            $afiliado->faturamento = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('faturamento') :  0;
-            $afiliado->comissao = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('comissao') :  0;
+            $afiliado->totalPedidos = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->count() : 0;
+            $afiliado->faturamento = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('faturamento') : 0;
+            $afiliado->comissao = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('comissao') : 0;
 
-            return response()->json(["success" => true, "data" =>  $afiliado], 200);
+            return response()->json(["success" => true, "data" => $afiliado], 200);
         } catch (\Throwable $e) {
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
     }
-    public function getOneAfiliadoByProduto($idProduto) {
+    public function getOneAfiliadoByProduto($idProduto)
+    {
         try {
             // Busca o afiliado que tenha ganho afiliado com o produto específico
-            $afiliados = Afiliado::with(['client', 'ganhoAfiliado' => function($query) use ($idProduto) {
-                $query->where('rifas_id', $idProduto);
-            }])->get();
+            $afiliados = Afiliado::with([
+                'client',
+                'ganhoAfiliado' => function ($query) use ($idProduto) {
+                    $query->where('rifas_id', $idProduto);
+                }
+            ])->get();
 
             if ($afiliados->isEmpty()) {
                 return response()->json(["success" => false, "msg" => 'Afiliado não existe'], 500);
             }
             foreach ($afiliados as $afiliado) {
-                $afiliado->totalPedidos = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->count() :  0;
-                $afiliado->faturamento = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('faturamento') :  0;
-                $afiliado->comissao = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('comissao') :  0;
+                $afiliado->totalPedidos = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->count() : 0;
+                $afiliado->faturamento = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('faturamento') : 0;
+                $afiliado->comissao = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('comissao') : 0;
 
             }
 
@@ -1363,15 +1424,16 @@ class AdminController extends Controller
     }
 
 
-    public function afiliadoUpdate(Request $request, $id){
+    public function afiliadoUpdate(Request $request, $id)
+    {
         try {
             $afiliado = Afiliado::findOneAfiliadoById($id);
 
-            if(!$afiliado) {
-                return response()->json(["success" => false, "msg" =>'Afiliado não existe'], 500);
+            if (!$afiliado) {
+                return response()->json(["success" => false, "msg" => 'Afiliado não existe'], 500);
             }
             if ($request->link != $afiliado->link && Afiliado::where('link', $request->link)->exists()) {
-                return response()->json(["success" => false, "msg" =>'Esse link ja esta cadastrado'], 500);
+                return response()->json(["success" => false, "msg" => 'Esse link ja esta cadastrado'], 500);
             }
 
             $afiliado->update([
@@ -1380,13 +1442,14 @@ class AdminController extends Controller
             ]);
 
 
-            return response()->json(["success" => true, "data" =>  $afiliado], 200);
+            return response()->json(["success" => true, "data" => $afiliado], 200);
         } catch (\Throwable $e) {
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
     }
 
-    public function afiliadoFiltro(Request $request) {
+    public function afiliadoFiltro(Request $request)
+    {
         try {
             // Inicializa a consulta usando o modelo Afiliado
             $query = Afiliado::query();
@@ -1400,7 +1463,7 @@ class AdminController extends Controller
                 $query->whereHas('client', function ($q) use ($nameParts) {
                     if (count($nameParts) > 1) {
                         $q->where('name', 'like', '%' . $nameParts[0] . '%')
-                          ->where('surname', 'like', '%' . $nameParts[1] . '%');
+                            ->where('surname', 'like', '%' . $nameParts[1] . '%');
                     } else {
                         $q->where('name', 'like', '%' . $nameParts[0] . '%');
                     }
@@ -1422,9 +1485,9 @@ class AdminController extends Controller
 
             // Processa os afiliados para adicionar informações adicionais
             foreach ($afiliados as $afiliado) {
-                $afiliado->totalPedidos = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->count() :  0;
-                $afiliado->faturamento = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('faturamento') :  0;
-                $afiliado->comissao = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('comissao') :  0;
+                $afiliado->totalPedidos = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->count() : 0;
+                $afiliado->faturamento = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('faturamento') : 0;
+                $afiliado->comissao = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('comissao') : 0;
             }
 
             // Retorna os resultados
@@ -1437,7 +1500,8 @@ class AdminController extends Controller
 
 
 
-    public function sendMessagesWhats(Request $request) {
+    public function sendMessagesWhats(Request $request)
+    {
         $validated = $request->validate([
             'message' => 'required|string',
         ]);
@@ -1509,7 +1573,8 @@ class AdminController extends Controller
 
 
 
-    public function deletarCliente($id) {
+    public function deletarCliente($id)
+    {
         try {
             $client = Clients::findClientById($id);
             if (!$client) {
@@ -1527,7 +1592,8 @@ class AdminController extends Controller
         }
     }
 
-    public function deletarPedido($id) {
+    public function deletarPedido($id)
+    {
         $pedido = RifaPay::find($id);
 
         if (!$pedido) {
@@ -1542,7 +1608,8 @@ class AdminController extends Controller
     }
 
 
-    public function addPremios(Request $request) {
+    public function addPremios(Request $request)
+    {
         try {
             DB::beginTransaction();
 
