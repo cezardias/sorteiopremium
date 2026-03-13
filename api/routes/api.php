@@ -21,83 +21,10 @@ Route::get('/test-sanity', function () {
     return "Laravel is alive!";
 });
 
-Route::get('/reset-admin-pwd', function () {
-    try {
-        $user = User::where('email', 'premiummultimarcasrifa@gmail.com')->first();
-        if (!$user)
-            return "Usuário não encontrado.";
-        $user->password = 'Premiummultirifa123';
-        $user->save();
-        return response()->json(["message" => "Senha atualizada.", "email" => $user->email]);
-    } catch (\Throwable $e) {
-        return "Erro: " . $e->getMessage();
-    }
-});
+// Route::get('/reset-admin-pwd', function () { ... });
+// Route::get('/debug-payments', function () { ... });
+// Route::get('/recovery-payments', function () { ... });
 
-Route::get('/debug-payments', function () {
-    try {
-        $payments = RifaPay::whereNotNull('pix_id')
-            ->orderBy('id', 'desc')
-            ->take(50)
-            ->get(['id', 'pix_id', 'status', 'created_at']);
-        return response()->json($payments);
-    } catch (\Throwable $e) {
-        return response()->json(["error" => $e->getMessage(), "trace" => $e->getTraceAsString()], 500);
-    }
-});
-
-Route::get('/recovery-payments', function () {
-    try {
-        $txns = [
-            'txn_69b0e457322e3dad9a7b58dfb4970',
-            'txn_69b01d21754cd232c3a5ea3c9b36e',
-            'txn_69af73d56132b92249048d883fa52',
-            'txn_69af42c00086c6b3aabf5a4129696',
-            'txn_69af0eae1fc5c45629e6a999af66c',
-            'txn_69adb4700c158dbe2ee34a7f11b15',
-            'txn_69ac19031c100de6165403bab97b8',
-            'txn_69ac18261e287c53bad1a938e9ae6'
-        ];
-
-        $results = [];
-
-        // 1. Recuperação Manual
-        foreach ($txns as $txnId) {
-            $pay = RifaPay::where('pix_id', $txnId)->first();
-            if ($pay) {
-                $pay->update(['status' => 1, 'verify' => 1]);
-                RifaNumber::where('pay_id', $pay->id)->update(['status' => 1]);
-                if (class_exists(\App\Services\RewardPassService::class)) {
-                    \App\Services\RewardPassService::grantFromApprovedPayment($pay);
-                }
-                $results[] = "Manual: #{$pay->id} ($txnId) restaurado.";
-            }
-        }
-
-        // 2. Auto Recuperação - Apenas se tiver pix_id e estiver cancelado (status 2)
-        $autoRecover = RifaPay::whereNotNull('pix_id')
-            ->where('status', 2)
-            ->where('created_at', '>=', now()->subDays(7))
-            ->get();
-
-        foreach ($autoRecover as $pay) {
-            $pay->update(['status' => 1, 'verify' => 1]);
-            RifaNumber::where('pay_id', $pay->id)->update(['status' => 1]);
-            if (class_exists(\App\Services\RewardPassService::class)) {
-                \App\Services\RewardPassService::grantFromApprovedPayment($pay);
-            }
-            $results[] = "Auto: #{$pay->id} ({$pay->pix_id}) restaurado.";
-        }
-
-        return response()->json([
-            "message" => "Recuperação concluída.",
-            "count" => count($results),
-            "log" => $results
-        ]);
-    } catch (\Throwable $e) {
-        return response()->json(["error" => $e->getMessage(), "line" => $e->getLine()], 500);
-    }
-});
 
 Route::get('/db-debug', function () {
     try {
