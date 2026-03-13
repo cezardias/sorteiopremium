@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\V1\{AuthController, AdminController, ClientController, CyberPaymentController, MercadoPagoController, RifasController, PixController, SiteConfigController};
 use App\Http\Controllers\{RewardAdminController, RewardPublicController};
 
@@ -190,5 +191,15 @@ Route::middleware('auth.client')->group(function () { // <<< troquei sanctum por
 // Admin
 Route::middleware(['auth:sanctum', 'checkAdmin:admin,superadmin'])->get('/admin/rewards/{rifa}', [RewardAdminController::class, 'show']);
 Route::middleware(['auth:sanctum', 'checkAdmin:admin,superadmin'])->post('/admin/rewards/{rifa}', [RewardAdminController::class, 'store']);
+
+// Rota Temporária para rodar migrations (Remover após uso)
+Route::get('/run-migrations', function () {
+    try {
+        Artisan::call('migrate', ['--force' => true]);
+        return "Migrations executadas com sucesso: " . Artisan::output();
+    } catch (\Exception $e) {
+        return "Erro ao rodar migrations: " . $e->getMessage();
+    }
+});
 
 
