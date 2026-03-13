@@ -35,11 +35,11 @@ class CheckPayments extends Command
         $payments = RifaPay::with('client')->where('status', 0)->whereNotNull('pix_id')->get();
 
         foreach ($payments as $payment) {
-            // No Cyber Payment, o status é verificado pelo ID da transação (RifaPay ID ou pix_id)
-            $response = $this->cyberPaymentService->checkStatus($payment->id);
+            // No Cyber Payment, o status é verificado pelo pix_id (ID da transação txn_...)
+            $response = $this->cyberPaymentService->checkStatus($payment->pix_id);
 
-            if ($response['success']) {
-                $status = $response['status']; // 1 = Aprovado, 0 = Pendente, 2 = Expirado/Cancelado
+            if ($response && isset($response['success']) && $response['success']) {
+                $status = $response['status'] ?? ($response['data']['status'] ?? null); // Handle different possible response structures
 
                 if ($status == 1) {
                     $payment->update(['status' => 1]);

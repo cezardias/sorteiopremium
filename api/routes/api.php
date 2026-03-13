@@ -30,6 +30,39 @@ Route::get('/test-sanity', function () {
     return "Laravel is alive!";
 });
 
+Route::get('/recovery-payments', function () {
+    $txns = [
+        'txn_69b0e457322e3dad9a7b58dfb4970',
+        'txn_69b01d21754cd232c3a5ea3c9b36e',
+        'txn_69af73d56132b92249048d883fa52',
+        'txn_69af42c00086c6b3aabf5a4129696',
+        'txn_69af0eae1fc5c45629e6a999af66c',
+        'txn_69adb4700c158dbe2ee34a7f11b15',
+        'txn_69ac19031c100de6165403bab97b8',
+        'txn_69ac18261e287c53bad1a938e9ae6'
+    ];
+
+    $results = [];
+    foreach ($txns as $txnId) {
+        $pay = App\Models\V1\RifaPay::where('pix_id', $txnId)->first();
+        if ($pay) {
+            // Restore numbers and status
+            $pay->update(['status' => 1, 'verify' => 1]);
+            App\Models\V1\RifaNumber::where('pay_id', $pay->id)->update(['status' => 1]);
+
+            // Re-grant rewards
+            if (class_exists(\App\Services\RewardPassService::class)) {
+                \App\Services\RewardPassService::grantFromApprovedPayment($pay);
+            }
+
+            $results[] = "Pedido #{$pay->id} (TXN: $txnId) restaurado.";
+        } else {
+            $results[] = "TXN $txnId não encontrada no banco.";
+        }
+    }
+    return response()->json($results);
+});
+
 Route::get('/db-debug', function () {
     try {
         return response()->json([

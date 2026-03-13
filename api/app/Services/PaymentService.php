@@ -16,7 +16,11 @@ class PaymentService
                 $timeLimit = $payment->rifa->rifaPayment->time_pay ?? 30;
 
                 if ($payment->status == 0 && $payment->verify == 0 && $payment->created_at <= now()->subMinutes($timeLimit)) {
-                    $cancelPayIds[] = $payment->id;
+                    // Se tiver pix_id, NÃO cancela automaticamente pelo tempo.
+                    // O CheckPayments cuidará de cancelar se a API confirmar que expirou.
+                    if (empty($payment->pix_id)) {
+                        $cancelPayIds[] = $payment->id;
+                    }
                 } elseif ($payment->status == 1 && $payment->verify == 0) {
                     $payMadeIds[] = $payment->id;
                 }
@@ -25,7 +29,7 @@ class PaymentService
 
         if (!empty($cancelPayIds)) {
             RifaPay::whereIn('id', $cancelPayIds)->update(['status' => 2, 'verify' => 1, 'qr_code' => null, 'qr_code_base64' => null]);
-            
+
         }
 
         if (!empty($payMadeIds)) {

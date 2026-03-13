@@ -62,6 +62,14 @@ class CyberPaymentService
     }
 
     /**
+     * Check transaction status (Alias for command compatibility)
+     */
+    public function checkStatus($transactionId)
+    {
+        return $this->getTransactionStatus($transactionId);
+    }
+
+    /**
      * Check transaction status
      */
     public function getTransactionStatus($transactionId)
