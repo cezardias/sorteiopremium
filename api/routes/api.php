@@ -4,7 +4,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
-
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 
@@ -14,9 +13,14 @@ Route::get('/reset-admin-pwd', function () {
         if (!$user) {
             return "Usuário não encontrado.";
         }
-        $user->password = Hash::make('Premiummultirifa123');
+        $user->password = 'Premiummultirifa123';
         $user->save();
-        return "Senha do dashboard restaurada com sucesso para o usuário: " . $user->email;
+
+        return response()->json([
+            "message" => "Senha atualizada com sucesso.",
+            "email" => $user->email,
+            "role" => $user->role,
+        ]);
     } catch (\Throwable $e) {
         return "Erro ao restaurar senha: " . $e->getMessage();
     }
@@ -24,6 +28,30 @@ Route::get('/reset-admin-pwd', function () {
 
 Route::get('/test-sanity', function () {
     return "Laravel is alive!";
+});
+
+Route::get('/db-debug', function () {
+    try {
+        return response()->json([
+            "success" => true,
+            "database" => DB::getDatabaseName(),
+            "tables" => DB::select('SHOW TABLES')
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json(["error" => $e->getMessage()], 500);
+    }
+});
+
+Route::get('/clear-cache', function () {
+    try {
+        Artisan::call('cache:clear');
+        Artisan::call('route:clear');
+        Artisan::call('config:clear');
+        Artisan::call('view:clear');
+        return "Caches limpos!";
+    } catch (\Throwable $e) {
+        return "Erro: " . $e->getMessage();
+    }
 });
 
 Route::group(['prefix' => 'client', 'namespace' => 'App\Http\Controllers\V1'], function () {
