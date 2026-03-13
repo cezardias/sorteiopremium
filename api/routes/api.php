@@ -174,7 +174,7 @@ Route::post("/get-numbers", [ClientController::class, "getNumbers"]);
 Route::get("/config", [SiteConfigController::class, "getUserSiteConfig"]);
 Route::post("/pix", [PixController::class, "index"]);
 Route::post("/pay-cota", [MercadoPagoController::class, "getQr"]);
-Route::post('escalecyber/webhook', [CyberPaymentController::class, 'webhook']);
+Route::post('cyber-webhook', [CyberPaymentController::class, 'webhook']);
 Route::post('mercado-pago-payments', [PixController::class, 'checkPaymentStatus']);
 
 
