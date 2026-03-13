@@ -191,26 +191,29 @@ Route::middleware('auth.client')->group(function () { // <<< troquei sanctum por
 Route::middleware(['auth:sanctum', 'checkAdmin:admin,superadmin'])->get('/admin/rewards/{rifa}', [RewardAdminController::class, 'show']);
 Route::middleware(['auth:sanctum', 'checkAdmin:admin,superadmin'])->post('/admin/rewards/{rifa}', [RewardAdminController::class, 'store']);
 
-// Rota de Debug do Banco de Dados
 Route::get('/db-debug', function () {
     try {
         $tables = DB::select('SHOW TABLES');
-        $dbName = "Tables_in_" . env('DB_DATABASE');
         $output = [];
 
         foreach ($tables as $table) {
-            $tableName = $table->$dbName;
-            $columns = DB::select("SHOW COLUMNS FROM $tableName");
-            $output[$tableName] = $columns;
+            $tableArray = (array) $table;
+            $tableName = reset($tableArray);
+            if ($tableName) {
+                $columns = DB::select("SHOW COLUMNS FROM $tableName");
+                $output[$tableName] = $columns;
+            }
         }
 
         return response()->json([
             "success" => true,
-            "database" => env('DB_DATABASE'),
             "schema" => $output
         ]);
     } catch (\Exception $e) {
-        return "Erro ao ler banco: " . $e->getMessage();
+        return response()->json([
+            "success" => false,
+            "msg" => "Erro ao ler banco: " . $e->getMessage()
+        ], 500);
     }
 });
 

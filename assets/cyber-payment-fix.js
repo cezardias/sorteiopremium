@@ -84,8 +84,8 @@
         if (!settingsTitle) return;
 
         const mpSection = document.querySelector('input[name="secretmercadopago"]')?.closest('div')?.parentElement;
-        if (mpSection && !document.getElementById('cyber-settings-group')) {
-            console.log('Injecting Cyber Settings into Dashboard...');
+        if (settingsTitle && !document.getElementById('cyber-settings-group')) {
+            console.log('Injecting Cyber Settings (Exclusive) into Dashboard...');
 
             const cyberGroup = document.createElement('div');
             cyberGroup.id = 'cyber-settings-group';
@@ -96,16 +96,10 @@
             cyberGroup.style.background = '#f9f9f9';
 
             cyberGroup.innerHTML = `
-                <h4 style="margin-bottom:15px; font-weight:bold;">Gateway de Pagamento</h4>
-                <div style="margin-bottom:15px;">
-                    <label style="display:block; margin-bottom:5px;">Selecionar GatewayAtivo</label>
-                    <select id="dash-gateway" name="gateway" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc;">
-                        <option value="mercadopago">Mercado Pago</option>
-                        <option value="cyber">Escale Cyber</option>
-                    </select>
-                </div>
+                <h4 style="margin-bottom:15px; font-weight:bold;">Configuração Cyber Payment (Ativo)</h4>
+                <input type="hidden" name="gateway" value="cyber">
                 
-                <div id="cyber-keys-fields" style="display:none;">
+                <div id="cyber-keys-fields">
                     <div style="margin-bottom:15px;">
                         <label style="display:block; margin-bottom:5px;">Cyber Public Key</label>
                         <input type="text" id="dash-cyber-public" name="cyber_public" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc;">
@@ -117,22 +111,20 @@
                 </div>
             `;
 
-            mpSection.parentNode.insertBefore(cyberGroup, mpSection.nextSibling);
-
-            const gatewaySelect = document.getElementById('dash-gateway');
-            const cyberKeysFields = document.getElementById('cyber-keys-fields');
-
-            gatewaySelect.addEventListener('change', (e) => {
-                cyberKeysFields.style.display = e.target.value === 'cyber' ? 'block' : 'none';
-            });
+            // If mpSection was found, we can insert after it, otherwise just append to the form
+            if (mpSection) {
+                mpSection.parentNode.insertBefore(cyberGroup, mpSection.nextSibling);
+                mpSection.style.display = 'none'; // Hide old MP fields if they show up
+            } else {
+                const targetForm = document.querySelector('form');
+                if (targetForm) targetForm.appendChild(cyberGroup);
+            }
 
             // Try to load existing values
             fetch(`${CONFIG.apiBase}/dashboard/site-settings`).then(r => r.json()).then(res => {
                 if (res.success && res.data) {
-                    gatewaySelect.value = res.data.gateway || 'mercadopago';
                     document.getElementById('dash-cyber-public').value = res.data.cyberPublicKey || '';
                     document.getElementById('dash-cyber-secret').value = res.data.cyberSecretKey || '';
-                    if (gatewaySelect.value === 'cyber') cyberKeysFields.style.display = 'block';
                 }
             });
         }
