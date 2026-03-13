@@ -1,2 +1,3 @@
 <?php
-echo "PHP is working! Time: " . date("Y-m-d H:i:s");
+require __DIR__ . '/../vendor/autoload.php';
+echo "BLESSED TEST WITH AUTOLOADER: Time: " . date("Y-m-d H:i:s");
