@@ -18,7 +18,38 @@ use App\Models\V1\RifaNumber;
 // --- Diagnóstico e Recuperação ---
 
 Route::get('/test-sanity', function () {
-    return "Laravel is alive!";
+    return "Laravel is alive and modified!";
+});
+
+Route::get('/fix-db-structure', function() {
+    try {
+        if (!Schema::hasTable('site_config')) {
+            Schema::create('site_config', function ($table) {
+                $table->id();
+                $table->string('site_name')->nullable();
+                $table->string('plataform_name')->nullable();
+                $table->string('whatsapp_link')->nullable();
+                $table->string('instagram_link')->nullable();
+                $table->string('url_logo_site')->nullable();
+                $table->string('url_favicon_site')->nullable();
+                $table->string('meta_pixel')->nullable();
+                $table->timestamps();
+            });
+            
+            // Insert initial record
+            DB::table('site_config')->insert([
+                'id' => 1,
+                'site_name' => 'Sorteio Premium',
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+            
+            return "Table site_config created and seeded!";
+        }
+        return "Table site_config already exists.";
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
 });
 
 // Route::get('/reset-admin-pwd', function () { ... });
@@ -153,6 +184,7 @@ Route::group(['prefix' => 'admin', 'namespace' => 'App\Http\Controllers\V1'], fu
         Route::put("/dashboard/payment/update", "AdminController@updateGateway");
         Route::delete("/dashboard/payment/delete", "AdminController@destroyGateway");
 
+        Route::get("/dashboard/site-settings", "AdminController@getConfigSite");
         Route::post("/dashboard/site-settings/editar", "AdminController@storeConfigSite");
         Route::get("/dashboard/vendas", "AdminController@getVendas");
         Route::post("/dashboard/vendas/filtro", "AdminController@vendasFiltro");
@@ -181,7 +213,6 @@ Route::group(['prefix' => 'produtos', 'namespace' => 'App\Http\Controllers\V1'],
 Route::group(['namespace' => 'App\Http\Controllers\V1'], function () {
     Route::get("/index", "RifasController@index");
     Route::get("/get-all-numeros-premiados/{id}", "RifasController@getNumerosPremiados");
-    Route::get("/dashboard/site-settings", "AdminController@getConfigSite");
 });
 
 Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V1'], function () {
