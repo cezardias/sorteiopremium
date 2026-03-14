@@ -31,7 +31,8 @@ const Orders = () => {
         : await api.get('/admin/dashboard/pedidos');
       
       if (response.data && response.data.success) {
-        setOrders(response.data.data);
+        const data = response.data.data;
+        setOrders(Array.isArray(data) ? data : (data.data || []));
       }
     } catch (error) {
       console.error('Error fetching orders:', error);

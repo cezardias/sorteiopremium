@@ -43,7 +43,8 @@ const Ranking = () => {
         : await api.get(endpoint);
 
       if (response.data && response.data.success) {
-        setRanking(response.data.data);
+        const data = response.data.data;
+        setRanking(Array.isArray(data) ? data : (data.data || []));
       }
     } catch (error) {
       console.error('Error fetching ranking:', error);
