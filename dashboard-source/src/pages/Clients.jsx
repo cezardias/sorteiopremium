@@ -80,7 +80,7 @@ const Clients = () => {
             <tr>
               <th className="px-6 py-4 font-bold">#</th>
               <th className="px-6 py-4 font-bold">NOME</th>
-              <th className="px-6 py-4 font-bold">TELEFONE</th>
+              <th className="px-6 py-4 font-bold">CELULAR (DEBUG)</th>
               <th className="px-6 py-4 font-bold text-center">AÇÕES</th>
             </tr>
           </thead>
@@ -100,7 +100,7 @@ const Clients = () => {
                   <td className="px-6 py-4 font-medium uppercase text-gray-300">
                     {client.name} {client.surname}
                   </td>
-                  <td className="px-6 py-4 text-gray-400">{client.cellphone}</td>
+                  <td className="px-6 py-4 text-gray-400">{client.cellphone || 'N/A DEBUG'}</td>
                   <td className="px-6 py-4">
                     <div className="flex justify-center gap-2">
                       <button className="bg-blue-600/20 text-blue-500 hover:bg-blue-600 hover:text-white px-3 py-1.5 rounded flex items-center gap-1 transition-colors text-xs font-bold">
