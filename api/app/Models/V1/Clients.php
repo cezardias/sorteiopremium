@@ -47,9 +47,19 @@ class Clients extends Authenticatable implements JWTSubject
         }
     }
 
+    public static function normalizeCellphone($cellphone)
+    {
+        return preg_replace('/[^0-9]/', '', $cellphone);
+    }
+
     public static function findClient($cellphone)
     {
+        $normalized = self::normalizeCellphone($cellphone);
+        // Tenta buscar o exato, se não encontrar, tenta buscar apenas os dígitos
         $client = self::where('cellphone', $cellphone)->first();
+        if (!$client) {
+            $client = self::whereRaw("REGEXP_REPLACE(cellphone, '[^0-9]', '') = ?", [$normalized])->first();
+        }
         return $client;
     }
     public static function findClientById($id)

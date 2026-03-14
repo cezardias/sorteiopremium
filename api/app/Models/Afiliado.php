@@ -37,8 +37,9 @@ class Afiliado extends Model
 
     public static function findAfiliado($cellphone)
     {
+        $normalized = Clients::normalizeCellphone($cellphone);
         return self::with(['ganhoAfiliado', 'client'])
-            ->where('cellphone', $cellphone)
+            ->whereRaw("REGEXP_REPLACE(cellphone, '[^0-9]', '') = ?", [$normalized])
             ->first();
     }
 

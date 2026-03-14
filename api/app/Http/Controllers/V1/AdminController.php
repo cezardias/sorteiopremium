@@ -1343,17 +1343,21 @@ class AdminController extends Controller
 
     public function createAfiliado(Request $request)
     {
-
         try {
-            $client = Clients::findClient($request->cellphone);
-            $afiliado = Afiliado::findAfiliado($request->cellphone);
+            $cellphone = $request->cellphone;
+            $client = Clients::findClient($cellphone);
+            $afiliado = Afiliado::findAfiliado($cellphone);
 
             if (!$client) {
-                return response()->json(["success" => false, "msg" => 'Cliente não encontrado!'], 500);
+                return response()->json(["success" => false, "msg" => 'Cliente não encontrado! Verifique o número digitado.'], 404);
             }
             if ($afiliado) {
-                return response()->json(["success" => false, "msg" => 'Afiliado já existe!'], 500);
+                return response()->json(["success" => false, "msg" => 'Este cliente já é um afiliado!'], 400);
             }
+
+            // Normaliza o celular para salvar no formato padrão (apenas números)
+            $request->merge(['cellphone' => Clients::normalizeCellphone($cellphone)]);
+            
             $afiliado = Afiliado::createAfiliado($request, $client);
 
             return response()->json(["success" => true, "data" => 'criado com sucesso'], 201);
@@ -1366,20 +1370,22 @@ class AdminController extends Controller
     public function getAllAfiliado()
     {
         try {
-            $afiliados = Afiliado::with(['client', 'ganhoAfiliado' => function($query) {
-                $query->whereHas('rifaPay', function($q) {
-                    $q->where('status', 1);
-                });
-            }])->paginate(20);
+            // Simplificando a busca para garantir que retorne todos os afiliados
+            $afiliados = Afiliado::with(['client', 'ganhoAfiliado.rifaPay'])->paginate(20);
 
             if ($afiliados->isEmpty()) {
                 return response()->json(["success" => true, "data" => $afiliados], 200);
             }
 
             foreach ($afiliados as $afiliado) {
-                $afiliado->totalPedidos = $afiliado->ganhoAfiliado->count();
-                $afiliado->faturamento = $afiliado->ganhoAfiliado->sum('faturamento');
-                $afiliado->comissao = $afiliado->ganhoAfiliado->sum('comissao');
+                // Filtra os ganhos aprovados em memória para as estatísticas
+                $ganhosAprovados = $afiliado->ganhoAfiliado->filter(function($ganho) {
+                    return $ganho->rifaPay && $ganho->rifaPay->status == 1;
+                });
+
+                $afiliado->totalPedidos = $ganhosAprovados->count();
+                $afiliado->faturamento = $ganhosAprovados->sum('faturamento');
+                $afiliado->comissao = $ganhosAprovados->sum('comissao');
             }
 
             return response()->json(["success" => true, "data" => $afiliados], 200);
@@ -1473,20 +1479,21 @@ class AdminController extends Controller
                 });
             }
 
-            $afiliados = $query->with(['client', 'ganhoAfiliado' => function($query) {
-                $query->whereHas('rifaPay', function($q) {
-                    $q->where('status', 1);
-                });
-            }])->paginate(20);
+            $afiliados = $query->with(['client', 'ganhoAfiliado.rifaPay'])->paginate(20);
 
             if ($afiliados->isEmpty()) {
                 return response()->json(["success" => true, "data" => $afiliados], 200);
             }
 
             foreach ($afiliados as $afiliado) {
-                $afiliado->totalPedidos = $afiliado->ganhoAfiliado->count();
-                $afiliado->faturamento = $afiliado->ganhoAfiliado->sum('faturamento');
-                $afiliado->comissao = $afiliado->ganhoAfiliado->sum('comissao');
+                // Filtra os ganhos aprovados em memória para as estatísticas
+                $ganhosAprovados = $afiliado->ganhoAfiliado->filter(function($ganho) {
+                    return $ganho->rifaPay && $ganho->rifaPay->status == 1;
+                });
+
+                $afiliado->totalPedidos = $ganhosAprovados->count();
+                $afiliado->faturamento = $ganhosAprovados->sum('faturamento');
+                $afiliado->comissao = $ganhosAprovados->sum('comissao');
             }
 
             return response()->json(["success" => true, "data" => $afiliados], 200);
