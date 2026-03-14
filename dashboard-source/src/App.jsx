@@ -2,6 +2,15 @@ import React, { Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import Clients from './pages/Clients';
+import Login from './pages/Login';
+
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem('admin_token');
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
 
 const DashboardHome = () => (
   <div className="text-center py-20">
@@ -18,24 +27,27 @@ const PlaceholderPage = ({title}) => (
 );
 
 const NotFound = () => (
-  <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
-    <h1 className="text-6xl font-bold text-red-500">404</h1>
-    <p className="text-xl mt-4 opacity-70">Rota não encontrada no React.</p>
-    <a href="/" className="mt-6 text-green-500 underline">Voltar para Início</a>
+  <div className="flex flex-col items-center justify-center min-h-[50vh] text-center text-gray-400">
+    <h1 className="text-6xl font-bold text-red-500/50">404</h1>
+    <p className="text-xl mt-4 opacity-70 font-bold uppercase tracking-widest">Rota não encontrada</p>
+    <a href="/dashboard" className="mt-6 text-green-500 underline uppercase text-sm font-bold tracking-widest">Voltar para início</a>
   </div>
 );
 
 function App() {
-  // Basename '/' is usually right for subdomain root.
-  // We wrap in Suspense just in case.
   return (
     <BrowserRouter basename="/">
-      <Suspense fallback={<div className="p-20 text-center">Carregando App...</div>}>
+      <Suspense fallback={<div className="p-20 text-center text-green-500 font-bold tracking-widest animate-pulse">Carregando...</div>}>
         <Routes>
-          {/* Fallback to dashboard */}
+          <Route path="/login" element={<Login />} />
+          
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           
-          <Route path="/dashboard" element={<Layout />}>
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }>
             <Route index element={<DashboardHome />} />
             <Route path="clientes" element={<Clients />} />
             <Route path="vendas" element={<PlaceholderPage title="Vendas" />} />
@@ -46,7 +58,6 @@ function App() {
             <Route path="configurações" element={<PlaceholderPage title="Configurações" />} />
           </Route>
 
-          {/* Fallback Catch-all Debug */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
