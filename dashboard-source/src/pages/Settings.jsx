@@ -179,42 +179,45 @@ const Settings = () => {
               <div>
                 <label className="block text-[10px] font-black text-gray-500 uppercase mb-2 tracking-widest">Link WhatsApp (Vendas/Suporte)</label>
                 <div className="relative">
-                  <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 text-green-500" size={16} />
+                  <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 text-green-500" size={16} />
                   <input 
                     type="text" 
                     name="whatsapp_link"
                     value={config.whatsapp_link || ''}
                     onChange={handleInputChange}
-                    className="input-field pl-12"
+                    className="input-field !pl-14"
                     placeholder="https://wa.me/..."
+                    autoComplete="off"
                   />
                 </div>
               </div>
               <div>
                 <label className="block text-[10px] font-black text-gray-500 uppercase mb-2 tracking-widest">Link Instagram</label>
                 <div className="relative">
-                  <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 text-pink-500" size={16} />
+                  <Instagram className="absolute left-4 top-1/2 -translate-y-1/2 text-pink-500" size={16} />
                   <input 
                     type="text" 
                     name="instagram_link"
                     value={config.instagram_link || ''}
                     onChange={handleInputChange}
-                    className="input-field pl-12"
+                    className="input-field !pl-14"
                     placeholder="https://instagram.com/..."
+                    autoComplete="off"
                   />
                 </div>
               </div>
               <div>
                 <label className="block text-[10px] font-black text-gray-500 uppercase mb-2 tracking-widest">ID do Meta Pixel (Facebook)</label>
                 <div className="relative">
-                  <Facebook className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-600" size={16} />
+                  <Facebook className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-600" size={16} />
                   <input 
                     type="text" 
                     name="meta_pixel"
                     value={config.meta_pixel || ''}
                     onChange={handleInputChange}
-                    className="input-field pl-12"
+                    className="input-field !pl-14"
                     placeholder="Somente o número do ID"
+                    autoComplete="off"
                   />
                 </div>
               </div>
@@ -235,28 +238,30 @@ const Settings = () => {
               <div>
                 <label className="block text-[10px] font-black text-gray-500 uppercase mb-2 tracking-widest">Public Key (Publica)</label>
                 <div className="relative">
-                  <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+                  <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
                   <input 
                     type="text" 
                     name="cyber_public_key"
                     value={config.cyber_public_key || ''}
                     onChange={handleInputChange}
-                    className="input-field pl-12 font-mono text-[11px]"
+                    className="input-field !pl-14 font-mono text-[11px]"
                     placeholder="pub_..."
+                    autoComplete="off"
                   />
                 </div>
               </div>
               <div>
                 <label className="block text-[10px] font-black text-gray-500 uppercase mb-2 tracking-widest">Secret Key (Privada)</label>
                 <div className="relative">
-                  <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-red-500" size={16} />
+                  <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-red-500" size={16} />
                   <input 
                     type="password" 
                     name="cyber_secret_key"
                     value={config.cyber_secret_key || ''}
                     onChange={handleInputChange}
-                    className="input-field pl-12 font-mono text-[11px]"
+                    className="input-field !pl-14 font-mono text-[11px]"
                     placeholder="sk_..."
+                    autoComplete="off"
                   />
                 </div>
               </div>
