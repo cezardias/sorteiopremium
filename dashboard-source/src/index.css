@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-[#0f111a] text-gray-200 antialiased min-h-screen font-sans;
+  }
+}
+
+.input-field {
+  @apply w-full bg-[#1e2130] border border-gray-700 rounded-md px-3 py-2 text-white focus:outline-none focus:border-green-500 transition-colors;
+}
+
+.btn-primary {
+  @apply w-full bg-[#1db954] hover:bg-[#1ed760] text-black font-bold py-2 px-4 rounded-md transition-colors;
+}
