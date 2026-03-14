@@ -12,6 +12,11 @@
   @apply w-full bg-[#1e2130] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/30 transition-all duration-300 placeholder:text-gray-600 !important;
 }
 
+/* Ensure padding for inputs with icons */
+.relative > .input-field {
+  padding-left: 3.5rem !important;
+}
+
 /* Fix for browser autofill background */
 input:-webkit-autofill,
 input:-webkit-autofill:hover, 
@@ -19,6 +24,7 @@ input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: #ffffff !important;
+    background-color: #1e2130 !important;
     transition: background-color 5000s ease-in-out 0s !important;
     box-shadow: inset 0 0 20px 20px #1e2130 !important;
 }
