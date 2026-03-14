@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/api';
 import { Search, Eye, Edit, Trash2 } from 'lucide-react';
 import ClientEditModal from '../components/ClientEditModal';
 
@@ -14,7 +14,7 @@ const Clients = () => {
     try {
       setLoading(true);
       // In production, this should use dynamic API URL from environment variables
-      const response = await axios.get('/api/v1/admin/dashboard/todos/clientes');
+      const response = await api.get('/admin/dashboard/todos/clientes');
       if (response.data && response.data.status === 200) {
         setClients(response.data.data);
       }

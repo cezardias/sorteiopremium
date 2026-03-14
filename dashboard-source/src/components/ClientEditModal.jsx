@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/api';
 
 const ClientEditModal = ({ client, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -35,7 +35,7 @@ const ClientEditModal = ({ client, onClose, onSuccess }) => {
     
     try {
       // Replicating the backend's expected PUT requirement
-      const response = await axios.put('/api/v1/admin/dashboard/editar/cliente', formData);
+      const response = await api.put('/admin/dashboard/editar/cliente', formData);
       
       if (response.data && response.data.status === 200) {
         onSuccess();
