@@ -8,15 +8,18 @@ import {
   XCircle, 
   TrendingUp, 
   Calendar,
-  Layers
+  Layers,
+  Trophy
 } from 'lucide-react';
 import RaffleEditModal from '../components/RaffleEditModal';
+import DrawModal from '../components/DrawModal';
 
 const Raffles = () => {
   const [raffles, setRaffles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [drawModalOpen, setDrawModalOpen] = useState(false);
   const [selectedRaffle, setSelectedRaffle] = useState(null);
 
   const fetchRaffles = async () => {
@@ -63,6 +66,11 @@ const Raffles = () => {
   const handleEditClick = (raffle) => {
     setSelectedRaffle(raffle);
     setEditModalOpen(true);
+  };
+
+  const handleDrawClick = (raffle) => {
+    setSelectedRaffle(raffle);
+    setDrawModalOpen(true);
   };
 
   const filteredRaffles = raffles.filter(r => 
@@ -173,20 +181,29 @@ const Raffles = () => {
                   </span>
                 </div>
 
-                <button 
-                  onClick={() => handleStatusToggle(raffle.id, raffle.status)}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${
-                    raffle.status === 'ativas' 
-                    ? 'text-red-500 bg-red-500/10 hover:bg-red-500 hover:text-white' 
-                    : 'text-green-500 bg-green-500/10 hover:bg-green-500 hover:text-white'
-                  }`}
-                >
-                  {raffle.status === 'ativas' ? (
-                    <><XCircle size={14} /> Finalizar</>
-                  ) : (
-                    <><CheckCircle size={14} /> Ativar</>
-                  )}
-                </button>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => handleDrawClick(raffle)}
+                    className="p-1.5 bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500 hover:text-black rounded-lg transition-all border border-yellow-500/20"
+                    title="Realizar Sorteio"
+                  >
+                    <Trophy size={14} />
+                  </button>
+                  <button 
+                    onClick={() => handleStatusToggle(raffle.id, raffle.status)}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${
+                      raffle.status === 'ativas' 
+                      ? 'text-red-500 bg-red-500/10 hover:bg-red-500 hover:text-white' 
+                      : 'text-green-500 bg-green-500/10 hover:bg-green-500 hover:text-white'
+                    }`}
+                  >
+                    {raffle.status === 'ativas' ? (
+                      <><XCircle size={14} /> Finalizar</>
+                    ) : (
+                      <><CheckCircle size={14} /> Ativar</>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           ))
@@ -201,6 +218,14 @@ const Raffles = () => {
             setEditModalOpen(false);
             fetchRaffles();
           }} 
+        />
+      )}
+
+      {drawModalOpen && (
+        <DrawModal 
+          raffle={selectedRaffle}
+          isOpen={drawModalOpen}
+          onClose={() => setDrawModalOpen(false)}
         />
       )}
     </div>
