@@ -185,7 +185,7 @@ const Settings = () => {
                     name="whatsapp_link"
                     value={config.whatsapp_link || ''}
                     onChange={handleInputChange}
-                    className="input-field pl-10"
+                    className="input-field pl-12"
                     placeholder="https://wa.me/..."
                   />
                 </div>
@@ -199,7 +199,7 @@ const Settings = () => {
                     name="instagram_link"
                     value={config.instagram_link || ''}
                     onChange={handleInputChange}
-                    className="input-field pl-10"
+                    className="input-field pl-12"
                     placeholder="https://instagram.com/..."
                   />
                 </div>
@@ -213,7 +213,7 @@ const Settings = () => {
                     name="meta_pixel"
                     value={config.meta_pixel || ''}
                     onChange={handleInputChange}
-                    className="input-field pl-10"
+                    className="input-field pl-12"
                     placeholder="Somente o número do ID"
                   />
                 </div>
@@ -241,7 +241,7 @@ const Settings = () => {
                     name="cyber_public_key"
                     value={config.cyber_public_key || ''}
                     onChange={handleInputChange}
-                    className="input-field pl-10 font-mono text-[11px]"
+                    className="input-field pl-12 font-mono text-[11px]"
                     placeholder="pub_..."
                   />
                 </div>
@@ -255,7 +255,7 @@ const Settings = () => {
                     name="cyber_secret_key"
                     value={config.cyber_secret_key || ''}
                     onChange={handleInputChange}
-                    className="input-field pl-10 font-mono text-[11px]"
+                    className="input-field pl-12 font-mono text-[11px]"
                     placeholder="sk_..."
                   />
                 </div>
