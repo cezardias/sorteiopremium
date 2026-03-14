@@ -18,38 +18,7 @@ use App\Models\V1\RifaNumber;
 // --- Diagnóstico e Recuperação ---
 
 Route::get('/test-sanity', function () {
-    return "Laravel is alive and modified!";
-});
-
-Route::get('/fix-db-structure', function() {
-    try {
-        if (!Schema::hasTable('site_config')) {
-            Schema::create('site_config', function ($table) {
-                $table->id();
-                $table->string('site_name')->nullable();
-                $table->string('plataform_name')->nullable();
-                $table->string('whatsapp_link')->nullable();
-                $table->string('instagram_link')->nullable();
-                $table->string('url_logo_site')->nullable();
-                $table->string('url_favicon_site')->nullable();
-                $table->string('meta_pixel')->nullable();
-                $table->timestamps();
-            });
-            
-            // Insert initial record
-            DB::table('site_config')->insert([
-                'id' => 1,
-                'site_name' => 'Sorteio Premium',
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
-            
-            return "Table site_config created and seeded!";
-        }
-        return "Table site_config already exists.";
-    } catch (\Exception $e) {
-        return "Error: " . $e->getMessage();
-    }
+    return "Laravel is alive!";
 });
 
 // Route::get('/reset-admin-pwd', function () { ... });
