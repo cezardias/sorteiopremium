@@ -3,6 +3,7 @@ import api from '../api/api';
 
 const ClientEditModal = ({ client, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
+    id: '',
     name: '',
     surname: '',
     cellphone: '',
@@ -15,6 +16,7 @@ const ClientEditModal = ({ client, onClose, onSuccess }) => {
   useEffect(() => {
     if (client) {
       setFormData({
+        id: client.id || '',
         name: client.name || '',
         surname: client.surname || '',
         cellphone: client.cellphone || '',
