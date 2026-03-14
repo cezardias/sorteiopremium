@@ -6,7 +6,7 @@ import ClientEditModal from '../components/ClientEditModal';
 const Clients = () => {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchCellphone, setSearchCellphone] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
 
@@ -45,9 +45,13 @@ const Clients = () => {
     handleModalClose();
   };
 
-  const filteredClients = clients.filter(c => 
-    searchCellphone ? c.cellphone?.includes(searchCellphone) : true
-  );
+  const filteredClients = clients.filter(c => {
+    if (!searchQuery) return true;
+    const term = searchQuery.toLowerCase();
+    const fullName = `${c.name || ''} ${c.surname || ''}`.toLowerCase();
+    const phone = c.cellphone || '';
+    return fullName.includes(term) || phone.includes(term);
+  });
 
   return (
     <div className="animate-in fade-in duration-300">
@@ -57,14 +61,14 @@ const Clients = () => {
         </h1>
         
         <div className="w-1/3">
-          <label className="text-sm font-bold text-gray-500 block mb-2">Telefone:</label>
+          <label className="text-sm font-bold text-gray-500 block mb-2">Buscar Cliente:</label>
           <div className="flex gap-2">
             <input 
               type="text" 
-              placeholder="Pesquise pelo telefone" 
+              placeholder="Nome ou Telefone" 
               className="input-field"
-              value={searchCellphone}
-              onChange={(e) => setSearchCellphone(e.target.value)}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
             <button className="bg-[#2a2d3e] hover:bg-[#32364a] text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors">
               <Search size={18} /> Filtrar
