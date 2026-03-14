@@ -21,7 +21,7 @@ class ClientController extends Controller
                 throw new ItemNotFoundException('Telefone não cadastrado');
             }
             $clientId = $client->id;
-            $info = DB::select("SELECT cotas.id, rifas.thumbnail, rifas.title ,cotas.payment_status, cotas.created_at, cotas.price, count(rifa_numbers.number) as numbers_quant, GROUP_CONCAT(rifa_numbers.number) as numbers FROM rifa_numbers INNER JOIN cotas ON rifa_numbers.cota_id = cotas.id INNER JOIN rifas ON rifa_numbers.rifa_id = rifas.id WHERE rifa_numbers.client_id = $clientId AND payment_status IN (0,1,2,3,10) GROUP BY cotas.id,rifa_numbers.rifa_id");
+            $info = DB::select("SELECT cotas.id, rifas.thumbnail, rifas.title ,cotas.payment_status, cotas.created_at, cotas.price, count(rifa_numbers.number) as numbers_quant, GROUP_CONCAT(rifa_numbers.number) as numbers FROM rifa_numbers INNER JOIN cotas ON rifa_numbers.cota_id = cotas.id INNER JOIN rifas ON rifa_numbers.rifa_id = rifas.id WHERE rifa_numbers.client_id = ? AND payment_status IN (0,1,2,3,10) GROUP BY cotas.id,rifa_numbers.rifa_id", [$clientId]);
             return response()->json(["success" => true, "data" => ["orders" => $info, "client" => $client]], 200);
         } catch (ItemNotFoundException $e) {
             return response()->json(["success" => false, "msg" => $e->getMessage()], 404);

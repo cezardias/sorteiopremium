@@ -19,7 +19,11 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    'allowed_origins' => [
+        'https://sorteiospremiummultimarcas.com.br',
+        'https://app.sorteiospremiummultimarcas.com.br',
+        'https://dash.sorteiospremiummultimarcas.com.br'
+    ],
 
     'allowed_origins_patterns' => [],
 

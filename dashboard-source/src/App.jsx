@@ -14,15 +14,15 @@ const ProtectedRoute = ({ children }) => {
 
 const DashboardHome = () => (
   <div className="text-center py-20">
-    <h2 className="text-3xl font-bold opacity-30">Página Inicial do Dashboard</h2>
-    <p className="opacity-50 mt-4">Navegue no menu lateral.</p>
+    <h2 className="text-3xl font-bold text-white uppercase tracking-widest bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">Geral do Painel</h2>
+    <p className="text-gray-400 mt-4 font-bold tracking-widest uppercase text-sm">Use o menu lateral para gerenciar Clientes, Vendas e Sorteios.</p>
   </div>
 );
 
 const PlaceholderPage = ({title}) => (
   <div className="text-center py-20">
-    <h2 className="text-3xl font-bold opacity-30">{title}</h2>
-    <p className="opacity-50 mt-4">Página em Construção</p>
+    <h2 className="text-3xl font-bold text-gray-700 uppercase tracking-widest">{title}</h2>
+    <p className="text-gray-500 mt-4 font-bold tracking-widest">Página em fase de migração para o novo sistema nativo.</p>
   </div>
 );
 
