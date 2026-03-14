@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/api';
-import { Search, Users, DollarSign, ExternalLink, Share2, Percent } from 'lucide-react';
+import { Search, Users, DollarSign, ExternalLink, Share2, Percent, Plus } from 'lucide-react';
+import AffiliateAddModal from '../components/AffiliateAddModal';
 
 const Affiliates = () => {
   const [affiliates, setAffiliates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
   const [pagination, setPagination] = useState({
     current_page: 1,
     last_page: 1,
@@ -31,7 +33,7 @@ const Affiliates = () => {
 
       if (response.data && response.data.success) {
         const result = response.data.data;
-        if (result.data) {
+        if (result && result.data) {
           setAffiliates(result.data);
           setPagination({
             current_page: result.current_page,
@@ -61,6 +63,11 @@ const Affiliates = () => {
     fetchAffiliates(1, searchQuery);
   };
 
+  const handleCreateSuccess = () => {
+    setShowAddModal(false);
+    fetchAffiliates(1);
+  };
+
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
   };
@@ -68,9 +75,17 @@ const Affiliates = () => {
   return (
     <div className="animate-in fade-in duration-300">
       <div className="flex justify-between items-end mb-8">
-        <h1 className="text-xl font-bold uppercase tracking-wide flex items-center gap-2">
-          <Share2 className="text-gray-400" /> AFILIADOS
-        </h1>
+        <div>
+          <h1 className="text-xl font-bold uppercase tracking-wide flex items-center gap-2">
+            <Share2 className="text-gray-400" /> AFILIADOS
+          </h1>
+          <button 
+            onClick={() => setShowAddModal(true)}
+            className="mt-4 bg-[#1db954] hover:bg-[#1ed760] text-black font-black py-2 px-6 rounded-md flex items-center gap-2 transition-all transform hover:scale-105 uppercase text-xs tracking-widest"
+          >
+            <Plus size={18} /> Adicionar Afiliado
+          </button>
+        </div>
         
         <form onSubmit={handleSearch} className="w-1/3">
           <label className="text-sm font-bold text-gray-500 block mb-2">Buscar Afiliado:</label>
@@ -180,6 +195,13 @@ const Affiliates = () => {
           </button>
         </div>
       </div>
+
+      {showAddModal && (
+        <AffiliateAddModal 
+          onClose={() => setShowAddModal(false)}
+          onSuccess={handleCreateSuccess}
+        />
+      )}
     </div>
   );
 };

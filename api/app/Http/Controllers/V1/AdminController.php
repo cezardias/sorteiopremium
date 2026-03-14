@@ -1373,7 +1373,7 @@ class AdminController extends Controller
             }])->paginate(20);
 
             if ($afiliados->isEmpty()) {
-                return response()->json(["success" => false, "msg" => 'Não tem nenhum afiliado no momento'], 404);
+                return response()->json(["success" => true, "data" => $afiliados], 200);
             }
 
             foreach ($afiliados as $afiliado) {
@@ -1480,7 +1480,7 @@ class AdminController extends Controller
             }])->paginate(20);
 
             if ($afiliados->isEmpty()) {
-                return response()->json(["success" => false, "msg" => "Afiliados não encontrados"], 404);
+                return response()->json(["success" => true, "data" => $afiliados], 200);
             }
 
             foreach ($afiliados as $afiliado) {
