@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../api/api';
+import api, { IMAGE_BASE_URL } from '../api/api';
 import { 
   Trophy, 
   Trash2, 
@@ -94,7 +94,7 @@ const Winners = () => {
             <div key={winner.id} className="group bg-[#141523] rounded-3xl border border-[#2a2d3e] overflow-hidden hover:border-green-500/30 transition-all duration-500 hover:scale-[1.02] shadow-xl">
               <div className="relative h-64 overflow-hidden">
                 <img 
-                  src={`/api/public/img/rifas/${winner.img}`} 
+                  src={`${IMAGE_BASE_URL}/${winner.img}`} 
                   alt={winner.client?.name} 
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   onError={(e) => {

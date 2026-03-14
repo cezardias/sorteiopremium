@@ -8,6 +8,8 @@ const api = axios.create({
   }
 });
 
+export const IMAGE_BASE_URL = 'https://api.sorteiospremiummultimarcas.com.br/img/rifas';
+
 // Add interceptor for tokens
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('admin_token');
