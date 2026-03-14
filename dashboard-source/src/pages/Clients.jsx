@@ -17,6 +17,7 @@ const Clients = () => {
       const response = await api.get('/admin/dashboard/todos/clientes');
       if (response.data && response.data.success) {
         const data = response.data.data;
+        console.log('CLIENTS_DATA:', data);
         setClients(Array.isArray(data) ? data : (data?.data || []));
       }
     } catch (error) {
