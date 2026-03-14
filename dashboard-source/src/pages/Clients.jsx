@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/api';
-import { Search, Eye, Edit, Trash2 } from 'lucide-react';
+import { Search, Eye, Edit, Trash2, Users } from 'lucide-react';
 import ClientEditModal from '../components/ClientEditModal';
 
 const Clients = () => {
@@ -16,7 +16,8 @@ const Clients = () => {
       // In production, this should use dynamic API URL from environment variables
       const response = await api.get('/admin/dashboard/todos/clientes');
       if (response.data && response.data.success) {
-        setClients(response.data.data);
+        const data = response.data.data;
+        setClients(Array.isArray(data) ? data : (data?.data || []));
       }
     } catch (error) {
       console.error('Error fetching clients:', error);
