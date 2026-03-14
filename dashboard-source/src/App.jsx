@@ -7,6 +7,7 @@ import Sales from './pages/Sales';
 import Orders from './pages/Orders';
 import Ranking from './pages/Ranking';
 import Winners from './pages/Winners';
+import Settings from './pages/Settings';
 import Login from './pages/Login';
 
 const ProtectedRoute = ({ children }) => {
@@ -60,7 +61,7 @@ function App() {
             <Route path="pedidos" element={<Orders />} />
             <Route path="ranking" element={<Ranking />} />
             <Route path="ganhadores" element={<Winners />} />
-            <Route path="configurações" element={<PlaceholderPage title="Configurações" />} />
+            <Route path="configurações" element={<Settings />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />
