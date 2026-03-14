@@ -10,24 +10,50 @@ const Clients = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
 
-  const fetchClients = async () => {
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0
+  });
+
+  const fetchClients = async (page = 1, search = searchQuery) => {
     try {
       setLoading(true);
-      // In production, this should use dynamic API URL from environment variables
-      const response = await api.get('/admin/dashboard/todos/clientes');
+      let response;
+      
+      if (search) {
+        // Use filter endpoint for search
+        response = await api.post(`/admin/dashboard/todos/clientes/filtro?page=${page}`, {
+          name: search,
+          cellphone: search
+        });
+      } else {
+        // Use regular endpoint for all
+        response = await api.get(`/admin/dashboard/todos/clientes?page=${page}`);
+      }
+
       if (response.data && response.data.success) {
         const data = response.data.data;
-        setClients(Array.isArray(data) ? data : (data?.data || []));
+        // The data is now paginated, so it has a 'data' property with the actual items
+        setClients(data.data || []);
+        setPagination({
+          current_page: data.current_page,
+          last_page: data.last_page,
+          total: data.total
+        });
+      } else {
+        setClients([]);
       }
     } catch (error) {
       console.error('Error fetching clients:', error);
+      setClients([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchClients();
+    fetchClients(1);
   }, []);
 
   const handleEditClick = (client) => {
@@ -45,13 +71,13 @@ const Clients = () => {
     handleModalClose();
   };
 
-  const filteredClients = clients.filter(c => {
-    if (!searchQuery) return true;
-    const term = searchQuery.toLowerCase();
-    const fullName = `${c.name || ''} ${c.surname || ''}`.toLowerCase();
-    const phone = c.cellphone || '';
-    return fullName.includes(term) || phone.includes(term);
-  });
+  const handleSearch = (e) => {
+    e.preventDefault();
+    fetchClients(1, searchQuery);
+  };
+
+  // We no longer need local filtering as it's done on the server
+  const filteredClients = clients;
 
   return (
     <div className="animate-in fade-in duration-300">
@@ -60,7 +86,7 @@ const Clients = () => {
           <Users className="text-gray-400" /> CLIENTES
         </h1>
         
-        <div className="w-1/3">
+        <form onSubmit={handleSearch} className="w-1/3">
           <label className="text-sm font-bold text-gray-500 block mb-2">Buscar Cliente:</label>
           <div className="flex gap-2">
             <input 
@@ -70,11 +96,11 @@ const Clients = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <button className="bg-[#2a2d3e] hover:bg-[#32364a] text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors">
+            <button type="submit" className="bg-[#2a2d3e] hover:bg-[#32364a] text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors">
               <Search size={18} /> Filtrar
             </button>
           </div>
-        </div>
+        </form>
       </div>
 
       <div className="bg-[#141523] rounded-lg border border-[#2a2d3e] overflow-hidden">
@@ -126,6 +152,34 @@ const Clients = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination Controls */}
+      {pagination.last_page > 1 && (
+        <div className="mt-6 flex justify-between items-center bg-[#141523] p-4 rounded-lg border border-[#2a2d3e]">
+          <div className="text-sm text-gray-400">
+            Mostrando <span className="text-gray-200 font-bold">{clients.length}</span> de <span className="text-gray-200 font-bold">{pagination.total}</span> clientes
+          </div>
+          <div className="flex gap-2">
+            <button 
+              disabled={pagination.current_page === 1}
+              onClick={() => fetchClients(pagination.current_page - 1)}
+              className={`px-4 py-2 rounded bg-[#2a2d3e] text-white text-xs font-bold transition-colors ${pagination.current_page === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#32364a]'}`}
+            >
+              ANTERIOR
+            </button>
+            <div className="flex items-center px-4 text-sm font-bold text-gray-400 bg-[#0f111a] rounded border border-[#2a2d3e]">
+              PÁGINA {pagination.current_page} DE {pagination.last_page}
+            </div>
+            <button 
+              disabled={pagination.current_page === pagination.last_page}
+              onClick={() => fetchClients(pagination.current_page + 1)}
+              className={`px-4 py-2 rounded bg-[#2a2d3e] text-white text-xs font-bold transition-colors ${pagination.current_page === pagination.last_page ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#32364a]'}`}
+            >
+              PRÓXIMO
+            </button>
+          </div>
+        </div>
+      )}
 
       {editModalOpen && (
         <ClientEditModal 

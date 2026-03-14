@@ -496,26 +496,31 @@ class AdminController extends Controller
                 $query->where('id', $request->input('id'));
             }
 
-            if ($request->has('name')) {
-                $name = $request->input('name');
-                $nameParts = explode(' ', $name);
+            $query->where(function($q) use ($request) {
+                if ($request->has('name')) {
+                    $name = $request->input('name');
+                    $nameParts = explode(' ', $name);
 
-                $query->where(function ($q) use ($nameParts) {
-                    foreach ($nameParts as $part) {
-                        $q->where(function ($subQ) use ($part) {
-                            $subQ->where('name', 'like', '%' . $part . '%')
-                                ->orWhere('surname', 'like', '%' . $part . '%');
-                        });
+                    $q->where(function ($subQ) use ($nameParts) {
+                        foreach ($nameParts as $part) {
+                            $subQ->where(function($partQ) use ($part) {
+                                $partQ->where('name', 'like', '%' . $part . '%')
+                                     ->orWhere('surname', 'like', '%' . $part . '%');
+                            });
+                        }
+                    });
+                }
+
+                if ($request->has('cellphone')) {
+                    if ($request->has('name')) {
+                        $q->orWhere('cellphone', 'like', '%' . $request->input('cellphone') . '%');
+                    } else {
+                        $q->where('cellphone', 'like', '%' . $request->input('cellphone') . '%');
                     }
-                });
-            }
+                }
+            });
 
-
-            if ($request->has('cellphone')) {
-                $query->where('cellphone', 'like', '%' . $request->input('cellphone') . '%');
-            }
-
-            $clientes = $query->get();
+            $clientes = $query->paginate(20);
 
             if ($clientes->isEmpty()) {
                 return response()->json(["success" => false, "msg" => "Clientes não encontrados"], 404);
