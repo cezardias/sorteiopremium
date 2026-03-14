@@ -8,7 +8,8 @@ import {
   Award, 
   Gift, 
   Settings, 
-  LogOut 
+  LogOut,
+  Share2 
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -50,6 +51,9 @@ const Sidebar = () => {
         </NavLink>
         <NavLink to="/dashboard/ganhadores" className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-xs tracking-widest transition-colors ${isActive ? 'bg-[#1db954] text-black' : 'text-gray-400 hover:text-white hover:bg-[#1e2130]'}`}>
           <Gift size={18} /> GANHADORES
+        </NavLink>
+        <NavLink to="/dashboard/afiliados" className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-xs tracking-widest transition-colors ${isActive ? 'bg-[#1db954] text-black' : 'text-gray-400 hover:text-white hover:bg-[#1e2130]'}`}>
+          <Share2 size={18} /> AFILIADOS
         </NavLink>
         <NavLink to="/dashboard/configuracoes" className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-xs tracking-widest transition-colors ${isActive ? 'bg-[#1db954] text-black' : 'text-gray-400 hover:text-white hover:bg-[#1e2130]'}`}>
           <Settings size={18} /> CONFIGURAÇÕES

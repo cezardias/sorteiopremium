@@ -8,6 +8,7 @@ import Orders from './pages/Orders';
 import Ranking from './pages/Ranking';
 import Winners from './pages/Winners';
 import Settings from './pages/Settings';
+import Affiliates from './pages/Affiliates';
 import Login from './pages/Login';
 
 const ProtectedRoute = ({ children }) => {
@@ -61,6 +62,7 @@ function App() {
             <Route path="pedidos" element={<Orders />} />
             <Route path="ranking" element={<Ranking />} />
             <Route path="ganhadores" element={<Winners />} />
+            <Route path="afiliados" element={<Affiliates />} />
             <Route path="configuracoes" element={<Settings />} />
           </Route>
 
