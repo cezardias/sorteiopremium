@@ -37,7 +37,7 @@ const ClientEditModal = ({ client, onClose, onSuccess }) => {
       // Replicating the backend's expected PUT requirement
       const response = await api.put('/admin/dashboard/editar/cliente', formData);
       
-      if (response.data && response.data.status === 200) {
+      if (response.data && response.data.success) {
         onSuccess();
       } else {
         setError(response.data.msg || 'Erro ao atualizar o cliente.');

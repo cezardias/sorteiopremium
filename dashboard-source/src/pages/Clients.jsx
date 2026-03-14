@@ -15,7 +15,7 @@ const Clients = () => {
       setLoading(true);
       // In production, this should use dynamic API URL from environment variables
       const response = await api.get('/admin/dashboard/todos/clientes');
-      if (response.data && response.data.status === 200) {
+      if (response.data && response.data.success) {
         setClients(response.data.data);
       }
     } catch (error) {
