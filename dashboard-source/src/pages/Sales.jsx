@@ -36,10 +36,13 @@ const Sales = () => {
     try {
       setLoading(true);
       const endpoint = filter 
-        ? `/admin/dashboard/vendas/filtro?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`
-        : '/admin/dashboard/faturamento';
+        ? '/admin/dashboard/vendas/filtro'
+        : '/admin/dashboard/vendas';
       
-      const response = await api.get(endpoint);
+      const response = filter
+        ? await api.post(endpoint, dateRange)
+        : await api.get(endpoint);
+
       if (response.data && response.data.success) {
         setData(response.data.data);
       }
@@ -76,10 +79,15 @@ const Sales = () => {
     value: parseFloat(value)
   })) : [];
 
-  const weeklyData = data?.faturamentoSemanal ? Object.entries(data.faturamentoSemanal).map(([day, value]) => ({
-    name: day,
-    value: parseFloat(value)
-  })) : [];
+  const weeklyData = data?.faturamentoSemanal 
+    ? (typeof data.faturamentoSemanal === 'object' && !Array.isArray(data.faturamentoSemanal)
+        ? Object.entries(data.faturamentoSemanal).map(([day, value]) => ({
+            name: day,
+            value: parseFloat(value)
+          }))
+        : [{ name: 'Total Período', value: parseFloat(data.faturamentoSemanal) }]
+      )
+    : [];
 
   const dailyData = data?.faturamentoDiario ? Object.entries(data.faturamentoDiario).map(([date, stats]) => ({
     name: date.split('/')[0] + '/' + date.split('/')[1],
