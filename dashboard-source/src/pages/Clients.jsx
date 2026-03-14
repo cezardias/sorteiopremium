@@ -6,7 +6,7 @@ import ClientEditModal from '../components/ClientEditModal';
 const Clients = () => {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchPhone, setSearchPhone] = useState('');
+  const [searchCellphone, setSearchCellphone] = useState('');
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
 
@@ -46,7 +46,7 @@ const Clients = () => {
   };
 
   const filteredClients = clients.filter(c => 
-    searchPhone ? c.phone?.includes(searchPhone) : true
+    searchCellphone ? c.cellphone?.includes(searchCellphone) : true
   );
 
   return (
@@ -63,8 +63,8 @@ const Clients = () => {
               type="text" 
               placeholder="Pesquise pelo telefone" 
               className="input-field"
-              value={searchPhone}
-              onChange={(e) => setSearchPhone(e.target.value)}
+              value={searchCellphone}
+              onChange={(e) => setSearchCellphone(e.target.value)}
             />
             <button className="bg-[#2a2d3e] hover:bg-[#32364a] text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors">
               <Search size={18} /> Filtrar
@@ -99,7 +99,7 @@ const Clients = () => {
                   <td className="px-6 py-4 font-medium uppercase text-gray-300">
                     {client.name} {client.surname}
                   </td>
-                  <td className="px-6 py-4 text-gray-400">{client.phone}</td>
+                  <td className="px-6 py-4 text-gray-400">{client.cellphone}</td>
                   <td className="px-6 py-4">
                     <div className="flex justify-center gap-2">
                       <button className="bg-blue-600/20 text-blue-500 hover:bg-blue-600 hover:text-white px-3 py-1.5 rounded flex items-center gap-1 transition-colors text-xs font-bold">

@@ -5,7 +5,7 @@ const ClientEditModal = ({ client, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     name: '',
     surname: '',
-    phone: '',
+    cellphone: '',
     cpf: '',
     email: ''
   });
@@ -17,7 +17,7 @@ const ClientEditModal = ({ client, onClose, onSuccess }) => {
       setFormData({
         name: client.name || '',
         surname: client.surname || '',
-        phone: client.phone || '',
+        cellphone: client.cellphone || '',
         cpf: client.cpf || '',
         email: client.email || ''
       });
@@ -103,12 +103,12 @@ const ClientEditModal = ({ client, onClose, onSuccess }) => {
               <label className="block text-sm font-medium text-gray-300 mb-1">Telefone</label>
               <input 
                 type="text" 
-                name="phone"
-                value={formData.phone}
+                name="cellphone"
+                value={formData.cellphone}
                 onChange={handleChange}
                 readOnly
                 className="input-field bg-[#141523] opacity-70 cursor-not-allowed" 
-                title="A chavetelefone não pode ser editada"
+                title="A chave telefone não pode ser editada"
               />
             </div>
 
