@@ -95,7 +95,11 @@ const Sales = () => {
     pedidos: stats.totalPedidos
   })) : [];
 
-  const StatCard = ({ title, value, icon: Icon, color, subtitle, trend }) => (
+  const formatCurrency = (val) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+  };
+
+  const StatCard = ({ title, value, icon: Icon, color, subtitle, trend, isCurrency = true }) => (
     <div className="bg-[#141523] p-6 rounded-2xl border border-[#2a2d3e] relative overflow-hidden group">
       <div className={`absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity`}>
         <Icon size={80} />
@@ -109,9 +113,7 @@ const Sales = () => {
         </div>
         <div className="flex items-baseline gap-2">
           <h3 className="text-2xl font-black text-white">
-            {typeof value === 'number' && title.includes('R$') 
-              ? `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` 
-              : value}
+            {isCurrency ? formatCurrency(value || 0) : value}
           </h3>
           {trend && (
             <span className={`text-[10px] font-bold flex items-center ${trend > 0 ? 'text-green-500' : 'text-red-500'}`}>
@@ -167,30 +169,34 @@ const Sales = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard 
           title="Faturamento Total" 
-          value={data?.totalPedido || 0} 
+          value={data?.totalPedido} 
           icon={DollarSign} 
           color="bg-green-500"
+          isCurrency={true}
           subtitle="Total acumulado em vendas"
         />
         <StatCard 
           title="Pedidos Aprovados" 
-          value={data?.pedidosAprovados || 0} 
+          value={data?.pedidosAprovados} 
           icon={ShoppingCart} 
           color="bg-blue-500"
+          isCurrency={false}
           subtitle="Vendas confirmadas com sucesso"
         />
         <StatCard 
           title="Aguardando Pagamento" 
-          value={data?.totalPedidoAguardando || 0} 
+          value={data?.totalPedidoAguardando} 
           icon={Clock} 
           color="bg-yellow-500"
+          isCurrency={true}
           subtitle={`${data?.pedidosAguardando || 0} pedidos pendentes`}
         />
         <StatCard 
           title="Faturamento Hoje" 
-          value={data?.faturamentoDoDia || 0} 
+          value={data?.faturamentoDoDia} 
           icon={Calendar} 
           color="bg-purple-500"
+          isCurrency={true}
           subtitle="Performance nas últimas 24h"
         />
       </div>
