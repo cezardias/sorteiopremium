@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import Clients from './pages/Clients';
 import Raffles from './pages/Raffles';
+import Sales from './pages/Sales';
 import Login from './pages/Login';
 
 const ProtectedRoute = ({ children }) => {
@@ -52,7 +53,7 @@ function App() {
             <Route index element={<DashboardHome />} />
             <Route path="clientes" element={<Clients />} />
             <Route path="sorteios" element={<Raffles />} />
-            <Route path="vendas" element={<PlaceholderPage title="Vendas" />} />
+            <Route path="vendas" element={<Sales />} />
             <Route path="pedidos" element={<PlaceholderPage title="Pedidos" />} />
             <Route path="ranking" element={<PlaceholderPage title="Ranking" />} />
             <Route path="ganhadores" element={<PlaceholderPage title="Ganhadores" />} />
