@@ -61,7 +61,7 @@ function App() {
             <Route path="pedidos" element={<Orders />} />
             <Route path="ranking" element={<Ranking />} />
             <Route path="ganhadores" element={<Winners />} />
-            <Route path="configurações" element={<Settings />} />
+            <Route path="configuracoes" element={<Settings />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />
