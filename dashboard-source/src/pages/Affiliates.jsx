@@ -6,23 +6,41 @@ const Affiliates = () => {
   const [affiliates, setAffiliates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0
+  });
 
-  const fetchAffiliates = async (search = searchQuery) => {
+  const fetchAffiliates = async (page = 1, search = searchQuery) => {
     try {
       setLoading(true);
       let response;
       
+      const endpoint = search 
+        ? `/admin/dashboard/afiliado/filtro/?page=${page}` 
+        : `/admin/dashboard/todos/afiliados/?page=${page}`;
+      
+      const params = search ? { search } : {};
+      
       if (search) {
-        response = await api.post('/admin/dashboard/afiliado/filtro/', {
-          name: search,
-          cellphone: search
-        });
+        response = await api.post(endpoint, params);
       } else {
-        response = await api.get('/admin/dashboard/todos/afiliados/');
+        response = await api.get(endpoint);
       }
 
       if (response.data && response.data.success) {
-        setAffiliates(response.data.data || []);
+        const result = response.data.data;
+        if (result.data) {
+          setAffiliates(result.data);
+          setPagination({
+            current_page: result.current_page,
+            last_page: result.last_page,
+            total: result.total
+          });
+        } else {
+          setAffiliates(result || []);
+        }
       } else {
         setAffiliates([]);
       }
@@ -40,7 +58,7 @@ const Affiliates = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    fetchAffiliates(searchQuery);
+    fetchAffiliates(1, searchQuery);
   };
 
   const formatCurrency = (value) => {
@@ -132,6 +150,35 @@ const Affiliates = () => {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Pagination */}
+      <div className="flex justify-between items-center mt-6 py-4 border-t border-[#2a2d3e]">
+        <div className="text-gray-500 text-xs font-bold tracking-widest uppercase">
+          Total: {pagination.total} afiliados
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => fetchAffiliates(pagination.current_page - 1)}
+            disabled={pagination.current_page === 1 || loading}
+            className={`px-4 py-2 rounded font-bold text-xs tracking-widest transition-colors ${pagination.current_page === 1 ? 'text-gray-600 bg-[#1c1f2e] cursor-not-allowed' : 'text-gray-300 bg-[#2a2d3e] hover:bg-[#32364a]'}`}
+          >
+            ANTERIOR
+          </button>
+          
+          <div className="text-xs font-bold text-gray-400 tracking-widest uppercase">
+            PÁGINA {pagination.current_page} DE {pagination.last_page}
+          </div>
+          
+          <button 
+            onClick={() => fetchAffiliates(pagination.current_page + 1)}
+            disabled={pagination.current_page === pagination.last_page || loading}
+            className={`px-4 py-2 rounded font-bold text-xs tracking-widest transition-colors ${pagination.current_page === pagination.last_page ? 'text-gray-600 bg-[#1c1f2e] cursor-not-allowed' : 'text-gray-300 bg-[#2a2d3e] hover:bg-[#32364a]'}`}
+          >
+            PRÓXIMO
+          </button>
+        </div>
       </div>
     </div>
   );

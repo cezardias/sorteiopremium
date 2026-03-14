@@ -1366,15 +1366,20 @@ class AdminController extends Controller
     public function getAllAfiliado()
     {
         try {
-            $afiliados = Afiliado::findAllAfiliado();
-            if (!$afiliados) {
-                return response()->json(["success" => false, "msg" => 'Não tem nenhum afiliado no momento'], 500);
-            }
-            foreach ($afiliados as $afiliado) {
-                $afiliado->totalPedidos = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->count() : 0;
-                $afiliado->faturamento = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('faturamento') : 0;
-                $afiliado->comissao = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('comissao') : 0;
+            $afiliados = Afiliado::with(['client', 'ganhoAfiliado' => function($query) {
+                $query->whereHas('rifaPay', function($q) {
+                    $q->where('status', 1);
+                });
+            }])->paginate(20);
 
+            if ($afiliados->isEmpty()) {
+                return response()->json(["success" => false, "msg" => 'Não tem nenhum afiliado no momento'], 404);
+            }
+
+            foreach ($afiliados as $afiliado) {
+                $afiliado->totalPedidos = $afiliado->ganhoAfiliado->count();
+                $afiliado->faturamento = $afiliado->ganhoAfiliado->sum('faturamento');
+                $afiliado->comissao = $afiliado->ganhoAfiliado->sum('comissao');
             }
 
             return response()->json(["success" => true, "data" => $afiliados], 200);
@@ -1455,46 +1460,35 @@ class AdminController extends Controller
     public function afiliadoFiltro(Request $request)
     {
         try {
-            // Inicializa a consulta usando o modelo Afiliado
             $query = Afiliado::query();
+            $search = $request->input('search');
 
-            // Filtro pelo nome
-            if ($request->has('name')) {
-                $name = $request->input('name');
-                $nameParts = explode(' ', $name);
-
-                // Adiciona condição para filtro pelo nome e sobrenome
-                $query->whereHas('client', function ($q) use ($nameParts) {
-                    if (count($nameParts) > 1) {
-                        $q->where('name', 'like', '%' . $nameParts[0] . '%')
-                            ->where('surname', 'like', '%' . $nameParts[1] . '%');
-                    } else {
-                        $q->where('name', 'like', '%' . $nameParts[0] . '%');
-                    }
+            if ($search) {
+                $query->where(function($q) use ($search) {
+                    $q->where('cellphone', 'like', '%' . $search . '%')
+                      ->orWhereHas('client', function($cq) use ($search) {
+                          $cq->where('name', 'like', '%' . $search . '%')
+                             ->orWhere('surname', 'like', '%' . $search . '%');
+                      });
                 });
             }
 
-            // Filtro pelo celular
-            if ($request->has('cellphone')) {
-                $query->where('cellphone', 'like', '%' . $request->input('cellphone') . '%');
-            }
+            $afiliados = $query->with(['client', 'ganhoAfiliado' => function($query) {
+                $query->whereHas('rifaPay', function($q) {
+                    $q->where('status', 1);
+                });
+            }])->paginate(20);
 
-            // Obtém os resultados da consulta
-            $afiliados = $query->with(['ganhoAfiliado', 'client'])->get();
-
-            // Verifica se a consulta retornou algum resultado
             if ($afiliados->isEmpty()) {
-                return response()->json(["success" => false, "msg" => "Clientes não encontrados"], 404);
+                return response()->json(["success" => false, "msg" => "Afiliados não encontrados"], 404);
             }
 
-            // Processa os afiliados para adicionar informações adicionais
             foreach ($afiliados as $afiliado) {
-                $afiliado->totalPedidos = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->count() : 0;
-                $afiliado->faturamento = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('faturamento') : 0;
-                $afiliado->comissao = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('comissao') : 0;
+                $afiliado->totalPedidos = $afiliado->ganhoAfiliado->count();
+                $afiliado->faturamento = $afiliado->ganhoAfiliado->sum('faturamento');
+                $afiliado->comissao = $afiliado->ganhoAfiliado->sum('comissao');
             }
 
-            // Retorna os resultados
             return response()->json(["success" => true, "data" => $afiliados], 200);
         } catch (\Throwable $e) {
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
