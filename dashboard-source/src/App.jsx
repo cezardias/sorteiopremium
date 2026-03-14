@@ -5,6 +5,7 @@ import Clients from './pages/Clients';
 import Raffles from './pages/Raffles';
 import Sales from './pages/Sales';
 import Orders from './pages/Orders';
+import Ranking from './pages/Ranking';
 import Login from './pages/Login';
 
 const ProtectedRoute = ({ children }) => {
@@ -56,7 +57,7 @@ function App() {
             <Route path="sorteios" element={<Raffles />} />
             <Route path="vendas" element={<Sales />} />
             <Route path="pedidos" element={<Orders />} />
-            <Route path="ranking" element={<PlaceholderPage title="Ranking" />} />
+            <Route path="ranking" element={<Ranking />} />
             <Route path="ganhadores" element={<PlaceholderPage title="Ganhadores" />} />
             <Route path="configurações" element={<PlaceholderPage title="Configurações" />} />
           </Route>
