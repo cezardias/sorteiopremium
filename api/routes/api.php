@@ -175,10 +175,12 @@ Route::group(['prefix' => 'produtos', 'namespace' => 'App\Http\Controllers\V1'],
 
 Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V1'], function () {
     Route::get("/check-db", function() {
+        $ctrl = app_path('Http/Controllers/V1/AdminController.php');
         return response()->json([
             "database" => \DB::getDatabaseName(),
             "afiliados_count" => \DB::table('afiliados')->count(),
-            "afiliado_dump" => \DB::table('afiliados')->get(),
+            "admin_ctrl_mtime" => date("Y-m-d H:i:s", filemtime($ctrl)),
+            "admin_ctrl_size" => filesize($ctrl),
             "file" => __FILE__
         ]);
     });
