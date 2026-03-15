@@ -1370,22 +1370,18 @@ class AdminController extends Controller
     public function getAllAfiliado()
     {
         try {
-            $afiliados = Afiliado::with(['client'])->paginate(100);
-
-            if ($afiliados->isEmpty()) {
-                // Tenta buscar sem o 'with' para ver se é a relação que quebra
-                $raw = Afiliado::paginate(100);
-                return response()->json([
-                    "success" => true, 
-                    "data" => $raw,
-                    "debug_msg" => "Eloquent returned empty with relation, this is raw data"
-                ], 200);
-            }
+            // Busca todos os afiliados com seus ganhos e clientes
+            $afiliados = Afiliado::with(['client', 'ganhoAfiliado.rifaPay'])->paginate(20);
 
             foreach ($afiliados as $afiliado) {
-                $afiliado->totalPedidos = 0;
-                $afiliado->faturamento = 0;
-                $afiliado->comissao = 0;
+                // Filtra apenas ganhos provenientes de rifas pagas/aprovadas (status 1)
+                $ganhosAprovados = $afiliado->ganhoAfiliado->filter(function($ganho) {
+                    return $ganho->rifaPay && $ganho->rifaPay->status == 1;
+                });
+
+                $afiliado->totalPedidos = $ganhosAprovados->count();
+                $afiliado->faturamento = $ganhosAprovados->sum('faturamento');
+                $afiliado->comissao = $ganhosAprovados->sum('comissao');
             }
 
             return response()->json(["success" => true, "data" => $afiliados], 200);
@@ -1396,13 +1392,19 @@ class AdminController extends Controller
     public function getOneAfiliado($id)
     {
         try {
-            $afiliado = Afiliado::findOneAfiliadoById($id);
+            $afiliado = Afiliado::with(['client', 'ganhoAfiliado.rifaPay'])->where('id', $id)->first();
+            
             if (!$afiliado) {
-                return response()->json(["success" => false, "msg" => 'Afiliado não existe'], 500);
+                return response()->json(["success" => false, "msg" => 'Afiliado não existe'], 404);
             }
-            $afiliado->totalPedidos = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->count() : 0;
-            $afiliado->faturamento = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('faturamento') : 0;
-            $afiliado->comissao = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('comissao') : 0;
+
+            $ganhosAprovados = $afiliado->ganhoAfiliado->filter(function($ganho) {
+                return $ganho->rifaPay && $ganho->rifaPay->status == 1;
+            });
+
+            $afiliado->totalPedidos = $ganhosAprovados->count();
+            $afiliado->faturamento = $ganhosAprovados->sum('faturamento');
+            $afiliado->comissao = $ganhosAprovados->sum('comissao');
 
             return response()->json(["success" => true, "data" => $afiliado], 200);
         } catch (\Throwable $e) {
@@ -1415,22 +1417,22 @@ class AdminController extends Controller
             // Busca o afiliado que tenha ganho afiliado com o produto específico
             $afiliados = Afiliado::with([
                 'client',
-                'ganhoAfiliado' => function ($query) use ($idProduto) {
-                    $query->where('rifas_id', $idProduto);
-                }
+                'ganhoAfiliado.rifaPay'
             ])->get();
 
             if ($afiliados->isEmpty()) {
-                return response()->json(["success" => false, "msg" => 'Afiliado não existe'], 500);
+                return response()->json(["success" => false, "msg" => 'Nenhum afiliado encontrado'], 404);
             }
+
             foreach ($afiliados as $afiliado) {
-                $afiliado->totalPedidos = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->count() : 0;
-                $afiliado->faturamento = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('faturamento') : 0;
-                $afiliado->comissao = $afiliado->ganhoAfiliado ? $afiliado->ganhoAfiliado->sum('comissao') : 0;
+                $ganhosAprovados = $afiliado->ganhoAfiliado->filter(function($ganho) use ($idProduto) {
+                    return $ganho->rifas_id == $idProduto && $ganho->rifaPay && $ganho->rifaPay->status == 1;
+                });
 
+                $afiliado->totalPedidos = $ganhosAprovados->count();
+                $afiliado->faturamento = $ganhosAprovados->sum('faturamento');
+                $afiliado->comissao = $ganhosAprovados->sum('comissao');
             }
-
-
 
             return response()->json(["success" => true, "data" => $afiliados], 200);
         } catch (\Throwable $e) {
