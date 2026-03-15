@@ -200,6 +200,18 @@ Route::group(['namespace' => 'App\Http\Controllers\V1'], function () {
 Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V1'], function () {
     Route::get("/latest", "RifasController@latest");
     Route::get("/latest-winner", "RifasController@getLatestWinner");
+    Route::get("/test-get-all", function() {
+        try {
+            $data = \App\Models\Afiliado::with(['client'])->paginate(100);
+            return response()->json([
+                "success" => true,
+                "data" => $data,
+                "count" => $data->total()
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(["error" => $e->getMessage()], 500);
+        }
+    });
     Route::get("/debug-afiliados", "AdminController@getAllAfiliado");
 });
 
