@@ -28,12 +28,15 @@ Route::get('/test-sanity', function () {
 
 
 
-Route::get('/db-debug', function () {
+Route::get('/db-debug-details', function () {
     try {
         return response()->json([
             "success" => true,
-            "database" => DB::getDatabaseName(),
-            "tables" => DB::select('SHOW TABLES')
+            "clients_count" => DB::table('clients')->count(),
+            "afiliados_count" => DB::table('afiliados')->count(),
+            "ganhos_count" => DB::table('ganho_afiliados')->count(),
+            "client_columns" => DB::select('SHOW COLUMNS FROM clients'),
+            "sample_ganhos" => DB::table('ganho_afiliados')->limit(5)->get()
         ]);
     } catch (\Throwable $e) {
         return response()->json(["error" => $e->getMessage()], 500);
