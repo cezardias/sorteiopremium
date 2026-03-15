@@ -180,6 +180,8 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
             "afiliados_count" => \App\Models\Afiliado::count(),
             "clients_count" => \App\Models\V1\Clients::count(),
             "file" => __FILE__,
+            "dir_list" => scandir(dirname(__FILE__)),
+            "parent_dir" => scandir(dirname(dirname(dirname(dirname(__FILE__))))),
             "content_snippet" => substr(file_get_contents(__FILE__), 6000, 1000)
         ]);
     });
