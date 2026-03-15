@@ -156,11 +156,11 @@ Route::group(['prefix' => 'admin', 'namespace' => 'App\Http\Controllers\V1'], fu
 
         // Afiliados
         Route::post("/dashboard/afiliado/create", "AdminController@createAfiliado");
-        Route::get("/dashboard/todos/afiliados/", "AdminController@getAllAfiliado");
+        Route::get("/dashboard/todos/afiliados", "AdminController@getAllAfiliado");
         Route::get("/dashboard/one/afiliado/{id}", "AdminController@getOneAfiliado");
         Route::get("/dashboard/one/afiliado/produto/{idProduto}", "AdminController@getOneAfiliadoByProduto");
         Route::put("/dashboard/afiliado/update/{id}", "AdminController@afiliadoUpdate");
-        Route::post("/dashboard/afiliado/filtro/", "AdminController@afiliadoFiltro");
+        Route::post("/dashboard/afiliado/filtro", "AdminController@afiliadoFiltro");
     });
 });
 
@@ -177,10 +177,8 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
     Route::get("/check-db", function() {
         return response()->json([
             "database" => \DB::getDatabaseName(),
-            "afiliados_table_count" => \DB::table('afiliados')->count(),
-            "afiliado_table_exists" => \Schema::hasTable('afiliado'),
-            "afiliado_table_count" => \Schema::hasTable('afiliado') ? \DB::table('afiliado')->count() : 0,
-            "all_tables" => \DB::select('SHOW TABLES'),
+            "afiliados_count" => \DB::table('afiliados')->count(),
+            "afiliado_dump" => \DB::table('afiliados')->get(),
             "file" => __FILE__
         ]);
     });
