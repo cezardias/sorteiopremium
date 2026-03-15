@@ -182,6 +182,7 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
             "file" => __FILE__
         ]);
     });
+    Route::get("/debug-afiliados", "AdminController@getAllAfiliado");
     Route::get("/index", "RifasController@index");
     Route::get("/get-all-numeros-premiados/{id}", "RifasController@getNumerosPremiados");
     Route::get("/latest", "RifasController@latest");
