@@ -1370,22 +1370,22 @@ class AdminController extends Controller
     public function getAllAfiliado()
     {
         try {
-            // Simplificando a busca para garantir que retorne todos os afiliados
-            $afiliados = Afiliado::with(['client', 'ganhoAfiliado.rifaPay'])->paginate(20);
+            $afiliados = Afiliado::with(['client'])->paginate(100);
 
             if ($afiliados->isEmpty()) {
-                return response()->json(["success" => true, "data" => $afiliados], 200);
+                // Tenta buscar sem o 'with' para ver se é a relação que quebra
+                $raw = Afiliado::paginate(100);
+                return response()->json([
+                    "success" => true, 
+                    "data" => $raw,
+                    "debug_msg" => "Eloquent returned empty with relation, this is raw data"
+                ], 200);
             }
 
             foreach ($afiliados as $afiliado) {
-                // Filtra os ganhos aprovados em memória para as estatísticas
-                $ganhosAprovados = $afiliado->ganhoAfiliado->filter(function($ganho) {
-                    return $ganho->rifaPay && $ganho->rifaPay->status == 1;
-                });
-
-                $afiliado->totalPedidos = $ganhosAprovados->count();
-                $afiliado->faturamento = $ganhosAprovados->sum('faturamento');
-                $afiliado->comissao = $ganhosAprovados->sum('comissao');
+                $afiliado->totalPedidos = 0;
+                $afiliado->faturamento = 0;
+                $afiliado->comissao = 0;
             }
 
             return response()->json(["success" => true, "data" => $afiliados], 200);

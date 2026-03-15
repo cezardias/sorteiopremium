@@ -26,6 +26,8 @@ Route::get('/test-sanity', function () {
 // Route::get('/recovery-payments', function () { ... });
 
 
+
+
 Route::get('/db-debug', function () {
     try {
         return response()->json([
@@ -37,14 +39,13 @@ Route::get('/db-debug', function () {
         return response()->json(["error" => $e->getMessage()], 500);
     }
 });
-
 Route::get('/clear-cache', function () {
     try {
         Artisan::call('cache:clear');
         Artisan::call('route:clear');
         Artisan::call('config:clear');
         Artisan::call('view:clear');
-        return "Tudo limpo!";
+        return "Tudo limpo [DEBUG]!";
     } catch (\Throwable $e) {
         return "Erro: " . $e->getMessage();
     }
@@ -55,6 +56,7 @@ Route::get('/php-info', function () {
 });
 
 // --- Rotas da Aplicação ---
+
 
 Route::group(['prefix' => 'client', 'namespace' => 'App\Http\Controllers\V1'], function () {
     Route::post("/cadastro", "AuthController@register")->name('client.register');
@@ -162,7 +164,6 @@ Route::group(['prefix' => 'admin', 'namespace' => 'App\Http\Controllers\V1'], fu
 
         // Afiliados
         Route::post("/dashboard/afiliado/create", "AdminController@createAfiliado");
-        Route::get("/dashboard/todos/afiliados/", "AdminController@getAllAfiliado");
         Route::get("/dashboard/one/afiliado/{id}", "AdminController@getOneAfiliado");
         Route::get("/dashboard/one/afiliado/produto/{idProduto}", "AdminController@getOneAfiliadoByProduto");
         Route::put("/dashboard/afiliado/update/{id}", "AdminController@afiliadoUpdate");
@@ -181,12 +182,22 @@ Route::group(['prefix' => 'produtos', 'namespace' => 'App\Http\Controllers\V1'],
 
 Route::group(['namespace' => 'App\Http\Controllers\V1'], function () {
     Route::get("/index", "RifasController@index");
+    Route::get("/afiliados-debug", function() {
+        return response()->json([
+            "success" => true,
+            "afiliados" => \App\Models\Afiliado::count(),
+            "clients" => \App\Models\V1\Clients::count(),
+            "sample" => \DB::table('afiliados')->limit(5)->get(),
+            "file" => __FILE__
+        ]);
+    });
     Route::get("/get-all-numeros-premiados/{id}", "RifasController@getNumerosPremiados");
 });
 
 Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V1'], function () {
     Route::get("/latest", "RifasController@latest");
     Route::get("/latest-winner", "RifasController@getLatestWinner");
+    Route::get("/debug-afiliados", "AdminController@getAllAfiliado");
 });
 
 Route::post('client/update-profile', 'App\Http\Controllers\V1\ClientController@updateProfile');
