@@ -176,31 +176,25 @@ Route::group(['prefix' => 'produtos', 'namespace' => 'App\Http\Controllers\V1'],
 Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V1'], function () {
     Route::get("/check-db", function() {
         $dbName = \DB::getDatabaseName();
-        $tables = \DB::select('SHOW TABLES');
-        $tableList = array_map(function($t) use ($dbName) {
-            $prop = "Tables_in_" . $dbName;
-            return $t->$prop;
-        }, $tables);
+        $allDbs = [];
+        try {
+            $dbs = \DB::select('SHOW DATABASES');
+            foreach ($dbs as $db) { $allDbs[] = $db->Database; }
+        } catch (\Exception $e) { $allDbs = $e->getMessage(); }
 
-        $results = [];
-        foreach ($tableList as $table) {
-            $cols = \Schema::getColumnListing($table);
-            foreach ($cols as $col) {
-                if (str_contains(strtolower($col), 'afi')) {
-                    $results[] = [
-                        "table" => $table,
-                        "column" => $col,
-                        "count" => \DB::table($table)->whereNotNull($col)->count()
-                    ];
-                }
-            }
+        $tables = \DB::select('SHOW TABLES');
+        $counts = [];
+        foreach ($tables as $t) {
+            $prop = "Tables_in_" . $dbName;
+            $name = $t->$prop;
+            $counts[$name] = \DB::table($name)->count();
         }
 
         return response()->json([
-            "message" => "V10 - EXHAUSTIVE COLUMN SEARCH",
-            "database" => $dbName,
-            "afi_columns_found" => $results,
-            "all_table_counts" => array_combine($tableList, array_map(function($t) { return \DB::table($t)->count(); }, $tableList)),
+            "message" => "V11 - MULTI DB CHECK",
+            "current_db" => $dbName,
+            "all_accessible_dbs" => $allDbs,
+            "all_table_counts" => $counts,
             "file" => __FILE__
         ]);
     });
