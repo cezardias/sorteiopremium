@@ -177,18 +177,24 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
     Route::get("/check-db", function() {
         if (function_exists('opcache_reset')) { opcache_reset(); }
         $results = [
-            "version" => "V23 - DB_LIST",
+            "version" => "V24 - LEGACY_PDO_CHECK",
             "time" => date("Y-m-d H:i:s")
         ];
         
         try {
-            $dbs = \DB::select("SHOW DATABASES");
-            $names = [];
-            foreach ($dbs as $dbObj) {
-                $names[] = $dbObj->Database;
-            }
-            $results["databases"] = $names;
-        } catch (\Exception $e) { $results["error"] = $e->getMessage(); }
+            // Try legacy credentials from comments
+            $legacyDb = "u526640676_rifa";
+            $legacyPass = "NITyg7G>";
+            
+            $pdo = new PDO("mysql:host=127.0.0.1;dbname=$legacyDb", "u526640676_rifa", $legacyPass);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            
+            $results["legacy_conn"] = "Success";
+            $results["afiliados_count"] = $pdo->query("SELECT COUNT(*) FROM afiliados")->fetchColumn();
+            $results["clients_count"] = $pdo->query("SELECT COUNT(*) FROM clients")->fetchColumn();
+            $results["rifas_count"] = $pdo->query("SELECT COUNT(*) FROM rifas")->fetchColumn();
+            
+        } catch (\Exception $e) { $results["legacy_error"] = $e->getMessage(); }
         
         return response()->json($results);
     });
