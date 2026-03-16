@@ -204,23 +204,40 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
     });
     Route::get("/read-legacy-env", function() {
         if (function_exists('opcache_reset')) { opcache_reset(); }
-        $path = base_path('../public_html/api/.env');
-        if (file_exists($path)) {
-            try {
+        $currentPath = base_path();
+        $parentPath = dirname(base_path(), 2); // Go up to the root level (above public_html2/api)
+        $scandir = file_exists($parentPath) ? scandir($parentPath) : "Parent not found at $parentPath";
+        
+        $results = [
+            "current_base" => $currentPath,
+            "root_found" => $parentPath,
+            "root_files" => $scandir,
+            "tries" => []
+        ];
+        
+        $pathsToTry = [
+            $parentPath . '/public_html/api/.env',
+            $parentPath . '/public_html/.env',
+            dirname($parentPath) . '/public_html/api/.env',
+        ];
+
+        foreach ($pathsToTry as $path) {
+            if (file_exists($path)) {
                 $content = file_get_contents($path);
                 $lines = explode("\n", $content);
                 $filtered = [];
                 foreach ($lines as $line) {
-                    if (str_contains($line, 'DB_') || str_contains($line, 'APP_URL')) {
-                        $filtered[] = trim($line);
-                    }
+                    if (str_contains($line, 'DB_')) { $filtered[] = trim($line); }
                 }
-                return response()->json(["path" => $path, "env" => $filtered]);
-            } catch (\Exception $e) {
-                return response()->json(["error" => "Read error: " . $e->getMessage()]);
+                $results["found"] = $path;
+                $results["env"] = $filtered;
+                break;
+            } else {
+                $results["tries"][] = $path . " (Not found)";
             }
         }
-        return response()->json(["error" => "File not found at $path"]);
+        
+        return response()->json($results);
     });
     Route::get("/index", "RifasController@index");
     Route::get("/get-all-numeros-premiados/{id}", "RifasController@getNumerosPremiados");
