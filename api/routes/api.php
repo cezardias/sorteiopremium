@@ -174,28 +174,26 @@ Route::group(['prefix' => 'produtos', 'namespace' => 'App\Http\Controllers\V1'],
 });
 
 Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V1'], function () {
-    Route::get("/check-db-final", function() {
+    Route::get("/check-db", function() {
         if (function_exists('opcache_reset')) { opcache_reset(); }
         $results = [
-            "version" => "V30 - DEEP_DB_SCAN_FINAL",
+            "version" => "V31 - COMBO_CHECK",
             "time" => date("Y-m-d H:i:s")
         ];
         
         try {
-            $dbs = \DB::select("SHOW DATABASES");
-            $found = [];
-            foreach ($dbs as $dbObj) {
-                $db = $dbObj->Database;
-                if (in_array($db, ['information_schema', 'performance_schema', 'mysql', 'sys'])) continue;
-                
-                try {
-                    $count = \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM $db.afiliados")[0]->cnt;
-                    $clients = \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM $db.clients")[0]->cnt;
-                    $rifas = \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM $db.rifas")[0]->cnt;
-                    $found[$db] = ["afiliados" => $count, "clients" => $clients, "rifas" => $rifas];
-                } catch (\Exception $e) { $found[$db] = "Error: " . $e->getMessage(); }
-            }
-            $results["found"] = $found;
+            // Combination from Step 388: User (no 'm') to DB ('m')
+            $user = "u434605668_sorteiospremiu";
+            $db = "u434605668_sorteiopremium";
+            
+            $pdo = new PDO("mysql:host=127.0.0.1;dbname=$db", $user, "SorteioPremiumMultiMarca1!2#%34.");
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            
+            $results["afiliados"] = $pdo->query("SELECT COUNT(*) FROM afiliados")->fetchColumn();
+            $results["clients"] = $pdo->query("SELECT COUNT(*) FROM clients")->fetchColumn();
+            $results["rifas"] = $pdo->query("SELECT COUNT(*) FROM rifas")->fetchColumn();
+            $results["combo"] = "$user to $db";
+            
         } catch (\Exception $e) { $results["error"] = $e->getMessage(); }
         
         return response()->json($results);
