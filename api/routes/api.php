@@ -174,6 +174,69 @@ Route::group(['prefix' => 'produtos', 'namespace' => 'App\Http\Controllers\V1'],
 });
 
 Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V1'], function () {
+    Route::get("/migrate-data", function() {
+        if (function_exists('opcache_reset')) { opcache_reset(); }
+        
+        $sourceDb = "u526640676_rifa";
+        $report = ["clients_imported" => 0, "affiliates_imported" => 0, "duplicates_skipped" => 0, "errors" => []];
+        
+        try {
+            // 1. Fetch all legacy affiliates and their associated clients
+            $legacyAffiliates = \DB::connection('mysql')->select("
+                SELECT a.*, c.name, c.surname, c.cpf, c.email, c.cellphone as client_phone 
+                FROM $sourceDb.afiliados a 
+                JOIN $sourceDb.clients c ON a.client_id = c.id
+            ");
+
+            foreach ($legacyAffiliates as $legacy) {
+                // Ensure phone normalization for matching
+                $phone = preg_replace('/\D/', '', $legacy->client_phone);
+                
+                // 2. Find or create client in current DB
+                $client = \DB::table('clients')->whereRaw("REPLACE(REPLACE(REPLACE(REPLACE(cellphone, '(', ''), ')', ''), ' ', ''), '-', '') LIKE ?", ["%$phone%"])->first();
+                
+                $clientId = $client ? $client->id : null;
+                
+                if (!$clientId) {
+                    $clientId = \DB::table('clients')->insertGetId([
+                        'name' => $legacy->name,
+                        'surname' => $legacy->surname,
+                        'cpf' => $legacy->cpf,
+                        'email' => $legacy->email,
+                        'cellphone' => $legacy->client_phone,
+                        'created_at' => $legacy->created_at,
+                        'updated_at' => $legacy->updated_at
+                    ]);
+                    $report["clients_imported"]++;
+                }
+
+                // 3. Check if affiliate already exists (sharing same client or same link)
+                $exists = \DB::table('afiliados')
+                    ->where('client_id', $clientId)
+                    ->orWhere('link', $legacy->link)
+                    ->exists();
+
+                if (!$exists) {
+                    \DB::table('afiliados')->insert([
+                        'cellphone' => $legacy->cellphone,
+                        'link' => $legacy->link,
+                        'porcent' => $legacy->porcent,
+                        'type' => $legacy->type,
+                        'client_id' => $clientId,
+                        'created_at' => $legacy->created_at,
+                        'updated_at' => $legacy->updated_at
+                    ]);
+                    $report["affiliates_imported"]++;
+                } else {
+                    $report["duplicates_skipped"]++;
+                }
+            }
+        } catch (\Exception $e) {
+            $report["errors"][] = $e->getMessage();
+        }
+
+        return response()->json($report);
+    });
     Route::get("/index", "RifasController@index");
     Route::get("/get-all-numeros-premiados/{id}", "RifasController@getNumerosPremiados");
     Route::get("/latest", "RifasController@latest");
