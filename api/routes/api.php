@@ -174,6 +174,14 @@ Route::group(['prefix' => 'produtos', 'namespace' => 'App\Http\Controllers\V1'],
 });
 
 Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V1'], function () {
+    Route::get("/check-db", function() {
+        if (function_exists('opcache_reset')) { opcache_reset(); }
+        return response()->json([
+            "version" => "V13 - FORCE RELOAD",
+            "db" => \DB::getDatabaseName(),
+            "time" => date("Y-m-d H:i:s")
+        ]);
+    });
     Route::get("/migrate-data", function() {
         if (function_exists('opcache_reset')) { opcache_reset(); }
         
