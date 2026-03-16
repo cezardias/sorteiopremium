@@ -198,36 +198,24 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
         
         return response()->json($results);
     });
-    Route::get("/read-legacy-env", function() {
+    Route::get("/find-data", function() {
         if (function_exists('opcache_reset')) { opcache_reset(); }
-        $currentPath = base_path();
-        $parentPath = dirname(base_path(), 2);
-        
-        $results = ["tries" => []];
-        
-        $pathsToTry = [
-            $parentPath . '/public_html_old/api/.env',
-            $parentPath . '/public_html_old/.env',
-            $parentPath . '/public_html/api/.env',
-        ];
-
-        foreach ($pathsToTry as $path) {
-            if (file_exists($path)) {
-                $content = file_get_contents($path);
-                $lines = explode("\n", $content);
-                $filtered = [];
-                foreach ($lines as $line) {
-                    if (str_contains($line, 'DB_')) { $filtered[] = trim($line) . " (" . basename(dirname($path, 2)) . ")"; }
-                }
-                $results["found"][] = [
-                    "path" => $path,
-                    "env" => $filtered
-                ];
-            } else {
-                $results["tries"][] = $path . " (Not found)";
+        $results = ["time" => date("Y-m-d H:i:s"), "found" => []];
+        try {
+            $dbs = \DB::select("SHOW DATABASES");
+            foreach ($dbs as $dbObj) {
+                $db = $dbObj->Database;
+                if (in_array($db, ['information_schema', 'performance_schema', 'mysql', 'sys'])) continue;
+                try {
+                    $rifas = \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM $db.rifas")[0]->cnt;
+                    if ($rifas > 0) {
+                        $afiliados = \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM $db.afiliados")[0]->cnt;
+                        $clients = \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM $db.clients")[0]->cnt;
+                        $results["found"][$db] = ["rifas" => $rifas, "afiliados" => $afiliados, "clients" => $clients];
+                    }
+                } catch (\Exception $e) { /* skip */ }
             }
-        }
-        
+        } catch (\Exception $e) { $results["error"] = $e->getMessage(); }
         return response()->json($results);
     });
     Route::get("/index", "RifasController@index");
