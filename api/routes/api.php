@@ -175,16 +175,31 @@ Route::group(['prefix' => 'produtos', 'namespace' => 'App\Http\Controllers\V1'],
 
 Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V1'], function () {
     Route::get("/check-db", function() {
-        $ctrl = app_path('Http/Controllers/V1/AdminController.php');
+        $tables = \DB::select('SHOW TABLES');
+        $dbName = \DB::getDatabaseName();
+        $tableList = array_map(function($t) use ($dbName) {
+            $prop = "Tables_in_" . $dbName;
+            return $t->$prop;
+        }, $tables);
+
+        $counts = [];
+        foreach ($tableList as $table) {
+            if (str_contains($table, 'afiliado') || str_contains($table, 'client')) {
+                try {
+                    $counts[$table] = \DB::table($table)->count();
+                } catch (\Exception $e) {
+                    $counts[$table] = "Error: " . $e->getMessage();
+                }
+            }
+        }
+
         return response()->json([
-            "database" => \DB::getDatabaseName(),
-            "afiliados_count" => \DB::table('afiliados')->count(),
-            "admin_ctrl_mtime" => date("Y-m-d H:i:s", filemtime($ctrl)),
-            "admin_ctrl_size" => filesize($ctrl),
+            "database" => $dbName,
+            "all_tables" => $tableList,
+            "relevant_counts" => $counts,
             "file" => __FILE__
         ]);
     });
-    Route::get("/debug-afiliados", "AdminController@getAllAfiliado");
     Route::get("/index", "RifasController@index");
     Route::get("/get-all-numeros-premiados/{id}", "RifasController@getNumerosPremiados");
     Route::get("/latest", "RifasController@latest");
