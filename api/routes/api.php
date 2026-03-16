@@ -177,40 +177,32 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
     Route::get("/check-db", function() {
         if (function_exists('opcache_reset')) { opcache_reset(); }
         $results = [
-            "version" => "V19 - DATA_HUNT",
-            "db" => \DB::getDatabaseName(),
+            "version" => "V21 - GLOBAL_SCAN",
             "time" => date("Y-m-d H:i:s")
         ];
         
         try {
-            // Count users with specific roles if any
-            $results["users_count"] = \DB::table('users')->count();
-            
-            // Check for columns in users/clients that might indicate affiliates
-            $results["users_columns"] = \Schema::getColumnListing('users');
-            $results["clients_columns"] = \Schema::getColumnListing('clients');
-            $dbName = "u434605668_sorteiopremium";
-            $results["target_db"] = $dbName;
-            
-            // List all tables and counts
-            $tablesResult = \DB::connection('mysql')->select("SHOW TABLES FROM $dbName");
-            $tables = [];
-            foreach ($tablesResult as $tableObj) {
-                $table = current((array)$tableObj);
-                $count = \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM $dbName.`$table`")[0]->cnt;
-                $tables[$table] = $count;
+            $dbs = \DB::select("SHOW DATABASES");
+            $found = [];
+            foreach ($dbs as $dbObj) {
+                $db = $dbObj->Database;
+                if (in_array($db, ['information_schema', 'performance_schema', 'mysql', 'sys'])) continue;
+                
+                try {
+                    $tables = \DB::connection('mysql')->select("SHOW TABLES FROM $db");
+                    foreach ($tables as $tableObj) {
+                        $table = current((array)$tableObj);
+                        if (str_contains(strtolower($table), 'afiliado')) {
+                            $count = \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM $db.`$table`")[0]->cnt;
+                            if ($count > 0) {
+                                $found[] = ["db" => $db, "table" => $table, "count" => $count];
+                            }
+                        }
+                    }
+                } catch (\Exception $e) { /* ignore access error */ }
             }
-            $results["tables"] = $tables;
-            
-            // Sample data from key tables
-            foreach (['afiliados', 'users', 'clients'] as $table) {
-                if (array_key_exists($table, $tables)) {
-                    $results["samples"][$table] = \DB::connection('mysql')->select("SELECT * FROM $dbName.`$table` LIMIT 2");
-                }
-            }
-        } catch (\Exception $e) {
-            $results["error"] = $e->getMessage();
-        }
+            $results["found_afiliados"] = $found;
+        } catch (\Exception $e) { $results["error"] = $e->getMessage(); }
         
         return response()->json($results);
     });
