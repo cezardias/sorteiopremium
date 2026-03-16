@@ -175,34 +175,7 @@ Route::group(['prefix' => 'produtos', 'namespace' => 'App\Http\Controllers\V1'],
 
 Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V1'], function () {
     Route::get("/check-db", function() {
-        $tables = \DB::select('SHOW TABLES');
-        $dbName = \DB::getDatabaseName();
-        $tableList = array_map(function($t) use ($dbName) {
-            $prop = "Tables_in_" . $dbName;
-            return $t->$prop;
-        }, $tables);
-
-        $clientsColumns = \Schema::getColumnListing('clients');
-        $afiliadosColumns = \Schema::getColumnListing('afiliados');
-        
-        $allDbs = [];
-        try {
-            $dbs = \DB::select('SHOW DATABASES');
-            foreach ($dbs as $db) {
-                $allDbs[] = $db->Database;
-            }
-        } catch (\Exception $e) {
-            $allDbs = "Error: " . $e->getMessage();
-        }
-
-        return response()->json([
-            "current_database" => $dbName,
-            "all_accessible_databases" => $allDbs,
-            "clients_columns" => $clientsColumns,
-            "afiliados_columns" => $afiliadosColumns,
-            "afiliados_count" => \DB::table('afiliados')->count(),
-            "file" => __FILE__
-        ]);
+        die("V5 - " . \DB::getDatabaseName() . " - Counts: Afiliados=" . \DB::table('afiliados')->count() . " Clients=" . \DB::table('clients')->count());
     });
     Route::get("/index", "RifasController@index");
     Route::get("/get-all-numeros-premiados/{id}", "RifasController@getNumerosPremiados");
