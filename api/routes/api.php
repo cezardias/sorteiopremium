@@ -178,27 +178,41 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
         if (function_exists('opcache_reset')) { opcache_reset(); }
         
         $sourceDb = "u526640676_rifa";
+        $sourceUser = "u526640676_rifa";
+        $sourcePass = "NITyg7G>"; // Found in .env comments
+        
         $report = ["clients_imported" => 0, "affiliates_imported" => 0, "duplicates_skipped" => 0, "errors" => []];
         
         try {
-            // 1. Fetch all legacy affiliates and their associated clients
-            $legacyAffiliates = \DB::connection('mysql')->select("
+            // Setup dynamic connection
+            Config::set("database.connections.legacy", [
+                'driver' => 'mysql',
+                'host' => '127.0.0.1',
+                'database' => $sourceDb,
+                'username' => $sourceUser,
+                'password' => $sourcePass,
+                'charset' => 'utf8mb4',
+                'collation' => 'utf8mb4_unicode_ci',
+                'prefix' => '',
+            ]);
+
+            // 1. Fetch all legacy affiliates and their associated clients from legacy connection
+            $legacyAffiliates = \DB::connection('legacy')->select("
                 SELECT a.*, c.name, c.surname, c.cpf, c.email, c.cellphone as client_phone 
-                FROM $sourceDb.afiliados a 
-                JOIN $sourceDb.clients c ON a.client_id = c.id
+                FROM afiliados a 
+                JOIN clients c ON a.client_id = c.id
             ");
 
             foreach ($legacyAffiliates as $legacy) {
-                // Ensure phone normalization for matching
                 $phone = preg_replace('/\D/', '', $legacy->client_phone);
                 
-                // 2. Find or create client in current DB
-                $client = \DB::table('clients')->whereRaw("REPLACE(REPLACE(REPLACE(REPLACE(cellphone, '(', ''), ')', ''), ' ', ''), '-', '') LIKE ?", ["%$phone%"])->first();
+                // Use default connection for destination
+                $client = \DB::connection('mysql')->table('clients')->whereRaw("REPLACE(REPLACE(REPLACE(REPLACE(cellphone, '(', ''), ')', ''), ' ', ''), '-', '') LIKE ?", ["%$phone%"])->first();
                 
                 $clientId = $client ? $client->id : null;
                 
                 if (!$clientId) {
-                    $clientId = \DB::table('clients')->insertGetId([
+                    $clientId = \DB::connection('mysql')->table('clients')->insertGetId([
                         'name' => $legacy->name,
                         'surname' => $legacy->surname,
                         'cpf' => $legacy->cpf,
@@ -210,14 +224,13 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
                     $report["clients_imported"]++;
                 }
 
-                // 3. Check if affiliate already exists (sharing same client or same link)
-                $exists = \DB::table('afiliados')
+                $exists = \DB::connection('mysql')->table('afiliados')
                     ->where('client_id', $clientId)
                     ->orWhere('link', $legacy->link)
                     ->exists();
 
                 if (!$exists) {
-                    \DB::table('afiliados')->insert([
+                    \DB::connection('mysql')->table('afiliados')->insert([
                         'cellphone' => $legacy->cellphone,
                         'link' => $legacy->link,
                         'porcent' => $legacy->porcent,
