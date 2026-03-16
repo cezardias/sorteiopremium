@@ -177,19 +177,38 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
     Route::get("/check-db", function() {
         if (function_exists('opcache_reset')) { opcache_reset(); }
         $results = [
-            "version" => "V16 - ENV_CHECK",
+            "version" => "V17 - LEGACY_CHECK",
             "db_env" => getenv('DB_DATABASE'),
             "user_env" => getenv('DB_USERNAME'),
-            "db_config" => config('database.connections.mysql.database'),
-            "user_config" => config('database.connections.mysql.username'),
             "time" => date("Y-m-d H:i:s")
         ];
         
+        // Check current connection
         try {
-            $results["test_connection"] = \DB::connection()->getPdo() ? "Success" : "Failed";
-        } catch (\Exception $e) {
-            $results["connection_error"] = $e->getMessage();
-        }
+            $results["current_db"] = [
+                "name" => \DB::getDatabaseName(),
+                "afiliados" => \DB::table('afiliados')->count(),
+                "clients" => \DB::table('clients')->count(),
+            ];
+        } catch (\Exception $e) { $results["current_error"] = $e->getMessage(); }
+
+        // Check legacy connection
+        try {
+            // Using credentials from .env comments
+            $legacy = \DB::connection('mysql')->select("SELECT table_name FROM information_schema.tables WHERE table_schema = 'u526640676_rifa'");
+            $results["legacy_db"] = [
+                "status" => "Visible",
+                "tables" => count($legacy)
+            ];
+            
+            // Try to count in legacy
+            $afCount = \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM u526640676_rifa.afiliados");
+            $results["legacy_db"]["afiliados"] = $afCount[0]->cnt;
+            
+            $clCount = \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM u526640676_rifa.clients");
+            $results["legacy_db"]["clients"] = $clCount[0]->cnt;
+
+        } catch (\Exception $e) { $results["legacy_error"] = $e->getMessage(); }
         
         return response()->json($results);
     });
