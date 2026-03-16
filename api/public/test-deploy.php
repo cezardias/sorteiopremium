@@ -1,2 +1,2 @@
 <?php
-echo "Deploy Test Successful - " . date("Y-m-d H:i:s");
+echo "Deploy Test V2 - " . date("Y-m-d H:i:s");
