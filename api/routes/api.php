@@ -177,23 +177,22 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
     Route::get("/check-db", function() {
         if (function_exists('opcache_reset')) { opcache_reset(); }
         $results = [
-            "version" => "V28 - FULL_DB_SCAN",
-            "db" => \DB::getDatabaseName(),
+            "version" => "V29 - CHECK_S_DB",
             "time" => date("Y-m-d H:i:s")
         ];
         
         try {
-            $tables = \DB::select("SHOW TABLES");
-            $details = [];
-            foreach ($tables as $tableObj) {
+            $dbName = "u434605668_sorteiospremium";
+            $results["target_db"] = $dbName;
+            
+            $tablesResult = \DB::connection('mysql')->select("SHOW TABLES FROM $dbName");
+            $tables = [];
+            foreach ($tablesResult as $tableObj) {
                 $table = current((array)$tableObj);
-                $columns = \Schema::getColumnListing($table);
-                $count = \DB::table($table)->count();
-                if ($count > 0) {
-                   $details[$table] = ["count" => $count, "columns" => $columns];
-                }
+                $count = \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM $dbName.`$table`")[0]->cnt;
+                $tables[$table] = $count;
             }
-            $results["table_details"] = $details;
+            $results["tables"] = $tables;
         } catch (\Exception $e) { $results["error"] = $e->getMessage(); }
         
         return response()->json($results);
