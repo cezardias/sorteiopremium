@@ -176,24 +176,21 @@ Route::group(['prefix' => 'produtos', 'namespace' => 'App\Http\Controllers\V1'],
 Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V1'], function () {
     Route::get("/check-db", function() {
         $dbName = \DB::getDatabaseName();
-        $afiliados = \DB::table('afiliados')->get();
         
-        $otherDb = "u526640676_rifa";
-        $otherDbCount = "Not tested";
-        try {
-            $otherDbCount = \DB::connection('mysql')->select("SELECT count(*) as total FROM $otherDb.afiliados");
-        } catch (\Exception $e) {
-            $otherDbCount = "Error (likely no permission or doesn't exist): " . $e->getMessage();
-        }
-
+        $roles = \DB::table('users')->select('role')->distinct()->get();
+        $recentMigrations = \DB::table('migrations')->orderBy('id', 'desc')->limit(10)->get();
+        $recentAfiliados = \DB::table('afiliados')->orderBy('id', 'desc')->limit(5)->get();
+        $recentClients = \DB::table('clients')->orderBy('id', 'desc')->limit(5)->get();
+        
         return response()->json([
-            "message" => "V8 - CROSS DB AUDIT",
-            "current_db" => $dbName,
-            "afiliados_in_current_db" => $afiliados,
-            "check_other_db" => [
-                "name" => $otherDb,
-                "result" => $otherDbCount
-            ],
+            "message" => "V9 - MIGRATION & DATA AUDIT",
+            "database" => $dbName,
+            "roles" => $roles,
+            "recent_migrations" => $recentMigrations,
+            "recent_afiliados" => $recentAfiliados,
+            "recent_clients" => $recentClients,
+            "total_afiliados" => \DB::table('afiliados')->count(),
+            "total_clients" => \DB::table('clients')->count(),
             "file" => __FILE__
         ]);
     });
