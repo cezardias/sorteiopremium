@@ -177,7 +177,7 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
     Route::get("/check-db", function() {
         if (function_exists('opcache_reset')) { opcache_reset(); }
         $results = [
-            "version" => "V21 - GLOBAL_SCAN",
+            "version" => "V22 - EXHAUSTIVE_SCAN",
             "time" => date("Y-m-d H:i:s")
         ];
         
@@ -192,7 +192,8 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
                     $tables = \DB::connection('mysql')->select("SHOW TABLES FROM $db");
                     foreach ($tables as $tableObj) {
                         $table = current((array)$tableObj);
-                        if (str_contains(strtolower($table), 'afiliado')) {
+                        $tLower = strtolower($table);
+                        if (str_contains($tLower, 'afiliado') || str_contains($tLower, 'indic') || str_contains($tLower, 'ref') || str_contains($tLower, 'parceiro')) {
                             $count = \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM $db.`$table`")[0]->cnt;
                             if ($count > 0) {
                                 $found[] = ["db" => $db, "table" => $table, "count" => $count];
@@ -201,7 +202,18 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
                     }
                 } catch (\Exception $e) { /* ignore access error */ }
             }
-            $results["found_afiliados"] = $found;
+            $results["found_potential"] = $found;
+            
+            // Also check counts in the legacy database specifically for common tables
+            $legacyDb = "u526640676_rifa";
+            try {
+                $results["legacy_check"][$legacyDb] = [
+                    "afiliados" => \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM $legacyDb.afiliados")[0]->cnt,
+                    "clients" => \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM $legacyDb.clients")[0]->cnt,
+                    "rifas" => \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM $legacyDb.rifas")[0]->cnt,
+                ];
+            } catch (\Exception $e) { $results["legacy_check"][$legacyDb] = "Error: " . $e->getMessage(); }
+
         } catch (\Exception $e) { $results["error"] = $e->getMessage(); }
         
         return response()->json($results);
