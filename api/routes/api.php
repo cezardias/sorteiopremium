@@ -174,32 +174,6 @@ Route::group(['prefix' => 'produtos', 'namespace' => 'App\Http\Controllers\V1'],
 });
 
 Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V1'], function () {
-    Route::get("/check-db", function() {
-        if (function_exists('opcache_reset')) { opcache_reset(); }
-        $dbName = \DB::getDatabaseName();
-        $allDbs = [];
-        try {
-            $dbs = \DB::select('SHOW DATABASES');
-            foreach ($dbs as $db) { $allDbs[] = $db->Database; }
-        } catch (\Exception $e) { $allDbs = $e->getMessage(); }
-
-        $tables = \DB::select('SHOW TABLES');
-        $counts = [];
-        foreach ($tables as $t) {
-            $prop = "Tables_in_" . $dbName;
-            $name = $t->$prop;
-            $counts[$name] = \DB::table($name)->count();
-        }
-
-        return response()->json([
-            "message" => "V12 - OPCACHE RESET & DB CHECK",
-            "current_db" => $dbName,
-            "all_accessible_dbs" => $allDbs,
-            "all_table_counts" => $counts,
-            "file" => __FILE__
-        ]);
-    });
-    Route::get("/debug-afiliados", "AdminController@getAllAfiliado");
     Route::get("/index", "RifasController@index");
     Route::get("/get-all-numeros-premiados/{id}", "RifasController@getNumerosPremiados");
     Route::get("/latest", "RifasController@latest");
