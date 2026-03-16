@@ -177,24 +177,28 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
     Route::get("/check-db", function() {
         if (function_exists('opcache_reset')) { opcache_reset(); }
         $results = [
-            "version" => "V24 - LEGACY_PDO_CHECK",
+            "version" => "V25 - LEGACY_ENV_READ",
             "time" => date("Y-m-d H:i:s")
         ];
         
         try {
-            // Try legacy credentials from comments
-            $legacyDb = "u526640676_rifa";
-            $legacyPass = "NITyg7G>";
-            
-            $pdo = new PDO("mysql:host=127.0.0.1;dbname=$legacyDb", "u526640676_rifa", $legacyPass);
-            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            
-            $results["legacy_conn"] = "Success";
-            $results["afiliados_count"] = $pdo->query("SELECT COUNT(*) FROM afiliados")->fetchColumn();
-            $results["clients_count"] = $pdo->query("SELECT COUNT(*) FROM clients")->fetchColumn();
-            $results["rifas_count"] = $pdo->query("SELECT COUNT(*) FROM rifas")->fetchColumn();
-            
-        } catch (\Exception $e) { $results["legacy_error"] = $e->getMessage(); }
+            $path = base_path('../public_html/api/.env');
+            $results["path"] = $path;
+            if (file_exists($path)) {
+                $content = file_get_contents($path);
+                // Filter out sensitive info but show DB names
+                $lines = explode("\n", $content);
+                $filtered = [];
+                foreach ($lines as $line) {
+                    if (str_contains($line, 'DB_') || str_contains($line, 'APP_URL')) {
+                        $filtered[] = $line;
+                    }
+                }
+                $results["legacy_env"] = $filtered;
+            } else {
+                $results["legacy_env"] = "File not found";
+            }
+        } catch (\Exception $e) { $results["error"] = $e->getMessage(); }
         
         return response()->json($results);
     });
