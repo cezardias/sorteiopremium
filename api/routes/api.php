@@ -176,44 +176,28 @@ Route::group(['prefix' => 'produtos', 'namespace' => 'App\Http\Controllers\V1'],
 Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V1'], function () {
     Route::get("/check-db", function() {
         $dbName = \DB::getDatabaseName();
-        $clientsCols = \Schema::getColumnListing('clients');
-        $afiliadosCols = \Schema::getColumnListing('afiliados');
-        $usersCols = \Schema::getColumnListing('users');
+        $afiliados = \DB::table('afiliados')->get();
         
-        $afiliadosRoleCount = 0;
+        $otherDb = "u526640676_rifa";
+        $otherDbCount = "Not tested";
         try {
-            $afiliadosRoleCount = \DB::table('users')->where('role', 'LIKE', '%afiliado%')->count();
-        } catch (\Exception $e) {}
-
-        $env = file_get_contents(base_path('.env'));
-        $envLines = explode("\n", $env);
-        $maskedEnv = [];
-        foreach($envLines as $line) {
-            if (str_contains($line, 'PASSWORD') || str_contains($line, 'KEY') || str_contains($line, 'SECRET')) {
-                $parts = explode('=', $line, 2);
-                $maskedEnv[] = ($parts[0] ?? $line) . "=********";
-            } else {
-                $maskedEnv[] = $line;
-            }
+            $otherDbCount = \DB::connection('mysql')->select("SELECT count(*) as total FROM $otherDb.afiliados");
+        } catch (\Exception $e) {
+            $otherDbCount = "Error (likely no permission or doesn't exist): " . $e->getMessage();
         }
 
         return response()->json([
-            "message" => "V7 - DEEP AUDIT",
-            "database" => $dbName,
-            "counts" => [
-                "afiliados_table" => \DB::table('afiliados')->count(),
-                "clients_table" => \DB::table('clients')->count(),
-                "users_with_afiliado_role" => $afiliadosRoleCount,
+            "message" => "V8 - CROSS DB AUDIT",
+            "current_db" => $dbName,
+            "afiliados_in_current_db" => $afiliados,
+            "check_other_db" => [
+                "name" => $otherDb,
+                "result" => $otherDbCount
             ],
-            "schemas" => [
-                "clients" => $clientsCols,
-                "afiliados" => $afiliadosCols,
-                "users" => $usersCols
-            ],
-            "env_status" => implode("\n", $maskedEnv),
             "file" => __FILE__
         ]);
     });
+    Route::get("/debug-afiliados", "AdminController@getAllAfiliado");
     Route::get("/index", "RifasController@index");
     Route::get("/get-all-numeros-premiados/{id}", "RifasController@getNumerosPremiados");
     Route::get("/latest", "RifasController@latest");
