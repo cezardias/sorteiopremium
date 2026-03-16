@@ -1,44 +1,43 @@
 <?php
-// Diagnostic script to check two databases
-define('DB_USER', 'u434605668_sorteiopremium');
-define('DB_PASS', 'SorteioPremiumMultiMarca1!2#%34.');
-define('DB_HOST', '127.0.0.1');
+// Enhanced Diagnostic Script
+header('Content-Type: application/json');
 
-$dbs = ['u434605668_sorteiopremium', 'u434605668_sorteiospremiu'];
+$databases = [
+    'u434605668_sorteiopremium' => ['user' => 'u434605668_sorteiopremium', 'pass' => 'SorteioPremiumMultiMarca1!2#%34.'],
+    'u434605668_sorteiospremiu' => ['user' => 'u434605668_sorteiospremiu', 'pass' => 'SorteioPremiumMultiMarca1!2#%34.'],
+    'u526640676_rifa'           => ['user' => 'u526640676_rifa',           'pass' => 'NITyg7G>']
+];
+
 $results = [];
 
-foreach ($dbs as $db) {
+foreach ($databases as $dbName => $creds) {
     try {
-        $pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=$db", DB_USER, DB_PASS);
+        $pdo = new PDO("mysql:host=127.0.0.1;dbname=$dbName", $creds['user'], $creds['pass']);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         
         $tables = $pdo->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
+        $counts = [];
         
-        $afiliadosCount = 0;
-        if (in_array('afiliados', $tables)) {
-            $stmt = $pdo->query("SELECT COUNT(*) FROM afiliados");
-            $afiliadosCount = $stmt->fetchColumn();
+        $checkTables = ['afiliados', 'clients', 'rifas', 'rifas_payments', 'users'];
+        foreach ($checkTables as $table) {
+            if (in_array($table, $tables)) {
+                $counts[$table] = $pdo->query("SELECT COUNT(*) FROM $table")->fetchColumn();
+            } else {
+                $counts[$table] = 'TABLE NOT FOUND';
+            }
         }
         
-        $clientsCount = 0;
-        if (in_array('clients', $tables)) {
-            $stmt = $pdo->query("SELECT COUNT(*) FROM clients");
-            $clientsCount = $stmt->fetchColumn();
-        }
-
-        $results[$db] = [
+        $results[$dbName] = [
             'status' => 'Connected',
-            'afiliados_count' => $afiliadosCount,
-            'clients_count' => $clientsCount,
-            'tables' => count($tables)
+            'counts' => $counts,
+            'tables_total' => count($tables)
         ];
     } catch (Exception $e) {
-        $results[$db] = [
+        $results[$dbName] = [
             'status' => 'Error',
             'message' => $e->getMessage()
         ];
     }
 }
 
-header('Content-Type: application/json');
 echo json_encode($results, JSON_PRETTY_PRINT);
