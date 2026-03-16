@@ -55,8 +55,23 @@ const Sidebar = () => {
         <NavLink to="/dashboard/afiliados" className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-xs tracking-widest transition-colors ${isActive ? 'bg-[#1db954] text-black' : 'text-gray-400 hover:text-white hover:bg-[#1e2130]'}`}>
           <Share2 size={18} /> AFILIADOS
         </NavLink>
-        <NavLink to="/dashboard/configuracoes" className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-xs tracking-widest transition-colors ${isActive ? 'bg-[#1db954] text-black' : 'text-gray-400 hover:text-white hover:bg-[#1e2130]'}`}>
-          <Settings size={18} /> CONFIGURAÇÕES
+        <div className="pt-4 pb-2 px-4">
+          <p className="text-[10px] font-black text-gray-500 tracking-[0.2em] uppercase">Configurações</p>
+        </div>
+        <NavLink to="/dashboard/usuarios" className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-xs tracking-widest transition-colors ${isActive ? 'bg-[#1db954] text-black' : 'text-gray-400 hover:text-white hover:bg-[#1e2130]'}`}>
+          <Users size={18} /> USUÁRIOS
+        </NavLink>
+        <NavLink to="/dashboard/site" className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-xs tracking-widest transition-colors ${isActive ? 'bg-[#1db954] text-black' : 'text-gray-400 hover:text-white hover:bg-[#1e2130]'}`}>
+          <Settings size={18} /> SITE
+        </NavLink>
+        <NavLink to="/dashboard/pagamentos" className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-xs tracking-widest transition-colors ${isActive ? 'bg-[#1db954] text-black' : 'text-gray-400 hover:text-white hover:bg-[#1e2130]'}`}>
+          <Settings size={18} /> CONF. PAGAMENTOS
+        </NavLink>
+        <NavLink to="/dashboard/perfil" className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-xs tracking-widest transition-colors ${isActive ? 'bg-[#1db954] text-black' : 'text-gray-400 hover:text-white hover:bg-[#1e2130]'}`}>
+          <Users size={18} /> MEUS DADOS
+        </NavLink>
+        <NavLink to="/dashboard/whatsapp" className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-xs tracking-widest transition-colors ${isActive ? 'bg-[#1db954] text-black' : 'text-gray-400 hover:text-white hover:bg-[#1e2130]'}`}>
+          <ShoppingCart size={18} /> ENVIAR MENSAGENS VIA WHATSAPP
         </NavLink>
       </nav>
       

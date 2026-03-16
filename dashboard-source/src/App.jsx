@@ -7,7 +7,11 @@ import Sales from './pages/Sales';
 import Orders from './pages/Orders';
 import Ranking from './pages/Ranking';
 import Winners from './pages/Winners';
-import Settings from './pages/Settings';
+import SiteSettings from './pages/SiteSettings';
+import Users from './pages/Users';
+import PaymentSettings from './pages/PaymentSettings';
+import ProfileSettings from './pages/ProfileSettings';
+import WhatsAppCampaign from './pages/WhatsAppCampaign';
 import Affiliates from './pages/Affiliates';
 import Login from './pages/Login';
 
@@ -63,7 +67,11 @@ function App() {
             <Route path="ranking" element={<Ranking />} />
             <Route path="ganhadores" element={<Winners />} />
             <Route path="afiliados" element={<Affiliates />} />
-            <Route path="configuracoes" element={<Settings />} />
+            <Route path="usuarios" element={<Users />} />
+            <Route path="site" element={<SiteSettings />} />
+            <Route path="pagamentos" element={<PaymentSettings />} />
+            <Route path="perfil" element={<ProfileSettings />} />
+            <Route path="whatsapp" element={<WhatsAppCampaign />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />

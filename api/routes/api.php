@@ -137,8 +137,10 @@ Route::group(['prefix' => 'admin', 'namespace' => 'App\Http\Controllers\V1'], fu
         Route::get("/dashboard/todos/usuarios", "AdminController@getAllUsers");
         Route::post("/dashboard/todos/usuarios/filtro", "AdminController@getAllUsersFiltro");
         Route::get("/dashboard/usuario/{id}", "AdminController@getOneUser");
+        Route::post("/dashboard/usuario/store", "AdminController@storeUser");
         Route::put("/dashboard/usuarios/editar", "AdminController@editarUsers");
         Route::delete("/dashboard/usuarios/deletar/{id}", "AdminController@destroyUser");
+        Route::post("/dashboard/whatsapp/send", "AdminController@sendMessagesWhats");
 
         // Gateway
         Route::get("/dashboard/payment", "AdminController@getAllGateway");
@@ -192,6 +194,8 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
             $results["afiliados"] = $pdo->query("SELECT COUNT(*) FROM afiliados")->fetchColumn();
             $results["clients"] = $pdo->query("SELECT COUNT(*) FROM clients")->fetchColumn();
             $results["rifas"] = $pdo->query("SELECT COUNT(*) FROM rifas")->fetchColumn();
+            $results["site_config"] = $pdo->query("SELECT COUNT(*) FROM site_config")->fetchColumn();
+            $results["site_settings"] = $pdo->query("SELECT COUNT(*) FROM site_settings")->fetchColumn();
             $results["combo"] = "$user to $db";
             
         } catch (\Exception $e) { $results["error"] = $e->getMessage(); }

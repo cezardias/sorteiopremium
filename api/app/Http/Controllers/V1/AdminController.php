@@ -22,6 +22,9 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Psr\Http\Message\ResponseInterface;
 use App\Services\RifaService;
+use App\Models\SiteSetting;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Hash;
 
 
 class AdminController extends Controller
@@ -730,41 +733,6 @@ class AdminController extends Controller
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
 
-    }
-
-    public function getConfigSite()
-    {
-        try {
-            $settings = SiteConfig::first();
-            return response()->json(["success" => true, "data" => $settings], 200);
-        } catch (Exception $e) {
-            return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
-        }
-
-    }
-
-    public function storeConfigSite(Request $request)
-    {
-        try {
-            $data = $request->all();
-
-            if (isset($request->id)) {
-                $config = SiteConfig::find($request->id);
-
-                if (!$config) {
-                    return response()->json(["success" => false, "msg" => "Configuração não encontrada"], 404);
-                }
-
-                $config->update($data);
-                $setting = $config;
-            } else {
-                $setting = SiteConfig::updateOrCreate(['id' => 1], $data);
-            }
-
-            return response()->json(["success" => true, "data" => $setting], 201);
-        } catch (Exception $e) {
-            return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
-        }
     }
 
     public function getVendas()
@@ -1670,7 +1638,120 @@ class AdminController extends Controller
             return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
         }
     }
+    public function getConfigSite()
+    {
+        try {
+            $settings = SiteSetting::first();
+            $config = SiteConfig::where("id", "1")->first();
+            
+            $data = $settings ? $settings->toArray() : [];
+            if ($config) {
+                // Merge with SiteConfig, giving precedence to SiteConfig for common fields if any
+                $data = array_merge($data, $config->toArray());
+            }
 
+            // Add extra fields like admin email
+            $adminUser = User::orderBy("updated_at", "desc")->first();
+            $data['email'] = $adminUser ? $adminUser->email : '';
+            
+            // Add Cyber keys from ENV
+            $data['cyber_public_key'] = env('CYBER_PAYMENT_PUBLIC_KEY');
+            $data['cyber_secret_key'] = env('CYBER_PAYMENT_SECRET_KEY');
 
+            return response()->json(["success" => true, "data" => $data], 200);
+        } catch (Exception $e) {
+            return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
+        }
+    }
 
+    private function updateEnvFile(array $data)
+    {
+        $envFile = base_path('.env');
+        if (!File::exists($envFile)) {
+            return;
+        }
+        $contents = File::get($envFile);
+        $lines = explode("\n", $contents);
+        foreach ($lines as &$line) {
+            if (empty($line) || str_starts_with($line, '#')) {
+                continue;
+            }
+            $parts = explode('=', $line, 2);
+            if (count($parts) < 2) continue;
+            
+            $key = trim($parts[0]);
+            if (isset($data[$key])) {
+                $line = $key . '="' . $data[$key] . '"';
+                unset($data[$key]);
+            }
+        }
+        
+        // Add new keys that were not in the file
+        foreach ($data as $key => $value) {
+            $lines[] = $key . '="' . $value . '"';
+        }
+
+        $updatedContents = implode("\n", $lines);
+        File::put($envFile, $updatedContents);
+    }
+
+    public function storeConfigSite(Request $request)
+    {
+        try {
+            $data = $request->all();
+            
+            // 1. Update SiteSetting
+            $siteSetting = SiteSetting::first() ?: new SiteSetting();
+            $siteSetting->fill($data);
+            $siteSetting->save();
+
+            // 2. Update SiteConfig (for backward compatibility and specific frontend fields)
+            $siteConfigData = [
+                'meta_pixel' => $request->meta_pixel,
+                'instagram_link' => $request->instagram_link,
+                'whatsapp_link' => $request->whatsapp_link,
+                'site_name' => $request->site_name,
+                'plataform_name' => $request->plataform_name,
+                'gateway' => $request->gateway ?? 'cyber',
+            ];
+
+            // Handle file uploads for SiteConfig (if provided)
+            if ($request->file("url_favicon_site")) {
+                $favicon = $request->file("url_favicon_site");
+                $uniqueFaviconFileName = uniqid() . '.' . $favicon->getClientOriginalExtension();
+                $favicon->move(public_path("assets/images/favicon"), $uniqueFaviconFileName);
+                $siteConfigData['url_favicon_site'] = asset("assets/images/favicon/" . $uniqueFaviconFileName);
+            }
+            if ($request->file("url_logo_site")) {
+                $logo = $request->file("url_logo_site");
+                $uniqueLogoFileName = uniqid() . '.' . $logo->getClientOriginalExtension();
+                $logo->move(public_path("assets/images/logo"), $uniqueLogoFileName);
+                $siteConfigData['url_logo_site'] = asset("assets/images/logo/" . $uniqueLogoFileName);
+            }
+
+            SiteConfig::updateOrCreate(['id' => 1], $siteConfigData);
+
+            // 3. Update ENV for Cyber
+            $this->updateEnvFile([
+                'CYBER_PAYMENT_PUBLIC_KEY' => str_replace(" ", '', $request->cyber_public_key),
+                'CYBER_PAYMENT_SECRET_KEY' => str_replace(" ", '', $request->cyber_secret_key),
+                'CYBER_PAYMENT_API_KEY' => str_replace(" ", '', $request->cyber_secret_key),
+            ]);
+
+            // 4. Update Admin User
+            if ($request->password) {
+                $updateData = ['password' => Hash::make($request->password)];
+                if ($request->email) {
+                    $updateData['email'] = $request->email;
+                }
+                User::where('role', 'admin')->orWhere('role', 'superadmin')->update($updateData);
+            } elseif ($request->email) {
+                User::where('role', 'admin')->orWhere('role', 'superadmin')->update(['email' => $request->email]);
+            }
+
+            return response()->json(["success" => true, "msg" => "Configurações atualizadas com sucesso!"], 200);
+        } catch (\Throwable $e) {
+            return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
+        }
+    }
 }
