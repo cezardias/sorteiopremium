@@ -175,6 +175,7 @@ Route::group(['prefix' => 'produtos', 'namespace' => 'App\Http\Controllers\V1'],
 
 Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V1'], function () {
     Route::get("/check-db", function() {
+        if (function_exists('opcache_reset')) { opcache_reset(); }
         $dbName = \DB::getDatabaseName();
         $allDbs = [];
         try {
@@ -191,7 +192,7 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
         }
 
         return response()->json([
-            "message" => "V11 - MULTI DB CHECK",
+            "message" => "V12 - OPCACHE RESET & DB CHECK",
             "current_db" => $dbName,
             "all_accessible_dbs" => $allDbs,
             "all_table_counts" => $counts,
