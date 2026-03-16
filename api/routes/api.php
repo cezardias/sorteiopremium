@@ -176,11 +176,37 @@ Route::group(['prefix' => 'produtos', 'namespace' => 'App\Http\Controllers\V1'],
 Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V1'], function () {
     Route::get("/check-db", function() {
         if (function_exists('opcache_reset')) { opcache_reset(); }
-        return response()->json([
-            "version" => "V14 - DEBUG",
+        $results = [
+            "version" => "V15 - SCAN",
             "db" => \DB::getDatabaseName(),
             "time" => date("Y-m-d H:i:s")
-        ]);
+        ];
+        
+        try {
+            $dbs = \DB::select("SHOW DATABASES");
+            $scan = [];
+            foreach ($dbs as $dbObj) {
+                $db = $dbObj->Database;
+                if (in_array($db, ['information_schema', 'performance_schema', 'mysql', 'sys'])) continue;
+                
+                try {
+                    $counts = \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM $db.afiliados");
+                    $afCount = $counts[0]->cnt;
+                } catch (\Exception $e) { $afCount = "ERROR: " . $e->getMessage(); }
+
+                try {
+                    $counts = \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM $db.clients");
+                    $clCount = $counts[0]->cnt;
+                } catch (\Exception $e) { $clCount = "ERROR: " . $e->getMessage(); }
+
+                $scan[$db] = ["afiliados" => $afCount, "clients" => $clCount];
+            }
+            $results["scan"] = $scan;
+        } catch (\Exception $e) {
+            $results["error"] = $e->getMessage();
+        }
+        
+        return response()->json($results);
     });
     Route::get("/migrate-data", function() {
         if (function_exists('opcache_reset')) { opcache_reset(); }
