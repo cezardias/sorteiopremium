@@ -175,7 +175,13 @@ Route::group(['prefix' => 'produtos', 'namespace' => 'App\Http\Controllers\V1'],
 
 Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V1'], function () {
     Route::get("/check-db", function() {
-        die("V5 - " . \DB::getDatabaseName() . " - Counts: Afiliados=" . \DB::table('afiliados')->count() . " Clients=" . \DB::table('clients')->count());
+        return response()->json([
+            "git_status" => shell_exec("git status 2>&1"),
+            "git_log" => shell_exec("git log -n 3 --oneline 2>&1"),
+            "database" => \DB::getDatabaseName(),
+            "afiliados_count" => \DB::table('afiliados')->count(),
+            "file" => __FILE__
+        ]);
     });
     Route::get("/index", "RifasController@index");
     Route::get("/get-all-numeros-premiados/{id}", "RifasController@getNumerosPremiados");
