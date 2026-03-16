@@ -177,33 +177,18 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
     Route::get("/check-db", function() {
         if (function_exists('opcache_reset')) { opcache_reset(); }
         $results = [
-            "version" => "V15 - SCAN",
-            "db" => \DB::getDatabaseName(),
+            "version" => "V16 - ENV_CHECK",
+            "db_env" => getenv('DB_DATABASE'),
+            "user_env" => getenv('DB_USERNAME'),
+            "db_config" => config('database.connections.mysql.database'),
+            "user_config" => config('database.connections.mysql.username'),
             "time" => date("Y-m-d H:i:s")
         ];
         
         try {
-            $dbs = \DB::select("SHOW DATABASES");
-            $scan = [];
-            foreach ($dbs as $dbObj) {
-                $db = $dbObj->Database;
-                if (in_array($db, ['information_schema', 'performance_schema', 'mysql', 'sys'])) continue;
-                
-                try {
-                    $counts = \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM $db.afiliados");
-                    $afCount = $counts[0]->cnt;
-                } catch (\Exception $e) { $afCount = "ERROR: " . $e->getMessage(); }
-
-                try {
-                    $counts = \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM $db.clients");
-                    $clCount = $counts[0]->cnt;
-                } catch (\Exception $e) { $clCount = "ERROR: " . $e->getMessage(); }
-
-                $scan[$db] = ["afiliados" => $afCount, "clients" => $clCount];
-            }
-            $results["scan"] = $scan;
+            $results["test_connection"] = \DB::connection()->getPdo() ? "Success" : "Failed";
         } catch (\Exception $e) {
-            $results["error"] = $e->getMessage();
+            $results["connection_error"] = $e->getMessage();
         }
         
         return response()->json($results);
