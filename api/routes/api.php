@@ -175,15 +175,42 @@ Route::group(['prefix' => 'produtos', 'namespace' => 'App\Http\Controllers\V1'],
 
 Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V1'], function () {
     Route::get("/check-db", function() {
-        $env = file_get_contents(base_path('.env'));
-        // Mask passwords and keys
-        $env = preg_replace('/(PASSWORD|KEY|SECRET)=.*/', '$1=********', $env);
+        $dbName = \DB::getDatabaseName();
+        $clientsCols = \Schema::getColumnListing('clients');
+        $afiliadosCols = \Schema::getColumnListing('afiliados');
+        $usersCols = \Schema::getColumnListing('users');
         
+        $afiliadosRoleCount = 0;
+        try {
+            $afiliadosRoleCount = \DB::table('users')->where('role', 'LIKE', '%afiliado%')->count();
+        } catch (\Exception $e) {}
+
+        $env = file_get_contents(base_path('.env'));
+        $envLines = explode("\n", $env);
+        $maskedEnv = [];
+        foreach($envLines as $line) {
+            if (str_contains($line, 'PASSWORD') || str_contains($line, 'KEY') || str_contains($line, 'SECRET')) {
+                $parts = explode('=', $line, 2);
+                $maskedEnv[] = ($parts[0] ?? $line) . "=********";
+            } else {
+                $maskedEnv[] = $line;
+            }
+        }
+
         return response()->json([
-            "env" => $env,
-            "git_info" => shell_exec("git log -n 1 --oneline 2>&1"),
-            "database" => \DB::getDatabaseName(),
-            "afiliados_count" => \DB::table('afiliados')->count(),
+            "message" => "V7 - DEEP AUDIT",
+            "database" => $dbName,
+            "counts" => [
+                "afiliados_table" => \DB::table('afiliados')->count(),
+                "clients_table" => \DB::table('clients')->count(),
+                "users_with_afiliado_role" => $afiliadosRoleCount,
+            ],
+            "schemas" => [
+                "clients" => $clientsCols,
+                "afiliados" => $afiliadosCols,
+                "users" => $usersCols
+            ],
+            "env_status" => implode("\n", $maskedEnv),
             "file" => __FILE__
         ]);
     });
