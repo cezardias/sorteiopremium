@@ -176,21 +176,31 @@ Route::group(['prefix' => 'produtos', 'namespace' => 'App\Http\Controllers\V1'],
 Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V1'], function () {
     Route::get("/check-db", function() {
         $dbName = \DB::getDatabaseName();
-        
-        $roles = \DB::table('users')->select('role')->distinct()->get();
-        $recentMigrations = \DB::table('migrations')->orderBy('id', 'desc')->limit(10)->get();
-        $recentAfiliados = \DB::table('afiliados')->orderBy('id', 'desc')->limit(5)->get();
-        $recentClients = \DB::table('clients')->orderBy('id', 'desc')->limit(5)->get();
-        
+        $tables = \DB::select('SHOW TABLES');
+        $tableList = array_map(function($t) use ($dbName) {
+            $prop = "Tables_in_" . $dbName;
+            return $t->$prop;
+        }, $tables);
+
+        $results = [];
+        foreach ($tableList as $table) {
+            $cols = \Schema::getColumnListing($table);
+            foreach ($cols as $col) {
+                if (str_contains(strtolower($col), 'afi')) {
+                    $results[] = [
+                        "table" => $table,
+                        "column" => $col,
+                        "count" => \DB::table($table)->whereNotNull($col)->count()
+                    ];
+                }
+            }
+        }
+
         return response()->json([
-            "message" => "V9 - MIGRATION & DATA AUDIT",
+            "message" => "V10 - EXHAUSTIVE COLUMN SEARCH",
             "database" => $dbName,
-            "roles" => $roles,
-            "recent_migrations" => $recentMigrations,
-            "recent_afiliados" => $recentAfiliados,
-            "recent_clients" => $recentClients,
-            "total_afiliados" => \DB::table('afiliados')->count(),
-            "total_clients" => \DB::table('clients')->count(),
+            "afi_columns_found" => $results,
+            "all_table_counts" => array_combine($tableList, array_map(function($t) { return \DB::table($t)->count(); }, $tableList)),
             "file" => __FILE__
         ]);
     });
