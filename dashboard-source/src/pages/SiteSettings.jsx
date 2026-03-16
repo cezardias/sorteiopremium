@@ -213,7 +213,7 @@ const SiteSettings = () => {
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-gray-600 uppercase">Descrição Compartilhamento</label>
-                  <textarea className="input-field-small min-h-[80px] resize-none" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
+                  <textarea className="w-full bg-[#1e2130] border border-[#2a2d3e] rounded px-3 py-2 text-xs text-gray-300 focus:outline-none focus:border-green-500/50 transition-colors min-h-[80px] resize-none" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
                 </div>
               </div>
             </div>
