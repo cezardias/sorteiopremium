@@ -20,8 +20,8 @@ const Affiliates = () => {
       let response;
       
       const endpoint = search 
-        ? `/admin/dashboard/afiliado/filtro/?page=${page}` 
-        : `/admin/dashboard/todos/afiliados/?page=${page}`;
+        ? `/admin/dashboard/afiliado/filtro?page=${page}` 
+        : `/admin/dashboard/todos/afiliados?page=${page}`;
       
       const params = search ? { search } : {};
       
