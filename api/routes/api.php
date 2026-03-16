@@ -177,7 +177,7 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
     Route::get("/check-db", function() {
         if (function_exists('opcache_reset')) { opcache_reset(); }
         return response()->json([
-            "version" => "V13 - FORCE RELOAD",
+            "version" => "V14 - DEBUG",
             "db" => \DB::getDatabaseName(),
             "time" => date("Y-m-d H:i:s")
         ]);

@@ -1,6 +1,6 @@
-.env
-.env.backup
-.env.production
+# .env
+# .env.backup
+# .env.production
 # Unignoring everything else as requested for a full sync
 !/vendor
 !/.htaccess
