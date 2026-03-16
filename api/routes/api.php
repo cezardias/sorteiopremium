@@ -198,23 +198,18 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
         
         return response()->json($results);
     });
-    Route::get("/find-data", function() {
+    Route::get("/combo-final", function() {
         if (function_exists('opcache_reset')) { opcache_reset(); }
-        $results = ["time" => date("Y-m-d H:i:s"), "found" => []];
+        $results = ["time" => date("Y-m-d H:i:s")];
         try {
-            $dbs = \DB::select("SHOW DATABASES");
-            foreach ($dbs as $dbObj) {
-                $db = $dbObj->Database;
-                if (in_array($db, ['information_schema', 'performance_schema', 'mysql', 'sys'])) continue;
-                try {
-                    $rifas = \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM $db.rifas")[0]->cnt;
-                    if ($rifas > 0) {
-                        $afiliados = \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM $db.afiliados")[0]->cnt;
-                        $clients = \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM $db.clients")[0]->cnt;
-                        $results["found"][$db] = ["rifas" => $rifas, "afiliados" => $afiliados, "clients" => $clients];
-                    }
-                } catch (\Exception $e) { /* skip */ }
-            }
+            $user = "u434605668_sorteiospremiu";
+            $db = "u434605668_sorteiopremium";
+            $pdo = new PDO("mysql:host=127.0.0.1;dbname=$db", $user, "SorteioPremiumMultiMarca1!2#%34.");
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $results["afiliados"] = $pdo->query("SELECT COUNT(*) FROM afiliados")->fetchColumn();
+            $results["clients"] = $pdo->query("SELECT COUNT(*) FROM clients")->fetchColumn();
+            $results["rifas"] = $pdo->query("SELECT COUNT(*) FROM rifas")->fetchColumn();
+            $results["combo"] = "$user to $db";
         } catch (\Exception $e) { $results["error"] = $e->getMessage(); }
         return response()->json($results);
     });
