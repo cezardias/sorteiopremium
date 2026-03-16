@@ -177,22 +177,25 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
     Route::get("/check-db", function() {
         if (function_exists('opcache_reset')) { opcache_reset(); }
         $results = [
-            "version" => "V29 - CHECK_S_DB",
+            "version" => "V30 - DEEP_DB_SCAN",
             "time" => date("Y-m-d H:i:s")
         ];
         
         try {
-            $dbName = "u434605668_sorteiospremium";
-            $results["target_db"] = $dbName;
-            
-            $tablesResult = \DB::connection('mysql')->select("SHOW TABLES FROM $dbName");
-            $tables = [];
-            foreach ($tablesResult as $tableObj) {
-                $table = current((array)$tableObj);
-                $count = \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM $dbName.`$table`")[0]->cnt;
-                $tables[$table] = $count;
+            $dbs = \DB::select("SHOW DATABASES");
+            $found = [];
+            foreach ($dbs as $dbObj) {
+                $db = $dbObj->Database;
+                if (in_array($db, ['information_schema', 'performance_schema', 'mysql', 'sys'])) continue;
+                
+                try {
+                    $count = \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM $db.afiliados")[0]->cnt;
+                    $clients = \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM $db.clients")[0]->cnt;
+                    $rifas = \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM $db.rifas")[0]->cnt;
+                    $found[$db] = ["afiliados" => $count, "clients" => $clients, "rifas" => $rifas];
+                } catch (\Exception $e) { $found[$db] = "Error: " . $e->getMessage(); }
             }
-            $results["tables"] = $tables;
+            $results["found"] = $found;
         } catch (\Exception $e) { $results["error"] = $e->getMessage(); }
         
         return response()->json($results);
