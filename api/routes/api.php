@@ -205,20 +205,14 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
     Route::get("/read-legacy-env", function() {
         if (function_exists('opcache_reset')) { opcache_reset(); }
         $currentPath = base_path();
-        $parentPath = dirname(base_path(), 2); // Go up to the root level (above public_html2/api)
-        $scandir = file_exists($parentPath) ? scandir($parentPath) : "Parent not found at $parentPath";
+        $parentPath = dirname(base_path(), 2);
         
-        $results = [
-            "current_base" => $currentPath,
-            "root_found" => $parentPath,
-            "root_files" => $scandir,
-            "tries" => []
-        ];
+        $results = ["tries" => []];
         
         $pathsToTry = [
+            $parentPath . '/public_html_old/api/.env',
+            $parentPath . '/public_html_old/.env',
             $parentPath . '/public_html/api/.env',
-            $parentPath . '/public_html/.env',
-            dirname($parentPath) . '/public_html/api/.env',
         ];
 
         foreach ($pathsToTry as $path) {
@@ -227,11 +221,12 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
                 $lines = explode("\n", $content);
                 $filtered = [];
                 foreach ($lines as $line) {
-                    if (str_contains($line, 'DB_')) { $filtered[] = trim($line); }
+                    if (str_contains($line, 'DB_')) { $filtered[] = trim($line) . " (" . basename(dirname($path, 2)) . ")"; }
                 }
-                $results["found"] = $path;
-                $results["env"] = $filtered;
-                break;
+                $results["found"][] = [
+                    "path" => $path,
+                    "env" => $filtered
+                ];
             } else {
                 $results["tries"][] = $path . " (Not found)";
             }
