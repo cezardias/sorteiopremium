@@ -177,38 +177,40 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
     Route::get("/check-db", function() {
         if (function_exists('opcache_reset')) { opcache_reset(); }
         $results = [
-            "version" => "V17 - LEGACY_CHECK",
-            "db_env" => getenv('DB_DATABASE'),
-            "user_env" => getenv('DB_USERNAME'),
+            "version" => "V19 - DATA_HUNT",
+            "db" => \DB::getDatabaseName(),
             "time" => date("Y-m-d H:i:s")
         ];
         
-        // Check current connection
         try {
-            $results["current_db"] = [
-                "name" => \DB::getDatabaseName(),
-                "afiliados" => \DB::table('afiliados')->count(),
-                "clients" => \DB::table('clients')->count(),
-            ];
-        } catch (\Exception $e) { $results["current_error"] = $e->getMessage(); }
-
-        // Check legacy connection
-        try {
-            // Using credentials from .env comments
-            $legacy = \DB::connection('mysql')->select("SELECT table_name FROM information_schema.tables WHERE table_schema = 'u526640676_rifa'");
-            $results["legacy_db"] = [
-                "status" => "Visible",
-                "tables" => count($legacy)
-            ];
+            // Count users with specific roles if any
+            $results["users_count"] = \DB::table('users')->count();
             
-            // Try to count in legacy
-            $afCount = \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM u526640676_rifa.afiliados");
-            $results["legacy_db"]["afiliados"] = $afCount[0]->cnt;
+            // Check for columns in users/clients that might indicate affiliates
+            $results["users_columns"] = \Schema::getColumnListing('users');
+            $results["clients_columns"] = \Schema::getColumnListing('clients');
+            $dbName = "u434605668_sorteiopremium";
+            $results["target_db"] = $dbName;
             
-            $clCount = \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM u526640676_rifa.clients");
-            $results["legacy_db"]["clients"] = $clCount[0]->cnt;
-
-        } catch (\Exception $e) { $results["legacy_error"] = $e->getMessage(); }
+            // List all tables and counts
+            $tablesResult = \DB::connection('mysql')->select("SHOW TABLES FROM $dbName");
+            $tables = [];
+            foreach ($tablesResult as $tableObj) {
+                $table = current((array)$tableObj);
+                $count = \DB::connection('mysql')->select("SELECT COUNT(*) as cnt FROM $dbName.`$table`")[0]->cnt;
+                $tables[$table] = $count;
+            }
+            $results["tables"] = $tables;
+            
+            // Sample data from key tables
+            foreach (['afiliados', 'users', 'clients'] as $table) {
+                if (array_key_exists($table, $tables)) {
+                    $results["samples"][$table] = \DB::connection('mysql')->select("SELECT * FROM $dbName.`$table` LIMIT 2");
+                }
+            }
+        } catch (\Exception $e) {
+            $results["error"] = $e->getMessage();
+        }
         
         return response()->json($results);
     });
