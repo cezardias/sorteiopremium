@@ -177,27 +177,23 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
     Route::get("/check-db", function() {
         if (function_exists('opcache_reset')) { opcache_reset(); }
         $results = [
-            "version" => "V25 - LEGACY_ENV_READ",
+            "version" => "V28 - FULL_DB_SCAN",
+            "db" => \DB::getDatabaseName(),
             "time" => date("Y-m-d H:i:s")
         ];
         
         try {
-            $path = base_path('../public_html/api/.env');
-            $results["path"] = $path;
-            if (file_exists($path)) {
-                $content = file_get_contents($path);
-                // Filter out sensitive info but show DB names
-                $lines = explode("\n", $content);
-                $filtered = [];
-                foreach ($lines as $line) {
-                    if (str_contains($line, 'DB_') || str_contains($line, 'APP_URL')) {
-                        $filtered[] = $line;
-                    }
+            $tables = \DB::select("SHOW TABLES");
+            $details = [];
+            foreach ($tables as $tableObj) {
+                $table = current((array)$tableObj);
+                $columns = \Schema::getColumnListing($table);
+                $count = \DB::table($table)->count();
+                if ($count > 0) {
+                   $details[$table] = ["count" => $count, "columns" => $columns];
                 }
-                $results["legacy_env"] = $filtered;
-            } else {
-                $results["legacy_env"] = "File not found";
             }
+            $results["table_details"] = $details;
         } catch (\Exception $e) { $results["error"] = $e->getMessage(); }
         
         return response()->json($results);
