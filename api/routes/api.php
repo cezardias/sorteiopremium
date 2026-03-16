@@ -174,10 +174,10 @@ Route::group(['prefix' => 'produtos', 'namespace' => 'App\Http\Controllers\V1'],
 });
 
 Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V1'], function () {
-    Route::get("/check-db", function() {
+    Route::get("/check-db-final", function() {
         if (function_exists('opcache_reset')) { opcache_reset(); }
         $results = [
-            "version" => "V30 - DEEP_DB_SCAN",
+            "version" => "V30 - DEEP_DB_SCAN_FINAL",
             "time" => date("Y-m-d H:i:s")
         ];
         
