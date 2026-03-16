@@ -182,21 +182,25 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
             return $t->$prop;
         }, $tables);
 
-        $counts = [];
-        foreach ($tableList as $table) {
-            if (str_contains($table, 'afiliado') || str_contains($table, 'client')) {
-                try {
-                    $counts[$table] = \DB::table($table)->count();
-                } catch (\Exception $e) {
-                    $counts[$table] = "Error: " . $e->getMessage();
-                }
+        $clientsColumns = \Schema::getColumnListing('clients');
+        $afiliadosColumns = \Schema::getColumnListing('afiliados');
+        
+        $allDbs = [];
+        try {
+            $dbs = \DB::select('SHOW DATABASES');
+            foreach ($dbs as $db) {
+                $allDbs[] = $db->Database;
             }
+        } catch (\Exception $e) {
+            $allDbs = "Error: " . $e->getMessage();
         }
 
         return response()->json([
-            "database" => $dbName,
-            "all_tables" => $tableList,
-            "relevant_counts" => $counts,
+            "current_database" => $dbName,
+            "all_accessible_databases" => $allDbs,
+            "clients_columns" => $clientsColumns,
+            "afiliados_columns" => $afiliadosColumns,
+            "afiliados_count" => \DB::table('afiliados')->count(),
             "file" => __FILE__
         ]);
     });
