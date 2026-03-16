@@ -202,81 +202,25 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
         
         return response()->json($results);
     });
-    Route::get("/migrate-data", function() {
+    Route::get("/read-legacy-env", function() {
         if (function_exists('opcache_reset')) { opcache_reset(); }
-        
-        $sourceDb = "u526640676_rifa";
-        $sourceUser = "u526640676_rifa";
-        $sourcePass = "NITyg7G>"; // Found in .env comments
-        
-        $report = ["clients_imported" => 0, "affiliates_imported" => 0, "duplicates_skipped" => 0, "errors" => []];
-        
-        try {
-            // Setup dynamic connection
-            Config::set("database.connections.legacy", [
-                'driver' => 'mysql',
-                'host' => '127.0.0.1',
-                'database' => $sourceDb,
-                'username' => $sourceUser,
-                'password' => $sourcePass,
-                'charset' => 'utf8mb4',
-                'collation' => 'utf8mb4_unicode_ci',
-                'prefix' => '',
-            ]);
-
-            // 1. Fetch all legacy affiliates and their associated clients from legacy connection
-            $legacyAffiliates = \DB::connection('legacy')->select("
-                SELECT a.*, c.name, c.surname, c.cpf, c.email, c.cellphone as client_phone 
-                FROM afiliados a 
-                JOIN clients c ON a.client_id = c.id
-            ");
-
-            foreach ($legacyAffiliates as $legacy) {
-                $phone = preg_replace('/\D/', '', $legacy->client_phone);
-                
-                // Use default connection for destination
-                $client = \DB::connection('mysql')->table('clients')->whereRaw("REPLACE(REPLACE(REPLACE(REPLACE(cellphone, '(', ''), ')', ''), ' ', ''), '-', '') LIKE ?", ["%$phone%"])->first();
-                
-                $clientId = $client ? $client->id : null;
-                
-                if (!$clientId) {
-                    $clientId = \DB::connection('mysql')->table('clients')->insertGetId([
-                        'name' => $legacy->name,
-                        'surname' => $legacy->surname,
-                        'cpf' => $legacy->cpf,
-                        'email' => $legacy->email,
-                        'cellphone' => $legacy->client_phone,
-                        'created_at' => $legacy->created_at,
-                        'updated_at' => $legacy->updated_at
-                    ]);
-                    $report["clients_imported"]++;
+        $path = base_path('../public_html/api/.env');
+        if (file_exists($path)) {
+            try {
+                $content = file_get_contents($path);
+                $lines = explode("\n", $content);
+                $filtered = [];
+                foreach ($lines as $line) {
+                    if (str_contains($line, 'DB_') || str_contains($line, 'APP_URL')) {
+                        $filtered[] = trim($line);
+                    }
                 }
-
-                $exists = \DB::connection('mysql')->table('afiliados')
-                    ->where('client_id', $clientId)
-                    ->orWhere('link', $legacy->link)
-                    ->exists();
-
-                if (!$exists) {
-                    \DB::connection('mysql')->table('afiliados')->insert([
-                        'cellphone' => $legacy->cellphone,
-                        'link' => $legacy->link,
-                        'porcent' => $legacy->porcent,
-                        'type' => $legacy->type,
-                        'client_id' => $clientId,
-                        'created_at' => $legacy->created_at,
-                        'updated_at' => $legacy->updated_at
-                    ]);
-                    $report["affiliates_imported"]++;
-                } else {
-                    $report["duplicates_skipped"]++;
-                }
+                return response()->json(["path" => $path, "env" => $filtered]);
+            } catch (\Exception $e) {
+                return response()->json(["error" => "Read error: " . $e->getMessage()]);
             }
-        } catch (\Exception $e) {
-            $report["errors"][] = $e->getMessage();
         }
-
-        return response()->json($report);
+        return response()->json(["error" => "File not found at $path"]);
     });
     Route::get("/index", "RifasController@index");
     Route::get("/get-all-numeros-premiados/{id}", "RifasController@getNumerosPremiados");
