@@ -11,8 +11,16 @@ const Orders = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await api.get('/client/pedidos');
-        setOrders(response.data?.data || []);
+        const clientData = JSON.parse(localStorage.getItem('client_user') || '{}');
+        const phone = clientData.phone || clientData.cellphone;
+        
+        if (!phone) {
+          setLoading(false);
+          return;
+        }
+
+        const response = await api.get('/client/pedidos', { params: { phone } });
+        setOrders(response.data?.data?.orders || []);
       } catch (error) {
         console.error('Error fetching orders:', error);
       } finally {
