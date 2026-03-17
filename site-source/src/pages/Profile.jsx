@@ -12,10 +12,29 @@ const Profile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await api.get('/config').catch(() => ({ data: JSON.parse(localStorage.getItem('client_user') || '{}') }));
-        setUser(response.data || { name: '', email: '', cpf: '', phone: '' });
+        const localUser = JSON.parse(localStorage.getItem('client_user') || '{}');
+        const phone = localUser.phone || localUser.cellphone;
+        
+        if (phone) {
+          const response = await api.get('/client/pedidos', { params: { phone } });
+          if (response.data?.data?.client) {
+            const clientData = response.data.data.client;
+            setUser({
+              id: clientData.id,
+              name: clientData.name || '',
+              email: clientData.email || '',
+              cpf: clientData.cpf || '',
+              phone: clientData.cellphone || clientData.phone || phone
+            });
+            localStorage.setItem('client_user', JSON.stringify(clientData));
+          }
+        } else {
+          setUser(localUser);
+        }
       } catch (error) {
-        toast.error('Erro ao carregar perfil');
+        console.error('Erro ao carregar perfil:', error);
+        const localUser = JSON.parse(localStorage.getItem('client_user') || '{}');
+        setUser(localUser);
       } finally {
         setLoading(false);
       }
@@ -31,7 +50,10 @@ const Profile = () => {
     }
     setSaving(true);
     try {
-      await api.post('/client/update-profile', user);
+      await api.post('/client/update-profile', {
+        ...user,
+        client_id: user.id
+      });
       toast.success('Perfil atualizado com sucesso!');
       localStorage.setItem('client_user', JSON.stringify(user));
     } catch (error) {
@@ -94,7 +116,14 @@ const Profile = () => {
               <h3 className="text-xl font-black text-white uppercase tracking-tight">{user.name || 'Usuário'}</h3>
               <p className="text-primary font-bold uppercase tracking-widest text-[10px]">Cliente Premium</p>
             </div>
-            <button className="w-full py-4 rounded-2xl bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white transition-all font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2">
+            <button 
+              onClick={() => {
+                localStorage.removeItem('client_token');
+                localStorage.removeItem('client_user');
+                window.location.href = '/';
+              }}
+              className="w-full py-4 rounded-2xl bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white transition-all font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2"
+            >
               <LogOut size={14} /> Sair da Conta
             </button>
           </div>

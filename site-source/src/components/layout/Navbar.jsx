@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, ShoppingBag, Trophy, User, FileText, Menu, X } from 'lucide-react';
+import { Home, ShoppingBag, Trophy, User, FileText, Menu, X, LogOut } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -11,13 +11,23 @@ function cn(...inputs) {
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const token = localStorage.getItem('client_token');
+  const isLoggedIn = !!token;
+
+  const handleLogout = () => {
+    localStorage.removeItem('client_token');
+    localStorage.removeItem('client_user');
+    window.location.href = '/';
+  };
 
   const menuItems = [
     { name: 'Home', path: '/', icon: Home },
     { name: 'Produtos', path: '/produtos', icon: ShoppingBag },
     { name: 'Ganhadores', path: '/ganhadores', icon: Trophy },
-    { name: 'Meu Perfil', path: '/perfil', icon: User },
-    { name: 'Meus Pedidos', path: '/pedidos', icon: FileText },
+    ...(isLoggedIn ? [
+      { name: 'Meu Perfil', path: '/perfil', icon: User },
+      { name: 'Meus Pedidos', path: '/pedidos', icon: FileText },
+    ] : []),
   ];
 
   return (
@@ -52,6 +62,23 @@ const Navbar = () => {
                   </Link>
                 );
               })}
+              
+              {!isLoggedIn ? (
+                <Link
+                  to="/login"
+                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-black uppercase tracking-widest bg-primary text-black hover:bg-secondary transition-all shadow-lg shadow-primary/20"
+                >
+                  <User size={16} />
+                  Entrar
+                </Link>
+              ) : (
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold uppercase tracking-widest text-gray-400 hover:text-accent hover:bg-accent/5 transition-all"
+                >
+                  <LogOut size={16} />
+                </button>
+              )}
             </div>
           </div>
 
@@ -91,6 +118,28 @@ const Navbar = () => {
                 </Link>
               );
             })}
+
+            {!isLoggedIn ? (
+              <Link
+                to="/login"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-base font-black uppercase tracking-widest bg-primary text-black"
+              >
+                <User size={20} />
+                Entrar
+              </Link>
+            ) : (
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  handleLogout();
+                }}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-base font-bold uppercase tracking-widest text-accent w-full text-left"
+              >
+                <LogOut size={20} />
+                Sair da Conta
+              </button>
+            )}
           </div>
         </div>
       )}

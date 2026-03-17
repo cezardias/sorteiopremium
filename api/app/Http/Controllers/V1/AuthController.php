@@ -68,15 +68,14 @@ class AuthController extends Controller
             return response()->json(['error' => 'could_not_create_token', 'details' => $e->getMessage()], 500);
         }
 
-        return $this->respondWithToken($token);
+        return $this->respondWithToken($token, $client);
     }
 
-    protected function respondWithToken($token)
+    protected function respondWithToken($token, $user = null)
     {
         return response()->json([
             'access_token' => $token,
-            // 'token_type' => 'bearer',
-            // 'expires_in' => JWTAuth::factory()->getTTL() * 60
+            'user' => $user
         ]);
     }
 

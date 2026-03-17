@@ -9,6 +9,19 @@ import Products from './pages/Products';
 import Winners from './pages/Winners';
 import Profile from './pages/Profile';
 import Orders from './pages/Orders';
+import Login from './pages/Login';
+import { Navigate } from 'react-router-dom';
+
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem('client_token');
+  const location = useLocation();
+
+  if (!token) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return children;
+};
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -58,10 +71,30 @@ function AppContent() {
             <Route path="produtos" element={<Products />} />
             <Route path="sorteios" element={<Products />} />
             <Route path="ganhadores" element={<Winners />} />
-            <Route path="perfil" element={<Profile />} />
-            <Route path="usuario" element={<Profile />} />
-            <Route path="pedidos" element={<Orders />} />
-            <Route path="meus-pedidos" element={<Orders />} />
+            <Route path="login" element={<Login />} />
+            
+            <Route path="perfil" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
+            <Route path="usuario" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="pedidos" element={
+              <ProtectedRoute>
+                <Orders />
+              </ProtectedRoute>
+            } />
+            <Route path="meus-pedidos" element={
+              <ProtectedRoute>
+                <Orders />
+              </ProtectedRoute>
+            } />
+            
             <Route path="*" element={<Home />} />
           </Route>
         </Routes>
