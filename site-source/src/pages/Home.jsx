@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Trophy, MessageCircle, ArrowRight, Zap, Target, Star } from 'lucide-react';
+import { ShoppingBag, Trophy, MessageCircle, ArrowRight, Zap, Target, Star, Shield } from 'lucide-react';
 import { motion } from 'framer-motion';
 import api from '../api/api';
 

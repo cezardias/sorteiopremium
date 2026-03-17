@@ -4,11 +4,11 @@ import Layout from './components/layout/Layout';
 import { Toaster } from 'react-hot-toast';
 
 // Lazy load pages
-const Home = lazy(() => import('./pages/Home'));
-const Products = lazy(() => import('./pages/Products'));
-const Winners = lazy(() => import('./pages/Winners'));
-const Profile = lazy(() => import('./pages/Profile'));
-const Orders = lazy(() => import('./pages/Orders'));
+import Home from './pages/Home';
+import Products from './pages/Products';
+import Winners from './pages/Winners';
+import Profile from './pages/Profile';
+import Orders from './pages/Orders';
 
 function App() {
   return (
