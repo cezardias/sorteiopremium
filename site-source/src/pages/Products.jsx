@@ -103,7 +103,7 @@ const Products = () => {
               >
                 <div className="h-56 overflow-hidden relative">
                   <img 
-                    src={raffle.image || 'https://via.placeholder.com/800x600?text=Foto+do+Prêmio'} 
+                    src={raffle.rifa_image?.[0]?.path ? `/api/img/rifas/${raffle.rifa_image[0].path}` : 'https://placehold.co/800x600?text=Foto+do+Prêmio'} 
                     alt={raffle.title} 
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />

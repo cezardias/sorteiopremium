@@ -17,7 +17,6 @@
   # SPA Routing
   RewriteRule ^index\.html$ - [L]
   
-  # Excluir pastas reais do rewrite do SPA
   RewriteCond %{REQUEST_URI} ^/(api|dash|assets|storage) [NC]
   RewriteRule ^ - [L]
 

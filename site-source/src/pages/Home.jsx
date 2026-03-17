@@ -86,7 +86,7 @@ const Home = () => {
               <div key={raffle.id} className="glass rounded-[32px] overflow-hidden group hover:border-primary/50 transition-all duration-500 transform hover:-translate-y-2 shadow-2xl shadow-black/50">
                 <div className="h-64 overflow-hidden relative">
                   <img 
-                    src={raffle.image || 'https://via.placeholder.com/800x600?text=Foto+do+Prêmio'} 
+                    src={raffle.rifa_image?.[0]?.path ? `/api/img/rifas/${raffle.rifa_image[0].path}` : 'https://placehold.co/800x600?text=Foto+do+Prêmio'} 
                     alt={raffle.title} 
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
@@ -172,7 +172,7 @@ const Home = () => {
               <div key={winner.id} className="glass p-6 rounded-[32px] flex flex-col sm:flex-row items-center gap-6 group hover:border-accent/40 transition-all duration-300">
                 <div className="w-24 h-24 rounded-2xl overflow-hidden flex-shrink-0 border border-white/10">
                   <img 
-                    src={winner.img ? `/api/img/rifas/${winner.img}` : 'https://via.placeholder.com/200?text=Avatar'} 
+                    src={winner.img ? `/api/img/rifas/${winner.img}` : 'https://placehold.co/200?text=Avatar'} 
                     alt={winner.client?.name} 
                     className="w-full h-full object-cover"
                   />
