@@ -15,7 +15,8 @@ const Home = () => {
           api.get('/produtos').catch(() => ({ data: [] })),
           api.get('/produtos/todos/ganhadores').catch(() => ({ data: [] }))
         ]);
-        setRaffles(rafflesRes.data?.data || []);
+        const allRaffles = rafflesRes.data?.data || [];
+        setRaffles(allRaffles.filter(r => r.status === 'ativas'));
         setWinners(winnersRes.data?.data || []);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -90,7 +91,12 @@ const Home = () => {
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
                   <div className="absolute top-4 left-4 flex gap-2">
-                    <span className="px-3 py-1 rounded-full bg-primary text-black text-[10px] font-black uppercase tracking-widest">Ativo</span>
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                      raffle.status === 'ativas' ? 'bg-primary text-black' :
+                      raffle.status === 'futuras' ? 'bg-blue-500 text-white' : 'bg-gray-600 text-white'
+                    }`}>
+                      {raffle.status === 'ativas' ? 'Ativo' : raffle.status === 'futuras' ? 'Em Breve' : 'Finalizado'}
+                    </span>
                     {raffle.featured && (
                       <span className="px-3 py-1 rounded-full bg-yellow-400 text-black text-[10px] font-black uppercase tracking-widest">Destaque</span>
                     )}

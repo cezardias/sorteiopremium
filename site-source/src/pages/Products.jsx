@@ -15,7 +15,13 @@ const Products = () => {
       setLoading(true);
       try {
         const response = await api.get('/produtos', { params: { status: filter } });
-        setRaffles(response.data?.data || []);
+        const allRaffles = response.data?.data || [];
+        const statusMap = {
+          'active': 'ativas',
+          'future': 'futuras',
+          'finished': 'finalizadas'
+        };
+        setRaffles(allRaffles.filter(r => r.status === statusMap[filter]));
       } catch (error) {
         console.error('Error fetching raffles:', error);
       } finally {
