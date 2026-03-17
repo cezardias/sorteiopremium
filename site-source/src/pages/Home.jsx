@@ -172,22 +172,26 @@ const Home = () => {
               <div key={winner.id} className="glass p-6 rounded-[32px] flex flex-col sm:flex-row items-center gap-6 group hover:border-accent/40 transition-all duration-300">
                 <div className="w-24 h-24 rounded-2xl overflow-hidden flex-shrink-0 border border-white/10">
                   <img 
-                    src={winner.avatar || 'https://via.placeholder.com/200?text=Avatar'} 
-                    alt={winner.name} 
+                    src={winner.img ? `/api/img/rifas/${winner.img}` : 'https://via.placeholder.com/200?text=Avatar'} 
+                    alt={winner.client?.name} 
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="flex-grow text-center sm:text-left space-y-1">
-                  <h4 className="text-lg font-black text-white uppercase tracking-tight">{winner.name}</h4>
-                  <p className="text-accent font-bold uppercase tracking-widest text-[10px] break-words">{winner.prize_title || 'Prêmio Conquistado'}</p>
+                  <h4 className="text-lg font-black text-white uppercase tracking-tight">
+                    {winner.client?.name} {winner.client?.surname}
+                  </h4>
+                  <p className="text-accent font-bold uppercase tracking-widest text-[10px] break-words">{winner.rifa?.title || 'Prêmio Conquistado'}</p>
                   <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 mt-2">
                     <div className="flex flex-col">
                       <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Bilhete</span>
-                      <span className="text-sm font-black text-primary italic">#{winner.ticket_number || '000000'}</span>
+                      <span className="text-sm font-black text-primary italic">#{winner.ticket || '000000'}</span>
                     </div>
                     <div className="flex flex-col">
                       <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Data</span>
-                      <span className="text-sm font-bold text-gray-400">{winner.draw_date || '00/00/2026'}</span>
+                      <span className="text-sm font-bold text-gray-400">
+                        {winner.rifa?.end_rifa ? new Date(winner.rifa.end_rifa).toLocaleDateString('pt-BR') : 'Finalizado'}
+                      </span>
                     </div>
                   </div>
                 </div>

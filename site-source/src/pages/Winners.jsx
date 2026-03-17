@@ -22,10 +22,12 @@ const Winners = () => {
     fetchWinners();
   }, []);
 
-  const filteredWinners = (winners || []).filter(w => 
-    (w?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (w?.prize_title || '').toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredWinners = (winners || []).filter(w => {
+    const fullName = `${w.client?.name || ''} ${w.client?.surname || ''}`.toLowerCase();
+    const prizeTitle = (w.rifa?.title || '').toLowerCase();
+    const query = searchQuery.toLowerCase();
+    return fullName.includes(query) || prizeTitle.includes(query);
+  });
 
   return (
     <div className="space-y-16">
@@ -75,18 +77,20 @@ const Winners = () => {
 
               <div className="w-32 h-32 rounded-3xl overflow-hidden flex-shrink-0 border-2 border-white/5 group-hover:border-accent/30 transition-colors shadow-2xl">
                 <img 
-                  src={winner.avatar || 'https://via.placeholder.com/400?text=Ganhador'} 
-                  alt={winner.name} 
+                  src={winner.img ? `/api/img/rifas/${winner.img}` : 'https://via.placeholder.com/400?text=Ganhador'} 
+                  alt={winner.client?.name} 
                   className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
                 />
               </div>
               
               <div className="flex-grow text-center sm:text-left space-y-4">
                 <div className="space-y-1">
-                  <h4 className="text-2xl font-black text-white uppercase tracking-tight leading-none">{winner.name}</h4>
+                  <h4 className="text-2xl font-black text-white uppercase tracking-tight leading-none">
+                    {winner.client?.name} {winner.client?.surname}
+                  </h4>
                   <div className="flex items-center justify-center sm:justify-start gap-2 text-accent">
                     <Star size={12} fill="currentColor" />
-                    <span className="font-black uppercase tracking-widest text-[10px] sm:text-xs">{winner.prize_title || 'Grande Prêmio'}</span>
+                    <span className="font-black uppercase tracking-widest text-[10px] sm:text-xs">{winner.rifa?.title || 'Grande Prêmio'}</span>
                   </div>
                 </div>
 
@@ -95,13 +99,15 @@ const Winners = () => {
                     <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest flex items-center gap-1.5 mb-1">
                       <Star size={10} /> Bilhete
                     </span>
-                    <span className="text-lg font-black text-primary italic leading-none">#{winner.ticket_number || '000000'}</span>
+                    <span className="text-lg font-black text-primary italic leading-none">#{winner.ticket || '000000'}</span>
                   </div>
                   <div className="flex flex-col">
                     <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest flex items-center gap-1.5 mb-1">
                       <Calendar size={10} /> Sorteio em
                     </span>
-                    <span className="text-base font-bold text-gray-400 italic leading-none">{winner.draw_date || 'Março 2026'}</span>
+                    <span className="text-base font-bold text-gray-400 italic leading-none">
+                      {winner.rifa?.end_rifa ? new Date(winner.rifa.end_rifa).toLocaleDateString('pt-BR') : 'Finalizado'}
+                    </span>
                   </div>
                 </div>
               </div>
