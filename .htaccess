@@ -12,8 +12,15 @@
   # Bloquear acesso a arquivos de configuração/fonte (caso restem)
   RewriteRule "^(composer\.json|composer\.lock|package\.json|package-lock\.json|vite\.config\.js|tailwind\.config\.js|tsconfig\.json)$" - [F]
 
+  DirectoryIndex index.html
+
   # SPA Routing
   RewriteRule ^index\.html$ - [L]
+  
+  # Excluir pastas reais do rewrite do SPA
+  RewriteCond %{REQUEST_URI} ^/(api|dash|assets|storage) [NC]
+  RewriteRule ^ - [L]
+
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteCond %{REQUEST_FILENAME} !-l
