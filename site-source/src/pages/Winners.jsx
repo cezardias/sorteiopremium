@@ -22,9 +22,9 @@ const Winners = () => {
     fetchWinners();
   }, []);
 
-  const filteredWinners = winners.filter(w => 
-    w.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    w.prize_title?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredWinners = (winners || []).filter(w => 
+    (w?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (w?.prize_title || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (

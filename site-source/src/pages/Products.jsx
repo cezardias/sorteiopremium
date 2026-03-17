@@ -25,8 +25,8 @@ const Products = () => {
     fetchRaffles();
   }, [filter]);
 
-  const filteredRaffles = raffles.filter(r => 
-    r.title.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredRaffles = (raffles || []).filter(r => 
+    (r?.title || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const filterTabs = [

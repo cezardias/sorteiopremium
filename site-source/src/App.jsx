@@ -37,31 +37,44 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+import { useLocation } from 'react-router-dom';
+
+function AppContent() {
+  const location = useLocation();
+  React.useEffect(() => {
+    console.log("Current Route:", location.pathname);
+  }, [location]);
+
+  return (
+    <ErrorBoundary>
+      <Suspense fallback={
+        <div className="min-h-screen flex items-center justify-center bg-dark">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      }>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Home />} />
+            <Route path="produtos" element={<Products />} />
+            <Route path="sorteios" element={<Products />} />
+            <Route path="ganhadores" element={<Winners />} />
+            <Route path="perfil" element={<Profile />} />
+            <Route path="usuario" element={<Profile />} />
+            <Route path="pedidos" element={<Orders />} />
+            <Route path="meus-pedidos" element={<Orders />} />
+            <Route path="*" element={<Home />} />
+          </Route>
+        </Routes>
+      </Suspense>
+    </ErrorBoundary>
+  );
+}
+
 function App() {
   return (
     <BrowserRouter>
       <Toaster position="top-right" />
-      <ErrorBoundary>
-        <Suspense fallback={
-          <div className="min-h-screen flex items-center justify-center bg-dark">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        }>
-          <Routes>
-            <Route path="/" element={<Layout />}>
-              <Route index element={<Home />} />
-              <Route path="produtos" element={<Products />} />
-              <Route path="sorteios" element={<Products />} />
-              <Route path="ganhadores" element={<Winners />} />
-              <Route path="perfil" element={<Profile />} />
-              <Route path="usuario" element={<Profile />} />
-              <Route path="pedidos" element={<Orders />} />
-              <Route path="meus-pedidos" element={<Orders />} />
-              <Route path="*" element={<Home />} />
-            </Route>
-          </Routes>
-        </Suspense>
-      </ErrorBoundary>
+      <AppContent />
     </BrowserRouter>
   );
 }
