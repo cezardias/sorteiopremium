@@ -660,25 +660,37 @@ class RifasController extends Controller
 
     public function finalizarRifa($id)
     {
-        $rifa = Rifas::where('id', $id);
-        if (!$rifa) {
-            return response()->json(["response" => true, "msg" => "Nenhuma rifa encontrada."], 404);
-        }
+        try {
+            $rifa = Rifas::find($id);
+            if (!$rifa) {
+                return response()->json(["success" => false, "msg" => "Nenhuma rifa encontrada."], 404);
+            }
 
-        $hoje = Carbon::now();
-        $rifa->update(['status' => 'finalizadas', 'end_rifa' => $hoje]);
-        return response()->json(["response" => true, "msg" => "Rifa finalizada com sucesso."]);
+            $rifa->update([
+                'status' => 'finalizadas', 
+                'end_rifa' => Carbon::now()
+            ]);
+            return response()->json(["success" => true, "response" => true, "msg" => "Rifa finalizada com sucesso."]);
+        } catch (\Exception $e) {
+            return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
+        }
     }
     public function ativarRifa($id)
     {
-        $rifa = Rifas::where('id', $id);
-        if (!$rifa) {
-            return response()->json(["response" => true, "msg" => "Nenhuma rifa encontrada."], 404);
+        try {
+            $rifa = Rifas::find($id);
+            if (!$rifa) {
+                return response()->json(["success" => false, "msg" => "Nenhuma rifa encontrada."], 404);
+            }
+
+            $rifa->update([
+                'status' => 'ativas', 
+                'end_rifa' => null
+            ]);
+            return response()->json(["success" => true, "response" => true, "msg" => "Rifa ativada com sucesso."]);
+        } catch (\Exception $e) {
+            return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
-
-
-        $rifa->update(['status' => 'ativas', 'end_rifa' => null]);
-        return response()->json(["response" => true, "msg" => "Rifa finalizada com sucesso."]);
     }
 
 

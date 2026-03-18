@@ -30,6 +30,7 @@ class Rifas extends Model
         'data_sortition',
         'initial_sale',
         'end_sale',
+        'end_rifa',
         'user_id',
         'winner_id',
     ];

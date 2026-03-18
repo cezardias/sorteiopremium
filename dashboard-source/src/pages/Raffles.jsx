@@ -53,13 +53,16 @@ const Raffles = () => {
         ? `/admin/dashboard/rifa/finalizar/${id}`
         : `/admin/dashboard/rifa/ativar/${id}`;
       
-      const response = await api.put(endpoint); // Backend uses PUT for these toggles
-      if (response.data && response.data.response) {
+      const response = await api.put(endpoint, {}); // Backend uses PUT for these toggles
+      if (response.data && (response.data.success || response.data.response)) {
         fetchRaffles();
+      } else {
+        alert(response.data?.msg || 'Erro inesperado ao alterar status.');
       }
     } catch (error) {
       console.error('Error toggling status:', error);
-      alert('Erro ao alterar status do sorteio.');
+      const errorMsg = error.response?.data?.msg || error.message || 'Erro ao alterar status do sorteio.';
+      alert(errorMsg);
     }
   };
 
