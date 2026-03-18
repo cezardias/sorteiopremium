@@ -3,12 +3,15 @@ import { ShoppingBag, ChevronRight, Filter, Search, Calendar, CheckCircle2, Cloc
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api/api';
+import PurchaseModal from '../components/PurchaseModal';
 
 const Products = () => {
   const [raffles, setRaffles] = useState([]);
   const [filter, setFilter] = useState('active'); // active, future, finished
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedRaffleId, setSelectedRaffleId] = useState(null);
 
   useEffect(() => {
     const fetchRaffles = async () => {
@@ -126,13 +129,16 @@ const Products = () => {
                         <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Bilhete</span>
                         <span className="text-2xl font-black text-primary italic leading-none">R$ {raffle.price || '0,00'}</span>
                       </div>
-                      <Link 
-                        to={`/raffle/${raffle.id}`}
+                      <button 
+                        onClick={() => {
+                          setSelectedRaffleId(raffle.id);
+                          setModalOpen(true);
+                        }}
                         className="bg-white hover:bg-primary text-black font-black uppercase px-6 py-3 rounded-xl transition-all flex items-center gap-2 group/btn"
                       >
                         {filter === 'active' ? 'Comprar' : 'Ver Detalhes'}
                         <ChevronRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
-                      </Link>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -151,6 +157,12 @@ const Products = () => {
           )}
         </AnimatePresence>
       </div>
+
+      <PurchaseModal 
+        isOpen={modalOpen} 
+        onClose={() => setModalOpen(false)} 
+        raffleId={selectedRaffleId} 
+      />
     </div>
   );
 };

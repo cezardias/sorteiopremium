@@ -5,6 +5,7 @@ import api from '../api/api';
 import toast from 'react-hot-toast';
 
 const PurchaseModal = ({ isOpen, onClose, raffleId }) => {
+  console.log("DEBUG: PurchaseModal Version 2.1 Loaded");
   const [raffle, setRaffle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
@@ -191,7 +192,7 @@ const PurchaseModal = ({ isOpen, onClose, raffleId }) => {
                         {[5, 10, 50, 100].map(qty => (
                           <button
                             key={qty}
-                            onClick={() => handleQuantityChange(quantity + qty)}
+                            onClick={() => setQuantity(prev => prev + qty)}
                             className={`py-3 rounded-xl text-[10px] font-black uppercase transition-all ${
                                 false ? "bg-primary text-black" : "bg-dark text-gray-500 border border-white/5"
                             }`}

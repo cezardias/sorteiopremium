@@ -43,9 +43,8 @@ const RaffleDetail = () => {
 
   const handleBuy = async () => {
     const token = localStorage.getItem('client_token');
-    const clientData = JSON.parse(localStorage.getItem('client_info') || '{}');
-
-    if (!token || !clientData.id) {
+    const clientData = JSON.parse(localStorage.getItem('client_user') || '{}');
+    if (!token || (!clientData.id && !clientData.phone && !clientData.cellphone)) {
       toast.error('Você precisa estar logado para comprar');
       navigate('/login', { state: { from: `/raffle/${id}` } });
       return;
@@ -180,7 +179,7 @@ const RaffleDetail = () => {
               {[5, 10, 50, 100].map(qty => (
                 <button
                   key={qty}
-                  onClick={() => handleQuantityChange(qty)}
+                  onClick={() => handleQuantityChange(quantity + qty)}
                   className={`py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
                     quantity === qty 
                       ? "bg-primary text-black shadow-lg" 
