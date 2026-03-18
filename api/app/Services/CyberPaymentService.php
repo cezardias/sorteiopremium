@@ -11,7 +11,7 @@ class CyberPaymentService
 {
     protected $client;
     protected $apiKey;
-    protected $baseUrl = 'https://api.escalecyber.com.br/api/v1/';
+    protected $baseUrl = 'https://api.escalecyber.com/api/v1/';
 
     public function __construct()
     {
@@ -22,9 +22,6 @@ class CyberPaymentService
                 'X-API-Key' => $this->apiKey,
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
-            ],
-            'curl' => [
-                CURLOPT_SSLVERSION => CURL_SSLVERSION_TLSv1_2,
             ],
             'timeout' => 30,
         ]);
