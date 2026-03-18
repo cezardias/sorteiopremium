@@ -52,9 +52,8 @@ const PurchaseModal = ({ isOpen, onClose, raffleId }) => {
     const token = localStorage.getItem('client_token');
     const clientInfo = JSON.parse(localStorage.getItem('client_user') || '{}');
 
-    if (!token || !clientInfo.id) {
+    if (!token || (!clientInfo.id && !clientInfo.phone && !clientInfo.cellphone)) {
       toast.error('Você precisa estar logado para comprar');
-      // Podera redirecionar para login aqui se necessário
       return;
     }
 
@@ -192,9 +191,9 @@ const PurchaseModal = ({ isOpen, onClose, raffleId }) => {
                         {[5, 10, 50, 100].map(qty => (
                           <button
                             key={qty}
-                            onClick={() => handleQuantityChange(qty)}
+                            onClick={() => handleQuantityChange(quantity + qty)}
                             className={`py-3 rounded-xl text-[10px] font-black uppercase transition-all ${
-                                quantity === qty ? "bg-primary text-black" : "bg-dark text-gray-500 border border-white/5"
+                                false ? "bg-primary text-black" : "bg-dark text-gray-500 border border-white/5"
                             }`}
                           >
                             +{qty}
