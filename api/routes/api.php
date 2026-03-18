@@ -23,20 +23,23 @@ Route::get('/test-sanity', function () {
 
 Route::get('/test-db', function () {
     try {
-        $count = \DB::table('rifas')->count();
-        $ordersCount = \DB::table('rifa_pay')->count();
+        $tables = \DB::select('SHOW TABLES');
+        $dbName = config('database.connections.mysql.database');
+        $tablesList = array_map(function($table) use ($dbName) {
+            $key = "Tables_in_" . $dbName;
+            return $table->$key ?? json_encode($table);
+        }, $tables);
+
         return response()->json([
             'status' => 'connected',
-            'rifas_count' => $count,
-            'orders_count' => $ordersCount,
-            'db_name' => config('database.connections.mysql.database'),
-            'db_user' => config('database.connections.mysql.username'),
+            'db_name' => $dbName,
+            'tables' => $tablesList,
+            'rifas_count' => in_array('rifas', $tablesList) ? \DB::table('rifas')->count() : 'table missing',
         ]);
     } catch (\Exception $e) {
         return response()->json([
             'status' => 'error',
             'message' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
         ], 500);
     }
 });
