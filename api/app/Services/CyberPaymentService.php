@@ -55,9 +55,10 @@ class CyberPaymentService
 
             return json_decode($response->getBody()->getContents(), true);
         } catch (RequestException $e) {
-            Log::error('CyberPayment Error: ' . $e->getMessage());
+            $responseBody = $e->hasResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
+            Log::error('CyberPayment Error Response: ' . $responseBody);
             if ($e->hasResponse()) {
-                return json_decode($e->getResponse()->getBody()->getContents(), true);
+                return json_decode($responseBody, true);
             }
             return ['success' => false, 'message' => 'Erro ao conectar com a API de pagamento.'];
         } catch (GuzzleException $e) {
