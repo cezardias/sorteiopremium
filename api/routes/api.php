@@ -21,6 +21,26 @@ Route::get('/test-sanity', function () {
     return "Laravel is alive!";
 });
 
+Route::get('/test-db', function () {
+    try {
+        $count = \DB::table('rifas')->count();
+        $ordersCount = \DB::table('rifa_pay')->count();
+        return response()->json([
+            'status' => 'connected',
+            'rifas_count' => $count,
+            'orders_count' => $ordersCount,
+            'db_name' => config('database.connections.mysql.database'),
+            'db_user' => config('database.connections.mysql.username'),
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+});
+
 // Route::get('/reset-admin-pwd', function () { ... });
 // Route::get('/debug-payments', function () { ... });
 // Route::get('/recovery-payments', function () { ... });
