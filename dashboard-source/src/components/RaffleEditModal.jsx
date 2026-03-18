@@ -17,7 +17,7 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
     cota: { 
       qntd_cota: 1000, 
       qntd_cota_min_order: 1, 
-      qntd_cota_max_order: 100,
+      qntd_cota_max_order: 1000,
       qntd_cota_max_client: 1000 
     },
     rifa_payment: { 
@@ -48,7 +48,7 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
         cota: {
           qntd_cota: raffle.cota?.qntd_cota || 1000,
           qntd_cota_min_order: raffle.cota?.qntd_cota_min_order || 1,
-          qntd_cota_max_order: raffle.cota?.qntd_cota_max_order || 100,
+          qntd_cota_max_order: raffle.cota?.qntd_cota_max_order || 1000,
           qntd_cota_max_client: raffle.cota?.qntd_cota_max_client || 1000,
         },
         rifa_payment: {
@@ -71,7 +71,7 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
         show_top: 'sim',
         show_site: 1,
         img: '',
-        cota: { qntd_cota: 1000, qntd_cota_min_order: 1, qntd_cota_max_order: 100, qntd_cota_max_client: 1000 },
+        cota: { qntd_cota: 1000, qntd_cota_min_order: 1, qntd_cota_max_order: 1000, qntd_cota_max_client: 1000 },
         rifa_payment: { gateway: 'cyber', time_pay: 15 }
       });
     }
@@ -86,9 +86,10 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
           ...prev,
           [parent]: { ...prev[parent], [child]: value }
         };
-        // Auto-sync max_client with total quotas
+        // Auto-sync max_client and max_order with total quotas
         if (name === 'cota.qntd_cota') {
           newState.cota.qntd_cota_max_client = value;
+          newState.cota.qntd_cota_max_order = value;
         }
         return newState;
       });
@@ -299,6 +300,7 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
             <input type="hidden" name="emphasis" value={formData.emphasis} />
             <input type="hidden" name="show_top" value={formData.show_top} />
             <input type="hidden" name="cota.qntd_cota_max_client" value={formData.cota.qntd_cota_max_client} />
+            <input type="hidden" name="cota.qntd_cota_max_order" value={formData.cota.qntd_cota_max_order} />
             <input type="hidden" name="description_sortition" value={formData.description_sortition} />
             <input type="hidden" name="description_product" value={formData.description_product} />
             <input type="hidden" name="description_role" value={formData.description_role} />
