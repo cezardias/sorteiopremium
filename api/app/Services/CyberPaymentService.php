@@ -42,7 +42,6 @@ class CyberPaymentService
                 'customerEmail' => $data['customerEmail'],
                 'customerPhone' => $this->formatPhone($data['customerPhone']),
                 'customerDocument' => $this->cleanDocument($data['customerDocument']),
-                'customerDocumentType' => 'cpf', // Always CPF as per request
                 'description' => preg_replace('/[^a-zA-Z0-9 ]/', '', $this->sanitizeString($data['description'] ?? 'Compra de Rifas')),
                 'metadata' => $data['metadata'] ?? [],
             ];
