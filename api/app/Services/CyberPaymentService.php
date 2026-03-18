@@ -37,12 +37,12 @@ class CyberPaymentService
         try {
             $payload = [
                 'amount' => (float) $data['amount'],
-                'customerName' => $data['customerName'],
+                'customerName' => $this->sanitizeString($data['customerName']),
                 'customerEmail' => $data['customerEmail'],
                 'customerPhone' => $this->formatPhone($data['customerPhone']),
                 'customerDocument' => $this->cleanDocument($data['customerDocument']),
                 'customerDocumentType' => 'cpf', // Always CPF as per request
-                'description' => $data['description'] ?? 'Compra de Rifas',
+                'description' => $this->sanitizeString($data['description'] ?? 'Compra de Rifas'),
                 'metadata' => $data['metadata'] ?? [],
             ];
             
@@ -100,5 +100,26 @@ class CyberPaymentService
     private function cleanDocument($document)
     {
         return preg_replace('/\D/', '', $document);
+    }
+
+    private function sanitizeString($string)
+    {
+        $utf8 = [
+            '/[áàâãä]/u' => 'a',
+            '/[ÁÀÂÃÄ]/u' => 'A',
+            '/[éèêë]/u'  => 'e',
+            '/[ÉÈÊË]/u'  => 'E',
+            '/[íìîï]/u'  => 'i',
+            '/[ÍÌÎÏ]/u'  => 'I',
+            '/[óòôõö]/u' => 'o',
+            '/[ÓÒÔÕÖ]/u' => 'O',
+            '/[úùûü]/u'  => 'u',
+            '/[ÚÙÛÜ]/u'  => 'U',
+            '/[ç]/u'      => 'c',
+            '/[Ç]/u'      => 'C',
+            '/[ñ]/u'      => 'n',
+            '/[Ñ]/u'      => 'N',
+        ];
+        return preg_replace(array_keys($utf8), array_values($utf8), $string);
     }
 }
