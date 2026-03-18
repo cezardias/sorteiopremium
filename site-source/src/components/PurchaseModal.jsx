@@ -50,7 +50,7 @@ const PurchaseModal = ({ isOpen, onClose, raffleId }) => {
 
   const handleBuy = async () => {
     const token = localStorage.getItem('client_token');
-    const clientInfo = JSON.parse(localStorage.getItem('client_info') || '{}');
+    const clientInfo = JSON.parse(localStorage.getItem('client_user') || '{}');
 
     if (!token || !clientInfo.id) {
       toast.error('Você precisa estar logado para comprar');
