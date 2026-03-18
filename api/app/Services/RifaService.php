@@ -9,12 +9,23 @@ use Illuminate\Support\Str;
 use Auth;
 use App\Models\V1\{Cotas, Rifas, RifasOthers, RifasAwarded, RifasPayment, RifaNumber, Clients, RifaPay, AwardedQuota, RifaImage};
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class RifaService
 {
-    public function createRifas($datas)
+    public function createRifas($datas, $rifasId = null)
     {
-        $rifasId = $datas->id ?? null;
+        // Garante que a coluna img existe (correção temporária via código pois migrações estão bloqueadas)
+        try {
+            DB::statement("ALTER TABLE rifas ADD COLUMN IF NOT EXISTS img VARCHAR(255) NULL AFTER user_id");
+        } catch (\Exception $e) {
+            // Silenciosamente ignora se falhar (ex: MySQL versão antiga sem suporte a IF NOT EXISTS)
+            try {
+                DB::statement("ALTER TABLE rifas ADD img VARCHAR(255) NULL AFTER user_id");
+            } catch (\Exception $e2) {}
+        }
+
+        $rifasId = $datas->id ?? $rifasId; // Use $rifasId from parameter if $datas->id is null
         $datas->user_id = Auth::user()->id ?? null;
 
         $img = $datas->img ?? null;
