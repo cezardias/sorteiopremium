@@ -18,7 +18,7 @@ class RifaService
         $datas->user_id = Auth::user()->id ?? null;
 
         $img = $datas->img ?? null;
-        if ($img && str_starts_with($img, 'data:image')) {
+        if ($img && substr($img, 0, 10) === 'data:image') {
             try {
                 $resp = $this->saveImage($img, $rifasId);
                 $img = $resp['imgName'];

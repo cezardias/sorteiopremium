@@ -101,7 +101,8 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
       }
     } catch (err) {
       console.error('Save raffle error:', err);
-      setError('Falha ao salvar dados. Verifique a conexão.');
+      const serverMsg = err.response?.data?.msg || err.response?.data?.message || err.message;
+      setError(serverMsg ? `Erro: ${serverMsg}` : 'Falha ao salvar dados. Verifique a conexão.');
     } finally {
       setLoading(false);
     }
