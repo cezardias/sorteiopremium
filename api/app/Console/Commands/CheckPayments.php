@@ -39,17 +39,22 @@ class CheckPayments extends Command
             $response = $this->cyberPaymentService->checkStatus($payment->pix_id);
 
             if ($response && isset($response['success']) && $response['success']) {
-                $status = $response['status'] ?? ($response['data']['status'] ?? null); // Handle different possible response structures
+                $status = $response['status'] ?? ($response['data']['status'] ?? null);
+                // Unified status check (handling both int and string from API)
+                $isApproved = ($status == 1 || $status === 'APPROVED');
+                $isPending = ($status == 0 || $status === 'PENDING' || $status === 'WAITING' || $status === 'OPEN');
 
-                if ($status == 1) {
+                if ($isApproved) {
                     $payment->update(['status' => 1]);
                     $clientName = $payment->client ? $payment->client->name : 'Cliente não encontrado';
                     $this->info("O pagamento de {$clientName} com o ID {$payment->id} foi aprovado.");
-                } elseif ($status == 0) {
-                    $this->info("O pagamento de {$payment->id} ainda está pendente.");
+                } elseif ($isPending) {
+                    $this->info("O pagamento de {$payment->id} ainda está pendente (Status: {$status}).");
                 } else {
+                    // Only mark as canceled if it's explicitly not pending/approved
+                    // Add logic here if you want a specific "EXPIRED" check
                     $payment->update(['status' => 2]);
-                    $this->info("O pagamento de {$payment->id} expirou ou foi cancelado.");
+                    $this->info("O pagamento de {$payment->id} expirou ou foi cancelado (Status: {$status}).");
                 }
             } else {
                 $this->error("Erro ao verificar pagamento ID: {$payment->id}");
