@@ -253,6 +253,7 @@ Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V
 
 Route::post('client/update-profile', 'App\Http\Controllers\V1\ClientController@updateProfile');
 Route::get('client/pedidos', 'App\Http\Controllers\V1\ClientController@getNumbers');
+Route::get('client/pedido/{id}', 'App\Http\Controllers\V1\ClientController@getOrderDetail');
 Route::post("/get-numbers", 'App\Http\Controllers\V1\ClientController@getNumbers');
 Route::get("/config", "App\Http\Controllers\V1\SiteConfigController@getUserSiteConfig");
 Route::post("/pix", [\App\Http\Controllers\V1\CyberPaymentController::class, "buyRifa"]);

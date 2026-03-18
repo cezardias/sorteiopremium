@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { FileText, Search, CreditCard, ChevronRight, CheckCircle2, XCircle, Clock, Eye } from 'lucide-react';
 import { motion } from 'framer-motion';
 import api from '../api/api';
+import OrderDetailModal from '../components/OrderDetailModal';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -140,7 +143,13 @@ const Orders = () => {
                         </div>
                       </td>
                       <td className="px-8 py-6 text-right">
-                        <button className="p-3 bg-blue-500/10 text-blue-500 border border-blue-500/20 rounded-xl hover:bg-blue-500 hover:text-white transition-all transform hover:scale-110 active:scale-95 group/btn">
+                        <button 
+                          onClick={() => {
+                            setSelectedOrderId(order.id);
+                            setIsModalOpen(true);
+                          }}
+                          className="p-3 bg-blue-500/10 text-blue-500 border border-blue-500/20 rounded-xl hover:bg-blue-500 hover:text-white transition-all transform hover:scale-110 active:scale-95 group/btn"
+                        >
                           <Eye size={18} className="group-hover/btn:rotate-12 transition-transform" />
                         </button>
                       </td>
@@ -159,6 +168,12 @@ const Orders = () => {
           </table>
         </div>
       </div>
+
+      <OrderDetailModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        orderId={selectedOrderId} 
+      />
     </div>
   );
 };

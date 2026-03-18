@@ -8,7 +8,7 @@ use \Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ItemNotFoundException;
 
-use App\Models\V1\{Clients, RifaPay, Rifas};
+use App\Models\V1\{Clients, RifaPay, Rifas, RifaNumber};
 
 
 class ClientController extends Controller
@@ -42,13 +42,65 @@ class ClientController extends Controller
                     'total_amount' => number_format($order->value, 2, ',', '.'),
                     'tickets_count' => $order->qntd_number,
                     'numbers_quant' => $order->qntd_number,
-                    'numbers' => $order->rifaNumber->numbers ?? ''
+                    'numbers' => $order->rifaNumber->numbers ?? '',
+                    'qr_code' => $order->qr_code,
+                    'qr_code_base64' => $order->qr_code_base64,
                 ];
             });
 
             return response()->json(["success" => true, "data" => ["orders" => $info, "client" => $client]], 200);
         } catch (ItemNotFoundException $e) {
             return response()->json(["success" => false, "msg" => $e->getMessage()], 404);
+        } catch (Exception $e) {
+            return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get detailed order info with real-time status sync for Cyber
+     */
+    public function getOrderDetail(Request $request, $id)
+    {
+        try {
+            $order = RifaPay::with(['rifa.rifaImage', 'rifaNumber', 'client'])->findOrFail($id);
+            
+            // Real-time sync if pending
+            if ($order->status == 0 && !empty($order->pix_id)) {
+                $cyberService = app(\App\Services\CyberPaymentService::class);
+                $response = $cyberService->checkStatus($order->pix_id);
+                
+                if ($response && isset($response['success']) && $response['success']) {
+                    $remoteStatus = $response['status'] ?? ($response['data']['status'] ?? null);
+                    
+                    if ($remoteStatus == 1 || $remoteStatus === 'APPROVED') {
+                        $order->update(['status' => 1]);
+                        // Approval logic duplicated from command for robustness
+                        RifaNumber::where('pay_id', $order->id)->update(['status' => 1]);
+                        \App\Services\RewardPassService::grantFromApprovedPayment($order);
+                    } elseif ($remoteStatus !== 0 && $remoteStatus !== 'PENDING' && $remoteStatus !== 'WAITING' && $remoteStatus !== 'OPEN') {
+                        // Mark as expired/canceled if not pending/approved
+                        $order->update(['status' => 2]);
+                        RifaNumber::where('pay_id', $order->id)->update(['status' => 2, 'numbers' => null]);
+                    }
+                    $order->refresh();
+                }
+            }
+
+            $data = [
+                'id' => $order->id,
+                'status' => $order->status,
+                'status_label' => $order->status == 1 ? 'pago' : ($order->status == 2 ? 'cancelado' : 'pendente'),
+                'total_amount' => number_format($order->value, 2, ',', '.'),
+                'qntd_number' => $order->qntd_number,
+                'created_at' => $order->created_at->format('d/m/Y H:i'),
+                'product_name' => $order->rifa->title ?? 'Produto Premium',
+                'numbers' => $order->rifaNumber->numbers ?? '[]',
+                'qr_code' => $order->qr_code,
+                'qr_code_base64' => $order->qr_code_base64,
+                'pix_id' => $order->pix_id
+            ];
+
+            return response()->json(["success" => true, "data" => $data], 200);
         } catch (Exception $e) {
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
