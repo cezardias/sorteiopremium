@@ -359,6 +359,34 @@ class AdminController extends Controller
 
 
 
+    public function getStats()
+    {
+        try {
+            $totalOrders = RifaPay::count();
+            $totalClients = Clients::count();
+            $activeRaffles = Rifas::where('status', 'ativas')->count();
+            $totalRevenue = RifaPay::where('status', 1)->sum('value');
+            
+            $latestOrders = RifaPay::with(['client', 'rifa'])
+                ->latest()
+                ->limit(5)
+                ->get();
+
+            return response()->json([
+                "success" => true,
+                "data" => [
+                    "totalOrders" => $totalOrders,
+                    "totalClients" => $totalClients,
+                    "activeRaffles" => $activeRaffles,
+                    "totalRevenue" => $totalRevenue,
+                    "latestOrders" => $latestOrders
+                ]
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
+        }
+    }
+
     public function getPedidos()
     {
         try {

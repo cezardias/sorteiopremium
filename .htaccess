@@ -17,7 +17,7 @@
   # SPA Routing
   RewriteRule ^index\.html$ - [L]
   
-  RewriteCond %{REQUEST_URI} ^/(api|dash|assets|storage) [NC]
+  RewriteCond %{REQUEST_URI} ^/(api|dash|assets|storage|check_pedidos\.php) [NC]
   RewriteRule ^ - [L]
 
   RewriteCond %{REQUEST_FILENAME} !-f

@@ -91,6 +91,7 @@ Route::group(['prefix' => 'admin', 'namespace' => 'App\Http\Controllers\V1'], fu
     Route::middleware('auth:sanctum')->post("/user/logout", "AdminController@logout")->name('admin.logout.user');
 
     Route::middleware(['auth:sanctum', 'checkAdmin:admin,superadmin'])->group(function () {
+        Route::get("/dashboard/stats", "AdminController@getStats");
         Route::get("/dashboard/todas-rifas", "RifasController@getAllRifasAdmin");
         Route::post("/dashboard/todas-rifas/filtro", "RifasController@getAllRifasAdminFiltro");
         Route::post('/dashboard/cliente/deletar/{id}', 'AdminController@deletarCliente');
