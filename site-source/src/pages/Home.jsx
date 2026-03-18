@@ -3,11 +3,14 @@ import { ShoppingBag, Trophy, MessageCircle, ArrowRight, Zap, Target, Star, Shie
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import api from '../api/api';
+import PurchaseModal from '../components/PurchaseModal';
 
 const Home = () => {
   const [raffles, setRaffles] = useState([]);
   const [winners, setWinners] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedRaffleId, setSelectedRaffleId] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -112,12 +115,16 @@ const Home = () => {
                       <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Bilhete</span>
                       <span className="text-2xl font-black text-primary italic leading-none">R$ {raffle.price || '0,00'}</span>
                     </div>
-                    <Link 
-                      to={`/raffle/${raffle.id}`}
+                    <button 
+                      onClick={() => {
+                        setSelectedRaffleId(raffle.id);
+                        setModalOpen(true);
+                      }}
                       className="bg-primary hover:bg-secondary text-black font-black uppercase px-8 py-3 rounded-xl transition-all shadow-[0_4px_15px_rgba(29,185,84,0.3)]"
                     >
                       Comprar
-                    </Link>
+                    </button>
+
                   </div>
                 </div>
               </div>
@@ -224,6 +231,12 @@ const Home = () => {
           </div>
         ))}
       </section>
+
+      <PurchaseModal 
+        isOpen={modalOpen} 
+        onClose={() => setModalOpen(false)} 
+        raffleId={selectedRaffleId} 
+      />
     </div>
   );
 };

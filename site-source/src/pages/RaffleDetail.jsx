@@ -17,7 +17,7 @@ const RaffleDetail = () => {
   useEffect(() => {
     const fetchDetail = async () => {
       try {
-        const response = await api.get(`/produtos/detalhes/slug/${id}`);
+        const response = await api.get(`/produtos/detalhes/${id}`);
         if (response.data?.success) {
           setRaffle(response.data.data.rifa);
           setRanking(response.data.data.ranking || []);

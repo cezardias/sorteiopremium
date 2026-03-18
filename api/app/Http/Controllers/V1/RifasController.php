@@ -707,6 +707,24 @@ class RifasController extends Controller
             return response()->json(["success" => false, "msg" => $e->getMessage()], $this->serverError);
         }
     }
+
+    public function showSingle($id)
+    {
+        try {
+            $rifaData = Rifas::getOneRifa($id);
+
+            if (!$rifaData) {
+                return response()->json(["success" => false, "msg" => "Rifa não encontrada."], 404);
+            }
+
+            $ranking = RifaNumber::getRankingRifa($id);
+            $data = ['rifa' => $rifaData, 'ranking' => $ranking];
+
+            return response()->json(["success" => true, "data" => $data], 200);
+        } catch (Exception $e) {
+            return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
+        }
+    }
     public function buyRifa(Request $request, $afiliadoId = null)
     {
         try {

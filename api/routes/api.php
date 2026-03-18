@@ -196,6 +196,7 @@ Route::group(['prefix' => 'admin', 'namespace' => 'App\Http\Controllers\V1'], fu
 Route::group(['prefix' => 'produtos', 'namespace' => 'App\Http\Controllers\V1'], function () {
     Route::get("/", "RifasController@allRifas")->name('all.rifas');
     Route::get("/{slug}/{id}/{afiliadoId?}", "RifasController@show")->where(['slug' => '[a-zA-Z0-9\-_]+', 'id' => '[0-9]+'])->name('show.one.rifa');
+    Route::get("/detalhes/{id}", "RifasController@showSingle");
     Route::get("/todos/ganhadores", "RifasController@getAllWinners");
     Route::post('compra-rifas/{id?}', 'CyberPaymentController@buyRifa');
     Route::get('compra-rifas-status/{id}', 'CyberPaymentController@checkStatus');
