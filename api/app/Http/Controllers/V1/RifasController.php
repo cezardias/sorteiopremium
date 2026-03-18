@@ -793,10 +793,11 @@ class RifasController extends Controller
             if ($cota) {
                 $qntdSolicitada = $request->cotas_double == 1 ? $qntdNumber * 2 : $qntdNumber;
 
-                if ($qntdSolicitada > $cota->qntd_cota_max_order) {
+                // Check against total quotas instead of max_order to respect "unlimited" request
+                if ($qntdSolicitada > $cota->qntd_cota) {
                     return response()->json([
                         "success" => false,
-                        "msg" => "Você só pode comprar no máximo {$cota->qntd_cota_max_order} cotas por pedido."
+                        "msg" => "Você só pode comprar no máximo {$cota->qntd_cota} cotas por pedido."
                     ], 422);
                 }
             }
