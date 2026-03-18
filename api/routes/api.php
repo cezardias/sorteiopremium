@@ -4,9 +4,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\V1\RifaPay;
 use App\Models\V1\RifaNumber;
@@ -18,19 +15,6 @@ use App\Models\V1\RifaNumber;
 */
 
 // --- Diagnóstico e Recuperação ---
-
-Route::get('/test-sanity', function () {
-    return "Laravel is alive! [v2]";
-});
-
-Route::get('/db-upgrade', function() {
-    try {
-        DB::statement("ALTER TABLE rifas ADD COLUMN IF NOT EXISTS img VARCHAR(255) NULL AFTER user_id");
-        return "Database upgraded successfully (img column ensured)!";
-    } catch (\Exception $e) {
-        return "Error: " . $e->getMessage();
-    }
-});
 
 Route::get('/test-db', function () {
     try {
