@@ -14,6 +14,7 @@ import ProfileSettings from './pages/ProfileSettings';
 import WhatsAppCampaign from './pages/WhatsAppCampaign';
 import Affiliates from './pages/Affiliates';
 import Login from './pages/Login';
+import api from './api/api';
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('admin_token');
