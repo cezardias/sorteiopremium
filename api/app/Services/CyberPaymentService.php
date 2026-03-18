@@ -37,7 +37,7 @@ class CyberPaymentService
     {
         try {
             $payload = [
-                'amount' => round($data['amount'], 2),
+                'amount' => number_format($data['amount'], 2, '.', ''),
                 'customerName' => $this->sanitizeString($data['customerName']),
                 'customerEmail' => $data['customerEmail'],
                 'customerPhone' => $this->formatPhone($data['customerPhone']),
