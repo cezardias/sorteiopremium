@@ -35,17 +35,21 @@ class CyberPaymentService
     public function createPixTransaction(array $data)
     {
         try {
+            $payload = [
+                'amount' => (float) $data['amount'],
+                'customerName' => $data['customerName'],
+                'customerEmail' => $data['customerEmail'],
+                'customerPhone' => $this->formatPhone($data['customerPhone']),
+                'customerDocument' => $this->cleanDocument($data['customerDocument']),
+                'customerDocumentType' => 'cpf', // Always CPF as per request
+                'description' => $data['description'] ?? 'Compra de Rifas',
+                'metadata' => $data['metadata'] ?? [],
+            ];
+            
+            Log::info('CyberPayment Request Payload: ', $payload);
+
             $response = $this->client->post('payments/transactions', [
-                'json' => [
-                    'amount' => (float) $data['amount'],
-                    'customerName' => $data['customerName'],
-                    'customerEmail' => $data['customerEmail'],
-                    'customerPhone' => $this->formatPhone($data['customerPhone']),
-                    'customerDocument' => $this->cleanDocument($data['customerDocument']),
-                    'customerDocumentType' => 'cpf', // Always CPF as per request
-                    'description' => $data['description'] ?? 'Compra de Rifas',
-                    'metadata' => $data['metadata'] ?? [],
-                ],
+                'json' => $payload,
             ]);
 
             return json_decode($response->getBody()->getContents(), true);
