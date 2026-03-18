@@ -148,7 +148,7 @@ class CyberPaymentController extends Controller
                 RifaNumber::where('pay_id', $rifaPay->id)->delete();
                 return response()->json([
                     "success" => false,
-                    "msg" => "Erro ao gerar pagamento via Cyber Payment API: " . ($payment['message'] ?? 'Erro desconhecido'),
+                    "msg" => "Erro ao gerar pagamento [V2] via Cyber Payment API: " . ($payment['message'] ?? 'Erro desconhecido'),
                     "details" => $payment
                 ], 500);
             }
