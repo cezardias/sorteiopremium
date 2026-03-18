@@ -129,7 +129,8 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
     } catch (err) {
       console.error('Save raffle error:', err);
       const serverMsg = err.response?.data?.msg || err.response?.data?.message || err.message;
-      setError(serverMsg ? `Erro: ${serverMsg}` : 'Falha ao salvar dados. Verifique a conexão.');
+      const detailedError = err.response?.data?.error;
+      setError(`${serverMsg ? `Erro: ${serverMsg}` : 'Falha ao salvar dados.'}${detailedError ? ` (${detailedError})` : ''}`);
     } finally {
       setLoading(false);
     }
@@ -255,6 +256,7 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
               <input 
                 type="number" 
                 name="cota.qntd_cota"
+                max="1000000"
                 value={formData.cota.qntd_cota}
                 onChange={handleChange}
                 className="input-field py-3 font-bold text-blue-500"
