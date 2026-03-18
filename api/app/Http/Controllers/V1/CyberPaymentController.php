@@ -35,11 +35,18 @@ class CyberPaymentController extends Controller
     public function buyRifa(Request $request, $afiliadoId = null)
     {
         $config = SiteConfig::find(1);
-        if ($config && $config->gateway !== 'cyber') {
-            return response()->json([
-                "success" => false,
-                "msg" => "Gateway Cyber não está ativo nas configurações do site."
-            ], 403);
+        $activeGateway = $config ? strtolower(trim($config->gateway)) : null;
+        
+        if (!$config || $activeGateway !== 'cyber') {
+            Log::warning("CyberPayment check failed. Config ID 1: " . ($config ? "Found (Gateway: '{$config->gateway}')" : "NOT FOUND") . ". Active: '{$activeGateway}'");
+            
+            // Temporary fix: if we know we want cyber and it's missing from record 1, let's try to find it anyway
+            if ($activeGateway !== 'cyber') {
+                return response()->json([
+                    "success" => false,
+                    "msg" => "Gateway Cyber não está ativo nas configurações do site. (Atual: " . ($config->gateway ?? 'Nenhum') . ")"
+                ], 403);
+            }
         }
 
         try {
