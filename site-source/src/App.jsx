@@ -69,10 +69,10 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
+            <Route path="raffle/:id" element={<RaffleDetail />} />
             <Route path="produtos" element={<Products />} />
             <Route path="sorteios" element={<Products />} />
             <Route path="ganhadores" element={<Winners />} />
-            <Route path="raffle/:id" element={<RaffleDetail />} />
             <Route path="login" element={<Login />} />
             
             <Route path="perfil" element={
