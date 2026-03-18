@@ -258,6 +258,19 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
               />
             </div>
 
+            {/* Total Quotas */}
+            <div>
+              <label className="block text-xs font-black text-gray-500 uppercase mb-2 tracking-widest">Quantidade Total de Cotas</label>
+              <input 
+                type="number" 
+                name="cota.qntd_cota"
+                value={formData.cota.qntd_cota}
+                onChange={handleChange}
+                className="input-field py-3 font-bold text-blue-500"
+                required
+              />
+            </div>
+
             {/* Date */}
             <div>
               <label className="block text-xs font-black text-gray-500 uppercase mb-2 tracking-widest">Data do Sorteio</label>
