@@ -4,6 +4,7 @@ import { ShoppingBag, Shield, Zap, Target, Star, ChevronLeft, Plus, Minus, Alert
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api/api';
 import toast from 'react-hot-toast';
+import PurchaseModal from '../components/PurchaseModal';
 
 const RaffleDetail = () => {
   const { id } = useParams();
@@ -13,6 +14,7 @@ const RaffleDetail = () => {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [buying, setBuying] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -198,18 +200,11 @@ const RaffleDetail = () => {
               </div>
               
               <button 
-                onClick={handleBuy}
-                disabled={buying}
-                className="w-full bg-primary hover:bg-secondary text-black font-black uppercase py-6 rounded-2xl transition-all shadow-[0_10px_30px_rgba(29,185,84,0.3)] flex items-center justify-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => setModalOpen(true)}
+                className="w-full bg-primary hover:bg-secondary text-black font-black uppercase py-6 rounded-2xl transition-all shadow-[0_10px_30px_rgba(29,185,84,0.3)] flex items-center justify-center gap-3 group"
               >
-                {buying ? (
-                  <Loader2 className="w-6 h-6 animate-spin" />
-                ) : (
-                  <>
-                    <ShoppingBag size={24} />
-                    <span>Comprar Agora</span>
-                  </>
-                )}
+                  <ShoppingBag size={24} />
+                  <span>Comprar Agora</span>
               </button>
             </div>
           </div>
@@ -254,6 +249,11 @@ const RaffleDetail = () => {
               </div>
           </section>
       )}
+      <PurchaseModal 
+        isOpen={modalOpen} 
+        onClose={() => setModalOpen(false)} 
+        raffleId={raffle.id} 
+      />
     </div>
   );
 };
