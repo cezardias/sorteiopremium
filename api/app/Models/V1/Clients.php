@@ -55,11 +55,24 @@ class Clients extends Authenticatable implements JWTSubject
     public static function findClient($cellphone)
     {
         $normalized = self::normalizeCellphone($cellphone);
-        // Tenta buscar o exato, se não encontrar, tenta buscar apenas os dígitos
+        
+        // 1. Tenta buscar o exato
         $client = self::where('cellphone', $cellphone)->first();
-        if (!$client) {
-            $client = self::whereRaw("REGEXP_REPLACE(cellphone, '[^0-9]', '') = ?", [$normalized])->first();
+        if ($client) return $client;
+
+        // 2. Tenta buscar apenas os dígitos
+        $client = self::whereRaw("REGEXP_REPLACE(cellphone, '[^0-9]', '') = ?", [$normalized])->first();
+        if ($client) return $client;
+
+        // 3. Tenta lidar com o prefixo 55
+        if (substr($normalized, 0, 2) === '55') {
+            $without55 = substr($normalized, 2);
+            $client = self::whereRaw("REGEXP_REPLACE(cellphone, '[^0-9]', '') = ?", [$without55])->first();
+        } else {
+            $with55 = '55' . $normalized;
+            $client = self::whereRaw("REGEXP_REPLACE(cellphone, '[^0-9]', '') = ?", [$with55])->first();
         }
+        
         return $client;
     }
     public static function findClientById($id)

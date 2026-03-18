@@ -54,7 +54,7 @@ class AuthController extends Controller
     {
         $credentials = $request->only('cellphone');
 
-        $client = Clients::where('cellphone', $credentials['cellphone'])->first();
+        $client = Clients::findClient($credentials['cellphone']);
 
         if (!$client) {
             return response()->json(['error' => 'invalid_credentials'], 400);
