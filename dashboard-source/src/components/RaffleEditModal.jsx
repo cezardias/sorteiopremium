@@ -290,18 +290,8 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
               </select>
             </div>
 
-            {/* Time Pay */}
-            <div>
-              <label className="block text-xs font-black text-gray-500 uppercase mb-2 tracking-widest">Tempo Expiração Pix (Minutos)</label>
-              <input 
-                type="number" 
-                name="rifa_payment.time_pay"
-                value={formData.rifa_payment.time_pay}
-                onChange={handleChange}
-                className="input-field py-3 font-bold text-orange-500"
-                required
-              />
-            </div>
+            {/* Pix default values hidden */}
+            <input type="hidden" name="rifa_payment.time_pay" value={formData.rifa_payment.time_pay} />
 
             {/* Hidden fields for required data that user doesn't need to see/edit manually based on new simplified requirements */}
             <input type="hidden" name="emphasis" value={formData.emphasis} />
