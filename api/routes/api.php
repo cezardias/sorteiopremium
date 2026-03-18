@@ -23,18 +23,21 @@ Route::get('/test-sanity', function () {
 
 Route::get('/test-db', function () {
     try {
-        $tables = \DB::select('SHOW TABLES');
         $dbName = config('database.connections.mysql.database');
-        $tablesList = array_map(function($table) use ($dbName) {
-            $key = "Tables_in_" . $dbName;
-            return $table->$key ?? json_encode($table);
-        }, $tables);
+        
+        $counts = [
+            'rifas' => \DB::table('rifas')->count(),
+            'rifa_pays' => \DB::table('rifa_pays')->count(),
+            'clients' => \DB::table('clients')->count(),
+            'rifa_numbers' => \DB::table('rifa_numbers')->count(),
+            'users' => \DB::table('users')->count(),
+        ];
 
         return response()->json([
             'status' => 'connected',
             'db_name' => $dbName,
-            'tables' => $tablesList,
-            'rifas_count' => in_array('rifas', $tablesList) ? \DB::table('rifas')->count() : 'table missing',
+            'counts' => $counts,
+            'latest_order' => \DB::table('rifa_pays')->latest()->first(),
         ]);
     } catch (\Exception $e) {
         return response()->json([
