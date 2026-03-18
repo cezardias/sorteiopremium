@@ -7,14 +7,26 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
     id: '',
     title: '',
     price: 0,
-    status: '',
+    status: 'ativas',
     data_sortition: '',
+    description_resume: '',
+    description_sortition: '',
+    description_product: '',
+    description_role: '',
     emphasis: 'nao',
+    show_top: 'nao',
     show_site: 1,
     img: '',
-    // Add sub-objects to match RifaService.php expectations
-    cota: { qntd_cota: 0, qntd_cota_min_order: 1, qntd_cota_max_order: 100 },
-    rifa_payment: { gateway: 'cyber' }
+    cota: { 
+      qntd_cota: 1000, 
+      qntd_cota_min_order: 1, 
+      qntd_cota_max_order: 100,
+      qntd_cota_max_client: 1000 
+    },
+    rifa_payment: { 
+      gateway: 'cyber',
+      time_pay: 15
+    }
   });
   
   const [loading, setLoading] = useState(false);
@@ -28,16 +40,23 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
         price: raffle.price || 0,
         status: raffle.status || 'ativas',
         data_sortition: raffle.data_sortition ? raffle.data_sortition.substring(0, 16) : '',
+        description_resume: raffle.description_resume || '',
+        description_sortition: raffle.description_sortition || '',
+        description_product: raffle.description_product || '',
+        description_role: raffle.description_role || '',
         emphasis: raffle.emphasis || 'nao',
+        show_top: raffle.show_top || 'nao',
         show_site: raffle.show_site ?? 1,
         img: raffle.img || '',
         cota: {
-          qntd_cota: raffle.cota?.qntd_cota || 0,
+          qntd_cota: raffle.cota?.qntd_cota || 1000,
           qntd_cota_min_order: raffle.cota?.qntd_cota_min_order || 1,
           qntd_cota_max_order: raffle.cota?.qntd_cota_max_order || 100,
+          qntd_cota_max_client: raffle.cota?.qntd_cota_max_client || 1000,
         },
         rifa_payment: {
-          gateway: raffle.rifa_payment?.gateway || 'cyber'
+          gateway: raffle.rifa_payment?.gateway || 'cyber',
+          time_pay: raffle.rifa_payment?.time_pay || 15
         }
       });
     } else {
@@ -48,11 +67,15 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
         status: 'ativas',
         data_sortition: '',
         description_resume: '',
+        description_sortition: 'Regras do sorteio padrão.',
+        description_product: 'Produto do sorteio.',
+        description_role: 'Regras de participação.',
         emphasis: 'nao',
+        show_top: 'nao',
         show_site: 1,
         img: '',
-        cota: { qntd_cota: 0, qntd_cota_min_order: 1, qntd_cota_max_order: 100 },
-        rifa_payment: { gateway: 'cyber' }
+        cota: { qntd_cota: 1000, qntd_cota_min_order: 1, qntd_cota_max_order: 100, qntd_cota_max_client: 1000 },
+        rifa_payment: { gateway: 'cyber', time_pay: 15 }
       });
     }
   }, [raffle]);
@@ -195,6 +218,19 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
               </div>
             </div>
 
+            {/* Description Resume */}
+            <div className="md:col-span-2">
+              <label className="block text-xs font-black text-gray-500 uppercase mb-2 tracking-widest">Resumo da Descrição (Obrigatório)</label>
+              <textarea 
+                name="description_resume"
+                value={formData.description_resume}
+                onChange={handleChange}
+                className="input-field py-3 font-medium min-h-[100px]"
+                placeholder="Breve resumo para o card do sorteio..."
+                required
+              />
+            </div>
+
             {/* Price */}
             <div>
               <label className="block text-xs font-black text-gray-500 uppercase mb-2 tracking-widest">Valor da Cota (R$)</label>
@@ -205,6 +241,19 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
                 value={formData.price}
                 onChange={handleChange}
                 className="input-field py-3 font-bold text-green-500"
+                required
+              />
+            </div>
+
+            {/* Total Quotas */}
+            <div>
+              <label className="block text-xs font-black text-gray-500 uppercase mb-2 tracking-widest">Quantidade Total de Cotas</label>
+              <input 
+                type="number" 
+                name="cota.qntd_cota"
+                value={formData.cota.qntd_cota}
+                onChange={handleChange}
+                className="input-field py-3 font-bold text-blue-500"
                 required
               />
             </div>
@@ -250,6 +299,38 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
                 <option value="nao">Não</option>
               </select>
             </div>
+
+            {/* Show Top */}
+            <div>
+              <label className="block text-xs font-black text-gray-500 uppercase mb-2 tracking-widest">Mostrar no Topo</label>
+              <select 
+                name="show_top"
+                value={formData.show_top}
+                onChange={handleChange}
+                className="input-field py-3 font-bold"
+              >
+                <option value="sim">Sim</option>
+                <option value="nao">Não</option>
+              </select>
+            </div>
+
+            {/* Time Pay */}
+            <div>
+              <label className="block text-xs font-black text-gray-500 uppercase mb-2 tracking-widest">Tempo Expiração Pix (Minutos)</label>
+              <input 
+                type="number" 
+                name="rifa_payment.time_pay"
+                value={formData.rifa_payment.time_pay}
+                onChange={handleChange}
+                className="input-field py-3 font-bold text-orange-500"
+                required
+              />
+            </div>
+
+            {/* Dummy hidden fields for other required descriptions if not visible yet */}
+            <input type="hidden" name="description_sortition" value={formData.description_sortition} />
+            <input type="hidden" name="description_product" value={formData.description_product} />
+            <input type="hidden" name="description_role" value={formData.description_role} />
           </div>
 
           <div className="mt-8 pt-6 border-t border-[#2a2d3e] flex justify-end gap-4">
