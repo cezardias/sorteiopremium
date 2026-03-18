@@ -331,8 +331,10 @@ class RifaService
 
     public function isBuy($date) {
         $rifa = Rifas::findRifa($date->rifas_id);
-        $totalNumber = RifaPay::getAllCompraActiveClientByRifa($date->rifas_id, $date->client_id)->sum('qntd_number') ;
-        $rifaQntdByClient = $rifa->cota->qntd_cota_max_client;
+        $totalNumber = RifaPay::getAllCompraActiveClientByRifa($date->rifas_id, $date->client_id)->sum('qntd_number');
+        
+        // Use total raffle quotas to respect the "unlimited" request
+        $rifaQntdByClient = $rifa->cota->qntd_cota;
 
         $buyClientLimit = $rifaQntdByClient - $totalNumber;
         if($buyClientLimit < 0) {
