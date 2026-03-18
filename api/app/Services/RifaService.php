@@ -27,7 +27,28 @@ class RifaService
             }
         }
 
-        $rifaResult = Rifas::rifaCreateOrUpdate($datas->title ?? '', Str::slug($datas->title ?? ''), $datas->description_resume ?? '', $datas->show_site ?? 1, $datas->emphasis ?? '', $datas->show_top ?? '', $datas->video ?? '', $this->status($datas->status, $datas->initial_sale), $datas->price ?? 0, $datas->description_sortition ?? '', $datas->description_product ?? '', $datas->description_role ?? '', $datas->description_order_approve ?? '', $datas->data_sortition ?? null, $datas->initial_sale ?? null, $datas->end_sale ?? null,  $datas->end_rifa ?? null, $datas->user_id ?? null, $rifasId, $img );
+        $rifaResult = Rifas::rifaCreateOrUpdate(
+            $datas->title ?? '',
+            Str::slug($datas->title ?? ''),
+            $datas->description_resume ?? '',
+            'sim',
+            'sim',
+            'sim',
+            $datas->video ?? '',
+            $this->status($datas->status ?? 'ativas', $datas->initial_sale),
+            $datas->price ?? 0,
+            $datas->description_sortition ?? 'Regras do sorteio padrão.',
+            $datas->description_product ?? 'Produto do sorteio.',
+            $datas->description_role ?? 'Regras de participação.',
+            $datas->description_order_approve ?? 'Pedido aprovado com sucesso!',
+            $datas->data_sortition ?? null,
+            $datas->initial_sale ?? now(),
+            $datas->end_sale ?? null,
+            $datas->end_rifa ?? null,
+            $datas->user_id ?? null,
+            $rifasId,
+            $img
+        );
 
         if (!$rifaResult && !$rifasId) {
             return false;
