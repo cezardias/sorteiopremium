@@ -11,7 +11,7 @@ class CyberPaymentService
 {
     protected $client;
     protected $apiKey;
-    protected $baseUrl = 'https://api.escalecyber.com/v1';
+    protected $baseUrl = 'https://api.escalecyber.com/api/v1/';
 
     public function __construct()
     {
@@ -35,7 +35,7 @@ class CyberPaymentService
     public function createPixTransaction(array $data)
     {
         try {
-            $response = $this->client->post('/payments/transactions', [
+            $response = $this->client->post('payments/transactions', [
                 'json' => [
                     'amount' => (float) $data['amount'],
                     'customerName' => $data['customerName'],
@@ -75,7 +75,7 @@ class CyberPaymentService
     public function getTransactionStatus($transactionId)
     {
         try {
-            $response = $this->client->get("/payments/transactions/{$transactionId}");
+            $response = $this->client->get("payments/transactions/{$transactionId}");
             return json_decode($response->getBody()->getContents(), true);
         } catch (GuzzleException $e) {
             Log::error('CyberPayment Status Error: ' . $e->getMessage());
