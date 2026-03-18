@@ -96,7 +96,7 @@ class Rifas extends Model
         return $this->hasMany(DiscountPackage::class);
     }
 
-    public static function rifaCreateOrUpdate($title, $slug, $description_resume, $show_site, $emphasis, $show_top, $video, $status, $price, $description_sortition, $description_product, $description_role, $description_order_approve, $data_sortition, $initial_sale, $end_sale, $end_rifa, $user_id, $rifa_id)
+    public static function rifaCreateOrUpdate($title, $slug, $description_resume, $show_site, $emphasis, $show_top, $video, $status, $price, $description_sortition, $description_product, $description_role, $description_order_approve, $data_sortition, $initial_sale, $end_sale, $end_rifa, $user_id, $rifa_id, $img = null)
     {
         $rifaService = new FuncaoService();
         $price = $rifaService->convertToDecimal($price);
@@ -121,6 +121,7 @@ class Rifas extends Model
                 'end_sale' => $end_sale,
                 'end_rifa' => $end_rifa,
                 'user_id' => $user_id,
+                'img' => $img,
             ]
         );
         $is_created = $result->wasRecentlyCreated || $result->wasChanged();

@@ -9,9 +9,9 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
     price: 0,
     status: '',
     data_sortition: '',
-    description_resume: '',
     emphasis: 'nao',
     show_site: 1,
+    img: '',
     // Add sub-objects to match RifaService.php expectations
     cota: { qntd_cota: 0, qntd_cota_min_order: 1, qntd_cota_max_order: 100 },
     rifa_payment: { gateway: 'cyber' }
@@ -28,9 +28,9 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
         price: raffle.price || 0,
         status: raffle.status || 'ativas',
         data_sortition: raffle.data_sortition ? raffle.data_sortition.substring(0, 16) : '',
-        description_resume: raffle.description_resume || '',
         emphasis: raffle.emphasis || 'nao',
         show_site: raffle.show_site ?? 1,
+        img: raffle.img || '',
         cota: {
           qntd_cota: raffle.cota?.qntd_cota || 0,
           qntd_cota_min_order: raffle.cota?.qntd_cota_min_order || 1,
@@ -50,6 +50,7 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
         description_resume: '',
         emphasis: 'nao',
         show_site: 1,
+        img: '',
         cota: { qntd_cota: 0, qntd_cota_min_order: 1, qntd_cota_max_order: 100 },
         rifa_payment: { gateway: 'cyber' }
       });
@@ -66,6 +67,17 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
       }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, img: reader.result }));
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -137,6 +149,49 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
                 className="input-field py-3 font-bold"
                 required
               />
+            </div>
+
+            {/* Image Upload */}
+            <div className="md:col-span-2">
+              <label className="block text-xs font-black text-gray-500 uppercase mb-3 tracking-widest">Imagem do Sorteio</label>
+              <div className="flex gap-6 items-start">
+                <div className="w-32 h-32 rounded-2xl bg-[#1c1f2e] border-2 border-dashed border-[#2a2d3e] flex items-center justify-center overflow-hidden group relative">
+                  {formData.img ? (
+                    <>
+                      <img 
+                        src={formData.img.startsWith('data:') ? formData.img : `https://sorteiospremiummultimarcas.com.br/api/public/img/rifas/${formData.img}`} 
+                        alt="Preview" 
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="text-[10px] font-bold text-white uppercase tracking-wider">Trocar</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-gray-600 text-[10px] font-bold uppercase text-center p-2">Sem Imagem</div>
+                  )}
+                  <input 
+                    type="file" 
+                    onChange={handleFileChange}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                    accept="image/*"
+                  />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[10px] text-gray-400 font-medium leading-relaxed">
+                    Clique na área ao lado para fazer upload da imagem principal do sorteio.<br/>
+                    Formatos aceitos: <span className="text-green-500">JPG, PNG</span>.<br/>
+                    Tamanho recomendado: <span className="text-green-500">800x800px</span>.
+                  </p>
+                  <button 
+                    type="button"
+                    onClick={() => document.querySelector('input[type="file"]').click()}
+                    className="mt-4 px-4 py-2 bg-[#2a2d3e] hover:bg-[#32364a] text-white text-[10px] font-black uppercase tracking-widest rounded-lg transition-all"
+                  >
+                    Selecionar Arquivo
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Price */}

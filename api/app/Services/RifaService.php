@@ -17,7 +17,17 @@ class RifaService
         $rifasId = $datas->id ?? null;
         $datas->user_id = Auth::user()->id ?? null;
 
-        $rifaResult = Rifas::rifaCreateOrUpdate($datas->title ?? '', Str::slug($datas->title ?? ''), $datas->description_resume ?? '', $datas->show_site ?? 1, $datas->emphasis ?? '', $datas->show_top ?? '', $datas->video ?? '', $this->status($datas->status, $datas->initial_sale), $datas->price ?? 0, $datas->description_sortition ?? '', $datas->description_product ?? '', $datas->description_role ?? '', $datas->description_order_approve ?? '', $datas->data_sortition ?? null, $datas->initial_sale ?? null, $datas->end_sale ?? null,  $datas->end_rifa ?? null, $datas->user_id ?? null, $rifasId );
+        $img = $datas->img ?? null;
+        if ($img && str_starts_with($img, 'data:image')) {
+            try {
+                $resp = $this->saveImage($img, $rifasId);
+                $img = $resp['imgName'];
+            } catch (\Exception $e) {
+                // Keep original or null if save fails
+            }
+        }
+
+        $rifaResult = Rifas::rifaCreateOrUpdate($datas->title ?? '', Str::slug($datas->title ?? ''), $datas->description_resume ?? '', $datas->show_site ?? 1, $datas->emphasis ?? '', $datas->show_top ?? '', $datas->video ?? '', $this->status($datas->status, $datas->initial_sale), $datas->price ?? 0, $datas->description_sortition ?? '', $datas->description_product ?? '', $datas->description_role ?? '', $datas->description_order_approve ?? '', $datas->data_sortition ?? null, $datas->initial_sale ?? null, $datas->end_sale ?? null,  $datas->end_rifa ?? null, $datas->user_id ?? null, $rifasId, $img );
 
         if (!$rifaResult && !$rifasId) {
             return false;
