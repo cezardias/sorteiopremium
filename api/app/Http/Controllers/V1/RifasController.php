@@ -797,7 +797,7 @@ class RifasController extends Controller
                 if ($qntdSolicitada > $cota->qntd_cota) {
                     return response()->json([
                         "success" => false,
-                        "msg" => "Você só pode comprar no máximo {$cota->qntd_cota} cotas por pedido."
+                        "msg" => "[DEBUG-B] Você só pode comprar no máximo {$cota->qntd_cota} cotas por pedido."
                     ], 422);
                 }
             }
