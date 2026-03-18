@@ -253,6 +253,8 @@ const RaffleDetail = () => {
         isOpen={modalOpen} 
         onClose={() => setModalOpen(false)} 
         raffleId={raffle.id} 
+        initialQuantity={quantity}
+        startStep="payment"
       />
     </div>
   );

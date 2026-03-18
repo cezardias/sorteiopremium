@@ -4,7 +4,7 @@ import { ShoppingBag, X, Minus, Plus, Loader2, QrCode, Copy, CheckCircle2, Chevr
 import api from '../api/api';
 import toast from 'react-hot-toast';
 
-const PurchaseModal = ({ isOpen, onClose, raffleId }) => {
+const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startStep = 'selection' }) => {
   console.log("DEBUG: PurchaseModal Version 2.1 Loaded");
   const [raffle, setRaffle] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,14 +16,24 @@ const PurchaseModal = ({ isOpen, onClose, raffleId }) => {
 
   useEffect(() => {
     if (isOpen && raffleId) {
+      setQuantity(initialQuantity);
+      setStep(startStep);
       fetchRaffle();
     } else {
         // Reset state when closing
         setStep('selection');
         setQuantity(1);
         setPaymentData(null);
+        setStatusPooling(false);
     }
-  }, [isOpen, raffleId]);
+  }, [isOpen, raffleId, initialQuantity, startStep]);
+
+  // Auto-trigger purchase if starting at payment step
+  useEffect(() => {
+    if (isOpen && step === 'payment' && raffle && !paymentData && !buying) {
+      handleBuy();
+    }
+  }, [isOpen, step, raffle, paymentData, buying]);
 
   const fetchRaffle = async () => {
     setLoading(true);
