@@ -105,10 +105,11 @@ class CyberPaymentController extends Controller
 
             // Cota limit check
             $cota = Cotas::where('rifas_id', $request->rifas_id)->first();
-            if ($cota && $qntdNumber > $cota->qntd_cota_max_order) {
+            // Cota limit check - using total quotas to allow "unlimited" per order
+            if ($cota && $qntdNumber > $cota->qntd_cota) {
                 return response()->json([
                     "success" => false,
-                    "msg" => "Você só pode comprar no máximo {$cota->qntd_cota_max_order} cotas por pedido."
+                    "msg" => "[VER-C] Você só pode comprar no máximo {$cota->qntd_cota} cotas por pedido."
                 ], 422);
             }
 
