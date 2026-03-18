@@ -9,7 +9,8 @@ import {
   Phone, 
   Ticket, 
   Camera,
-  Check
+  Check,
+  RefreshCcw
 } from 'lucide-react';
 
 const WinnerModal = ({ isOpen, onClose, onSuccess, raffles }) => {
@@ -46,6 +47,7 @@ const WinnerModal = ({ isOpen, onClose, onSuccess, raffles }) => {
       }
     } catch (error) {
       console.error('Error searching client:', error);
+      toast.error('Cliente não encontrado ou erro na busca.');
       setClient(null);
     } finally {
       setSearching(false);
@@ -208,7 +210,7 @@ const WinnerModal = ({ isOpen, onClose, onSuccess, raffles }) => {
 
           <button 
             type="submit"
-            disabled={loading || !client}
+            disabled={loading || !client || !formData.rifas_id || !formData.ticket || !formData.img}
             className="w-full bg-green-500 hover:bg-green-600 text-black py-4 rounded-2xl font-black text-xs uppercase transition-all shadow-lg shadow-green-500/10 flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {loading ? (
