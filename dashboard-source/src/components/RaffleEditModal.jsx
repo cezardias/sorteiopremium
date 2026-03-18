@@ -9,12 +9,9 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
     price: 0,
     status: 'ativas',
     data_sortition: '',
-    description_resume: '',
-    description_sortition: '',
-    description_product: '',
     description_role: '',
-    emphasis: 'nao',
-    show_top: 'nao',
+    emphasis: 'sim',
+    show_top: 'sim',
     show_site: 1,
     img: '',
     cota: { 
@@ -44,8 +41,8 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
         description_sortition: raffle.description_sortition || '',
         description_product: raffle.description_product || '',
         description_role: raffle.description_role || '',
-        emphasis: raffle.emphasis || 'nao',
-        show_top: raffle.show_top || 'nao',
+        emphasis: raffle.emphasis || 'sim',
+        show_top: raffle.show_top || 'sim',
         show_site: raffle.show_site ?? 1,
         img: raffle.img || '',
         cota: {
@@ -70,8 +67,8 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
         description_sortition: 'Regras do sorteio padrão.',
         description_product: 'Produto do sorteio.',
         description_role: 'Regras de participação.',
-        emphasis: 'nao',
-        show_top: 'nao',
+        emphasis: 'sim',
+        show_top: 'sim',
         show_site: 1,
         img: '',
         cota: { qntd_cota: 1000, qntd_cota_min_order: 1, qntd_cota_max_order: 100, qntd_cota_max_client: 1000 },
@@ -84,10 +81,17 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
     const { name, value } = e.target;
     if (name.includes('.')) {
       const [parent, child] = name.split('.');
-      setFormData(prev => ({
-        ...prev,
-        [parent]: { ...prev[parent], [child]: value }
-      }));
+      setFormData(prev => {
+        const newState = {
+          ...prev,
+          [parent]: { ...prev[parent], [child]: value }
+        };
+        // Auto-sync max_client with total quotas
+        if (name === 'cota.qntd_cota') {
+          newState.cota.qntd_cota_max_client = value;
+        }
+        return newState;
+      });
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
@@ -245,19 +249,6 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
               />
             </div>
 
-            {/* Max Quotas per Client */}
-            <div>
-              <label className="block text-xs font-black text-gray-500 uppercase mb-2 tracking-widest">Limite Cotas por Cliente</label>
-              <input 
-                type="number" 
-                name="cota.qntd_cota_max_client"
-                value={formData.cota.qntd_cota_max_client}
-                onChange={handleChange}
-                className="input-field py-3 font-bold text-purple-500"
-                required
-              />
-            </div>
-
             {/* Total Quotas */}
             <div>
               <label className="block text-xs font-black text-gray-500 uppercase mb-2 tracking-widest">Quantidade Total de Cotas</label>
@@ -299,34 +290,6 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
               </select>
             </div>
 
-            {/* emphasis */}
-            <div>
-              <label className="block text-xs font-black text-gray-500 uppercase mb-2 tracking-widest">Destaque (Home)</label>
-              <select 
-                name="emphasis"
-                value={formData.emphasis}
-                onChange={handleChange}
-                className="input-field py-3 font-bold"
-              >
-                <option value="sim">Sim</option>
-                <option value="nao">Não</option>
-              </select>
-            </div>
-
-            {/* Show Top */}
-            <div>
-              <label className="block text-xs font-black text-gray-500 uppercase mb-2 tracking-widest">Mostrar no Topo</label>
-              <select 
-                name="show_top"
-                value={formData.show_top}
-                onChange={handleChange}
-                className="input-field py-3 font-bold"
-              >
-                <option value="sim">Sim</option>
-                <option value="nao">Não</option>
-              </select>
-            </div>
-
             {/* Time Pay */}
             <div>
               <label className="block text-xs font-black text-gray-500 uppercase mb-2 tracking-widest">Tempo Expiração Pix (Minutos)</label>
@@ -340,7 +303,10 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
               />
             </div>
 
-            {/* Dummy hidden fields for other required descriptions if not visible yet */}
+            {/* Hidden fields for required data that user doesn't need to see/edit manually based on new simplified requirements */}
+            <input type="hidden" name="emphasis" value={formData.emphasis} />
+            <input type="hidden" name="show_top" value={formData.show_top} />
+            <input type="hidden" name="cota.qntd_cota_max_client" value={formData.cota.qntd_cota_max_client} />
             <input type="hidden" name="description_sortition" value={formData.description_sortition} />
             <input type="hidden" name="description_product" value={formData.description_product} />
             <input type="hidden" name="description_role" value={formData.description_role} />
