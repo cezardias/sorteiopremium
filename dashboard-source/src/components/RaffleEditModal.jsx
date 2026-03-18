@@ -245,15 +245,15 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
               />
             </div>
 
-            {/* Total Quotas */}
+            {/* Max Quotas per Client */}
             <div>
-              <label className="block text-xs font-black text-gray-500 uppercase mb-2 tracking-widest">Quantidade Total de Cotas</label>
+              <label className="block text-xs font-black text-gray-500 uppercase mb-2 tracking-widest">Limite Cotas por Cliente</label>
               <input 
                 type="number" 
-                name="cota.qntd_cota"
-                value={formData.cota.qntd_cota}
+                name="cota.qntd_cota_max_client"
+                value={formData.cota.qntd_cota_max_client}
                 onChange={handleChange}
-                className="input-field py-3 font-bold text-blue-500"
+                className="input-field py-3 font-bold text-purple-500"
                 required
               />
             </div>
