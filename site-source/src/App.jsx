@@ -10,6 +10,7 @@ import Winners from './pages/Winners';
 import Profile from './pages/Profile';
 import Orders from './pages/Orders';
 import Login from './pages/Login';
+import RaffleDetail from './pages/RaffleDetail';
 import { Navigate } from 'react-router-dom';
 
 const ProtectedRoute = ({ children }) => {
@@ -71,6 +72,7 @@ function AppContent() {
             <Route path="produtos" element={<Products />} />
             <Route path="sorteios" element={<Products />} />
             <Route path="ganhadores" element={<Winners />} />
+            <Route path="raffle/:id" element={<RaffleDetail />} />
             <Route path="login" element={<Login />} />
             
             <Route path="perfil" element={
