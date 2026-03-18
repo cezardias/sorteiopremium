@@ -193,12 +193,19 @@ class CyberPaymentController extends Controller
         $type = $request->input('type');
         $data = $request->input('data');
 
-        if ($type === 'pix.in.confirmation' && isset($data['metadata']['rifa_pay_id'])) {
-            $rifaPayId = $data['metadata']['rifa_pay_id'];
-            $status = $data['status'];
+        if ($type === 'pix.in.confirmation' && (isset($data['metadata']['rifa_pay_id']) || isset($data['id']))) {
+            $rifaPayId = $data['metadata']['rifa_pay_id'] ?? null;
+            $status = $data['status'] ?? '';
 
             if ($status === 'APPROVED') {
-                $rifaPay = RifaPay::find($rifaPayId);
+                $rifaPay = null;
+                if ($rifaPayId) {
+                    $rifaPay = RifaPay::find($rifaPayId);
+                } else {
+                    // Fallback: use transaction ID (pix_id)
+                    $rifaPay = RifaPay::where('pix_id', $data['id'])->first();
+                }
+
                 if ($rifaPay && $rifaPay->status == 0) {
                     $rifaPay->update(['status' => 1]);
                     RifaNumber::where('pay_id', $rifaPay->id)->update(['status' => 1]);
@@ -212,7 +219,7 @@ class CyberPaymentController extends Controller
                         RewardPassService::grantFromApprovedPayment($rifaPay);
                     }
 
-                    Log::info("Payment identified and approved for RifaPay: $rifaPayId");
+                    Log::info("Payment confirmed via webhook for RifaPay: " . $rifaPay->id);
                 }
             }
         }
@@ -228,6 +235,40 @@ class CyberPaymentController extends Controller
         $rifaPay = RifaPay::find($rifaPayId);
         if (!$rifaPay) {
             return response()->json(['success' => false, 'message' => 'Not found'], 404);
+        }
+
+        // If it's still pending in our DB, let's double check with the Gateway
+        if ($rifaPay->status == 0 && !empty($rifaPay->pix_id)) {
+            try {
+                $payment = $this->cyberPaymentService->getTransactionStatus($rifaPay->pix_id);
+                
+                if (isset($payment['success']) && $payment['success'] && isset($payment['data'])) {
+                    $transaction = $payment['data'];
+                    // Cyber API uses 'APPROVED', 'PENDING', 'CANCELLED', etc.
+                    if (isset($transaction['status']) && $transaction['status'] === 'APPROVED') {
+                        Log::info("Payment confirmed via polling for RifaPay: $rifaPayId");
+                        
+                        $rifaPay->update(['status' => 1]);
+                        RifaNumber::where('pay_id', $rifaPay->id)->update(['status' => 1]);
+
+                        // Process awarded quotas
+                        $numbers = RifaNumber::where('pay_id', $rifaPay->id)->pluck('numbers')->toArray();
+                        AwardedQuota::ganhadorBilhetePremiado($numbers, $rifaPay->client_id, $rifaPay->rifas_id, $rifaPay->id);
+
+                        // Process rewards/gamification if exists
+                        if (class_exists(RewardPassService::class)) {
+                            RewardPassService::grantFromApprovedPayment($rifaPay);
+                        }
+                        
+                        return response()->json([
+                            'success' => true,
+                            'status' => 1,
+                        ]);
+                    }
+                }
+            } catch (Exception $e) {
+                Log::error("Direct status check failed for RifaPay $rifaPayId: " . $e->getMessage());
+            }
         }
 
         return response()->json([

@@ -110,8 +110,7 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
             // Auto close after 3 seconds
             setTimeout(() => {
                 onClose();
-                // Opcional: recarregar a home ou algo assim
-                window.location.reload();
+                window.location.href = '#/meus-pedidos';
             }, 3000);
           }
         } catch (e) {
@@ -121,6 +120,30 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
     }
     return () => clearInterval(interval);
   }, [statusPooling, paymentData]);
+
+  const checkManualStatus = async () => {
+    if (!paymentData?.id) return;
+    setBuying(true); // Re-use buying state for local loader if needed, or just let it spin
+    try {
+        const res = await api.get(`/produtos/compra-rifas-status/${paymentData.id}`);
+        if (res.data?.success && res.data.status == 1) {
+            setStatusPooling(false);
+            setStep('success');
+            toast.success('Pagamento Confirmado!');
+            
+            setTimeout(() => {
+                onClose();
+                window.location.href = '#/meus-pedidos';
+            }, 3000);
+        } else {
+            toast.error('Pagamento ainda não detectado. Aguarde alguns instantes.');
+        }
+    } catch (e) {
+        toast.error('Erro ao verificar status.');
+    } finally {
+        setBuying(false);
+    }
+  };
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
@@ -252,6 +275,13 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
                             className="w-full bg-dark-accent hover:bg-white/10 text-white font-black uppercase py-4 rounded-xl border border-white/5 flex items-center justify-center gap-3 transition-colors"
                         >
                             <Copy size={18} /> Copiar Código PIX
+                        </button>
+
+                        <button 
+                            onClick={checkManualStatus}
+                            className="w-full bg-primary hover:bg-secondary text-black font-black uppercase py-4 rounded-xl flex items-center justify-center gap-3 transition-all shadow-[0_5px_15px_rgba(29,185,84,0.2)]"
+                        >
+                            <CheckCircle2 size={18} /> Já Paguei
                         </button>
                         
                         <div className="flex items-center justify-center gap-2 text-[#1db954] font-bold text-xs animate-pulse">
