@@ -4,7 +4,7 @@ import { X, Loader2, QrCode, Copy, CheckCircle2, Ticket, AlertCircle, ShieldChec
 import api from '../api/api';
 import toast from 'react-hot-toast';
 
-const OrderDetailModal = ({ isOpen, onClose, orderId }) => {
+const OrderDetailModal = ({ isOpen, onClose, orderId, onSuccess }) => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [statusPooling, setStatusPooling] = useState(false);
@@ -44,29 +44,27 @@ const OrderDetailModal = ({ isOpen, onClose, orderId }) => {
     }
   };
 
-  // Status polling for pending orders
-  useEffect(() => {
-    let interval;
-    if (statusPooling && order?.id && order.status == 0) {
-      interval = setInterval(async () => {
-        try {
-          const res = await api.get(`/produtos/compra-rifas-status/${order.id}`);
-          if (res.data?.success && res.data.status == 1) {
+  const checkManualStatus = async () => {
+    if (!orderId) return;
+    try {
+        const res = await api.get(`/produtos/compra-rifas-status/${orderId}`);
+        if (res.data?.success && res.data.status == 1) {
             setStatusPooling(false);
             setOrder(prev => ({ ...prev, status: 1, status_label: 'pago' }));
             toast.success('Pagamento Confirmado!');
-          } else if (res.data?.success && res.data.status == 2) {
-            setStatusPooling(false);
-            setOrder(prev => ({ ...prev, status: 2, status_label: 'cancelado' }));
-            toast.error('O pagamento expirou ou foi cancelado.');
-          }
-        } catch (e) {
-          console.error('Polling error:', e);
+            if (onSuccess) onSuccess();
+            
+            setTimeout(() => {
+                onClose();
+                window.location.reload(); // Hard reload to ensure all states sync
+            }, 3000);
+        } else {
+            toast.error('Pagamento ainda não detectado. Aguarde alguns instantes.');
         }
-      }, 3000);
+    } catch (e) {
+        toast.error('Erro ao verificar status.');
     }
-    return () => clearInterval(interval);
-  }, [statusPooling, order]);
+  };
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
@@ -183,6 +181,13 @@ const OrderDetailModal = ({ isOpen, onClose, orderId }) => {
                                 className="w-full bg-dark-accent hover:bg-white/10 text-white font-black uppercase py-4 rounded-xl border border-white/5 flex items-center justify-center gap-3 transition-colors"
                             >
                                 <Copy size={18} /> Copiar Código PIX
+                            </button>
+
+                            <button 
+                                onClick={checkManualStatus}
+                                className="w-full bg-primary hover:bg-secondary text-black font-black uppercase py-4 rounded-xl flex items-center justify-center gap-3 transition-all shadow-[0_5px_15px_rgba(29,185,84,0.2)]"
+                            >
+                                <CheckCircle2 size={18} /> Já Paguei / Re-verificar
                             </button>
                             
                             <div className="flex items-center justify-center gap-2 text-yellow-500 font-bold text-xs animate-pulse tracking-widest uppercase">

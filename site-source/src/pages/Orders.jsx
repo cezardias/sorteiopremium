@@ -173,6 +173,7 @@ const Orders = () => {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         orderId={selectedOrderId} 
+        onSuccess={() => window.location.reload()}
       />
     </div>
   );
