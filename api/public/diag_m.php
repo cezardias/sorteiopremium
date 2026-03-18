@@ -14,7 +14,7 @@ try {
     }
     
     // Detailed check for specific tables
-    foreach (['afiliados', 'users', 'clients', 'ganho_afiliados'] as $table) {
+    foreach (['afiliados', 'users', 'clients', 'ganho_afiliados', 'site_config', 'payment_info'] as $table) {
         if (in_array($table, $tables)) {
             $results['details'][$table] = $pdo->query("SELECT * FROM `$table` LIMIT 3")->fetchAll(PDO::FETCH_ASSOC);
         }
