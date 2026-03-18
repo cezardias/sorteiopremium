@@ -53,7 +53,7 @@ const Raffles = () => {
         ? `/admin/dashboard/rifa/finalizar/${id}`
         : `/admin/dashboard/rifa/ativar/${id}`;
       
-      const response = await api.get(endpoint); // Backend uses GET for these toggles
+      const response = await api.put(endpoint); // Backend uses PUT for these toggles
       if (response.data && response.data.response) {
         fetchRaffles();
       }
@@ -98,8 +98,18 @@ const Raffles = () => {
           <RefreshCcw className="text-green-500" /> SORTEIOS
         </h1>
         
-        <div className="w-1/3">
-          <div className="relative">
+        <div className="flex gap-4 items-center w-full max-w-2xl">
+          <button 
+            onClick={() => {
+              setSelectedRaffle(null);
+              setEditModalOpen(true);
+            }}
+            className="whitespace-nowrap bg-green-500 hover:bg-green-600 text-black px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-green-500/10 flex items-center gap-2"
+          >
+            <Layers size={16} /> Novo Sorteio
+          </button>
+
+          <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
             <input 
               type="text" 

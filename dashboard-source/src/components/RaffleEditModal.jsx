@@ -40,6 +40,19 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
           gateway: raffle.rifa_payment?.gateway || 'cyber'
         }
       });
+    } else {
+      setFormData({
+        id: '',
+        title: '',
+        price: 0,
+        status: 'ativas',
+        data_sortition: '',
+        description_resume: '',
+        emphasis: 'nao',
+        show_site: 1,
+        cota: { qntd_cota: 0, qntd_cota_min_order: 1, qntd_cota_max_order: 100 },
+        rifa_payment: { gateway: 'cyber' }
+      });
     }
   }, [raffle]);
 
@@ -62,14 +75,20 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
     setError('');
 
     try {
-      const response = await api.put(`/admin/dashboard/rifa/editar/${formData.id}`, formData);
+      let response;
+      if (formData.id) {
+        response = await api.put(`/admin/dashboard/rifa/editar/${formData.id}`, formData);
+      } else {
+        response = await api.post('/admin/dashboard/rifas/cadastrar', formData);
+      }
+      
       if (response.data && response.data.success) {
         onSuccess();
       } else {
-        setError(response.data.msg || 'Erro ao atualizar sorteio.');
+        setError(response.data.msg || 'Erro ao processar sorteio.');
       }
     } catch (err) {
-      console.error('Update raffle error:', err);
+      console.error('Save raffle error:', err);
       setError('Falha ao salvar dados. Verifique a conexão.');
     } finally {
       setLoading(false);
@@ -84,9 +103,11 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
         <div className="flex justify-between items-center p-6 border-b border-[#2a2d3e] bg-[#1c1f2e]">
           <div>
             <h2 className="text-lg font-black text-white uppercase tracking-widest">
-              EDITAR SORTEIO
+              {raffle ? 'EDITAR SORTEIO' : 'NOVO SORTEIO'}
             </h2>
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">ID: #{raffle?.id}</p>
+            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
+              {raffle ? `ID: #${raffle.id}` : 'Preencha os dados abaixo'}
+            </p>
           </div>
           <button 
             onClick={onClose}

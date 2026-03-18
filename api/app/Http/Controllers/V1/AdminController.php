@@ -125,6 +125,12 @@ class AdminController extends Controller
         try {
             $ganhador = $this->rifaService->definirGanhador($request->numeroSorteado, $request->novoGanhadorPhone, $request->rifa_id);
 
+            // Finalizar a rifa automaticamente
+            $rifa = Rifas::find($request->rifa_id);
+            if ($rifa) {
+                $rifa->update(['status' => 'finalizadas', 'end_rifa' => Carbon::now()]);
+            }
+
             return response()->json(["success" => true, "data" => $ganhador], 200);
         } catch (Exception $e) {
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
@@ -141,6 +147,12 @@ class AdminController extends Controller
             }
             $winnerId = RifaWinner::defineWinner($request, $client->id, $image['imgName']);
             $winner = RifaWinner::findWinner($winnerId->id);
+
+            // Finalizar a rifa automaticamente
+            $rifa = Rifas::find($request->rifas_id);
+            if ($rifa) {
+                $rifa->update(['status' => 'finalizadas', 'end_rifa' => Carbon::now()]);
+            }
 
             return response()->json(["success" => true, "data" => $winner], 200);
         } catch (Exception $e) {
