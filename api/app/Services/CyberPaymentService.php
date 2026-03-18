@@ -37,13 +37,13 @@ class CyberPaymentService
     {
         try {
             $payload = [
-                'amount' => (float) $data['amount'],
+                'amount' => (int) round($data['amount'] * 100),
                 'customerName' => $this->sanitizeString($data['customerName']),
                 'customerEmail' => $data['customerEmail'],
                 'customerPhone' => $this->formatPhone($data['customerPhone']),
                 'customerDocument' => $this->cleanDocument($data['customerDocument']),
                 'customerDocumentType' => 'cpf', // Always CPF as per request
-                'description' => $this->sanitizeString($data['description'] ?? 'Compra de Rifas'),
+                'description' => preg_replace('/[^a-zA-Z0-9 ]/', '', $this->sanitizeString($data['description'] ?? 'Compra de Rifas')),
                 'metadata' => $data['metadata'] ?? [],
             ];
             
