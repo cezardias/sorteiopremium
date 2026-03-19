@@ -26,7 +26,7 @@ const Sidebar = () => {
   React.useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const response = await api.get('/admin/dashboard/site-settings');
+        const response = await api.get('/public-settings');
         if (response.data?.success && response.data.data?.logo_dark) {
           setLogo(response.data.data.logo_dark);
         }
