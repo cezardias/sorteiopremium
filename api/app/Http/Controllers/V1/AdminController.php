@@ -1760,22 +1760,25 @@ class AdminController extends Controller
 
             $siteSetting->fill($data);
 
-            // Handle file uploads for SiteSetting
-            if ($request->file("url_logo_site")) {
+            // Handle file uploads for SiteSetting with reinforced validation
+            if ($request->hasFile("url_logo_site")) {
+                $request->validate(['url_logo_site' => 'image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048']);
                 $logo = $request->file("url_logo_site");
-                $uniqueLogoFileName = 'logo_dark_' . uniqid() . '.' . $logo->getClientOriginalExtension();
+                $uniqueLogoFileName = 'logo_dark_' . uniqid() . '.' . $logo->extension();
                 $logo->move(public_path("img/logos"), $uniqueLogoFileName);
                 $siteSetting->logo_dark = asset("img/logos/" . $uniqueLogoFileName);
             }
-            if ($request->file("url_logo_site_white")) {
+            if ($request->hasFile("url_logo_site_white")) {
+                $request->validate(['url_logo_site_white' => 'image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048']);
                 $logoWhite = $request->file("url_logo_site_white");
-                $uniqueLogoWhiteFileName = 'logo_light_' . uniqid() . '.' . $logoWhite->getClientOriginalExtension();
+                $uniqueLogoWhiteFileName = 'logo_light_' . uniqid() . '.' . $logoWhite->extension();
                 $logoWhite->move(public_path("img/logos"), $uniqueLogoWhiteFileName);
                 $siteSetting->logo_light = asset("img/logos/" . $uniqueLogoWhiteFileName);
             }
-            if ($request->file("social_share_image")) {
+            if ($request->hasFile("social_share_image")) {
+                $request->validate(['social_share_image' => 'image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048']);
                 $shareImg = $request->file("social_share_image");
-                $uniqueShareImgName = 'share_' . uniqid() . '.' . $shareImg->getClientOriginalExtension();
+                $uniqueShareImgName = 'share_' . uniqid() . '.' . $shareImg->extension();
                 $shareImg->move(public_path("img/seo"), $uniqueShareImgName);
                 $siteSetting->share_image = asset("img/seo/" . $uniqueShareImgName);
             }

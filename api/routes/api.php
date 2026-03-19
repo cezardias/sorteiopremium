@@ -14,75 +14,21 @@ use App\Models\V1\RifaNumber;
 |--------------------------------------------------------------------------
 */
 
-// --- Diagnóstico e Recuperação ---
-
-Route::get('/test-db', function () {
-    try {
-        $dbName = config('database.connections.mysql.database');
-        
-        $counts = [
-            'rifas' => \DB::table('rifas')->count(),
-            'rifa_pays' => \DB::table('rifa_pays')->count(),
-            'clients' => \DB::table('clients')->count(),
-            'rifa_numbers' => \DB::table('rifa_numbers')->count(),
-            'users' => \DB::table('users')->count(),
-        ];
-
-        return response()->json([
-            'status' => 'connected',
-            'db_name' => $dbName,
-            'counts' => $counts,
-            'latest_order' => \DB::table('rifa_pays')->latest()->first(),
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => 'error',
-            'message' => $e->getMessage(),
-        ], 500);
-    }
-});
-
-// Route::get('/reset-admin-pwd', function () { ... });
-// Route::get('/debug-payments', function () { ... });
-// Route::get('/recovery-payments', function () { ... });
-
-
-
-
-// Route::get('/reset-admin-pwd', function () { ... });
-// Route::get('/debug-payments', function () { ... });
-// Route::get('/recovery-payments', function () { ... });
-Route::get('/clear-cache', function () {
-    try {
-        Artisan::call('cache:clear');
-        Artisan::call('route:clear');
-        Artisan::call('config:clear');
-        Artisan::call('view:clear');
-        return file_get_contents(__FILE__);
-    } catch (\Throwable $e) {
-        return "Erro: " . $e->getMessage();
-    }
-});
-
-Route::get('/php-info', function () {
-    phpinfo();
-});
-
 // --- Rotas da Aplicação ---
 
 
 Route::group(['prefix' => 'client', 'namespace' => 'App\Http\Controllers\V1'], function () {
     Route::post("/cadastro", "AuthController@register")->name('client.register');
-    Route::post("/login", "AuthController@login")->name('client.login');
+    Route::post("/login", "AuthController@login")->middleware('throttle:10,1')->name('client.login');
     Route::get("/login", "AuthController@logar")->name('login');
-    Route::middleware('auth.client')->post("/logout", "AuthController@logout")->name('client.logout');
+    Route::middleware(['auth.client', 'throttle:10,1'])->post("/logout", "AuthController@logout")->name('client.logout');
     Route::middleware('auth.client')->get("/checkout/pedido/{id}", "RifasController@getCompra")->where(['id' => '[0-9]+'])->name('checkout.pedido');
     Route::middleware('auth.client')->get("/meus-pedidos/sorteios/{id}", "RifasController@getCompraClient")->where(['id' => '[0-9]+'])->name('client.pedidos');
 });
 
 Route::group(['prefix' => 'admin', 'namespace' => 'App\Http\Controllers\V1'], function () {
     Route::post("/user/register", "AdminController@storeUser")->name('admin.create.user');
-    Route::post("/user/login", "AdminController@login")->name('admin.login.user');
+    Route::post("/user/login", "AdminController@login")->middleware('throttle:10,1')->name('admin.login.user');
     Route::middleware('auth:sanctum')->post("/user/logout", "AdminController@logout")->name('admin.logout.user');
 
     Route::middleware(['auth:sanctum', 'checkAdmin:admin,superadmin'])->group(function () {
@@ -193,53 +139,12 @@ Route::group(['prefix' => 'produtos', 'namespace' => 'App\Http\Controllers\V1'],
     Route::get("/{slug}/{id}/{afiliadoId?}", "RifasController@show")->where(['slug' => '[a-zA-Z0-9\-_]+', 'id' => '[0-9]+'])->name('show.one.rifa');
     Route::get("/detalhes/{id}", "RifasController@showSingle");
     Route::get("/todos/ganhadores", "RifasController@getAllWinners");
-    Route::post('compra-rifas/{id?}', 'CyberPaymentController@buyRifa');
+    Route::post('compra-rifas/{id?}', 'CyberPaymentController@buyRifa')->middleware('throttle:5,1');
     Route::get('compra-rifas-status/{id}', 'CyberPaymentController@checkStatus');
     Route::get("/payment-status/{paymentId}", "RifasController@checkPaymentStatus");
 });
 
 Route::group(['prefix' => 'public-rifas', 'namespace' => 'App\Http\Controllers\V1'], function () {
-    Route::get("/check-db", function() {
-        if (function_exists('opcache_reset')) { opcache_reset(); }
-        $results = [
-            "version" => "V31 - COMBO_CHECK",
-            "time" => date("Y-m-d H:i:s")
-        ];
-        
-        try {
-            // Combination from Step 388: User (no 'm') to DB ('m')
-            $user = "u434605668_sorteiospremiu";
-            $db = "u434605668_sorteiopremium";
-            
-            $pdo = new PDO("mysql:host=127.0.0.1;dbname=$db", $user, "SorteioPremiumMultiMarca1!2#%34.");
-            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            
-            $results["afiliados"] = $pdo->query("SELECT COUNT(*) FROM afiliados")->fetchColumn();
-            $results["clients"] = $pdo->query("SELECT COUNT(*) FROM clients")->fetchColumn();
-            $results["rifas"] = $pdo->query("SELECT COUNT(*) FROM rifas")->fetchColumn();
-            $results["site_config"] = $pdo->query("SELECT COUNT(*) FROM site_config")->fetchColumn();
-            $results["site_settings"] = $pdo->query("SELECT COUNT(*) FROM site_settings")->fetchColumn();
-            $results["combo"] = "$user to $db";
-            
-        } catch (\Exception $e) { $results["error"] = $e->getMessage(); }
-        
-        return response()->json($results);
-    });
-    Route::get("/combo-final", function() {
-        if (function_exists('opcache_reset')) { opcache_reset(); }
-        $results = ["time" => date("Y-m-d H:i:s")];
-        try {
-            $user = "u434605668_sorteiospremiu";
-            $db = "u434605668_sorteiopremium";
-            $pdo = new PDO("mysql:host=127.0.0.1;dbname=$db", $user, "SorteioPremiumMultiMarca1!2#%34.");
-            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $results["afiliados"] = $pdo->query("SELECT COUNT(*) FROM afiliados")->fetchColumn();
-            $results["clients"] = $pdo->query("SELECT COUNT(*) FROM clients")->fetchColumn();
-            $results["rifas"] = $pdo->query("SELECT COUNT(*) FROM rifas")->fetchColumn();
-            $results["combo"] = "$user to $db";
-        } catch (\Exception $e) { $results["error"] = $e->getMessage(); }
-        return response()->json($results);
-    });
     Route::get("/index", "RifasController@index");
     Route::get("/get-all-numeros-premiados/{id}", "RifasController@getNumerosPremiados");
     Route::get("/latest", "RifasController@latest");
