@@ -1749,14 +1749,14 @@ class AdminController extends Controller
             ]);
 
             // Map frontend names to database names if they differ
-            if ($request->site_name) $siteSetting->site_title = $request->site_name;
-            if ($request->site_keywords) $siteSetting->tags = $request->site_keywords;
-            if ($request->description) $siteSetting->share_description = $request->description;
-            if ($request->social_share_title) $siteSetting->share_title = $request->social_share_title;
-            if ($request->whatsapp_number) $siteSetting->whatsapp = $request->whatsapp_number;
-            if ($request->instagram_link) $siteSetting->instagram = $request->instagram_link;
-            if ($request->whatsapp_group_url) $siteSetting->whatsapp_group_url = $request->whatsapp_group_url;
-            if ($request->helpdesk_url) $siteSetting->helpdesk_url = $request->helpdesk_url;
+            if ($request->has('site_name')) $siteSetting->site_title = $request->site_name;
+            if ($request->has('site_keywords')) $siteSetting->tags = $request->site_keywords;
+            if ($request->has('description')) $siteSetting->share_description = $request->description;
+            if ($request->has('social_share_title')) $siteSetting->share_title = $request->social_share_title;
+            if ($request->has('whatsapp_number')) $siteSetting->whatsapp = $request->whatsapp_number;
+            if ($request->has('instagram_link')) $siteSetting->instagram = $request->instagram_link;
+            if ($request->has('whatsapp_group_url')) $siteSetting->whatsapp_group_url = $request->whatsapp_group_url;
+            if ($request->has('helpdesk_url')) $siteSetting->helpdesk_url = $request->helpdesk_url;
 
             $siteSetting->fill($data);
 
