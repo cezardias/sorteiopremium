@@ -1738,11 +1738,46 @@ class AdminController extends Controller
     public function storeConfigSite(Request $request)
     {
         try {
-            $data = $request->all();
-            
             // 1. Update SiteSetting
             $siteSetting = SiteSetting::first() ?: new SiteSetting();
+            
+            $data = $request->only([
+                'footer_company', 'google_analytics', 'webhook_url', 
+                'product_title', 'product_subtitle', 'author', 'site_keywords', 
+                'social_share_title', 'description', 'whatsapp_number', 
+                'whatsapp_group_url', 'instagram_link', 'helpdesk_url', 'email'
+            ]);
+
+            // Map frontend names to database names if they differ
+            if ($request->site_name) $siteSetting->site_title = $request->site_name;
+            if ($request->site_keywords) $siteSetting->tags = $request->site_keywords;
+            if ($request->description) $siteSetting->share_description = $request->description;
+            if ($request->social_share_title) $siteSetting->share_title = $request->social_share_title;
+            if ($request->whatsapp_number) $siteSetting->whatsapp = $request->whatsapp_number;
+            if ($request->instagram_link) $siteSetting->instagram = $request->instagram_link;
+
             $siteSetting->fill($data);
+
+            // Handle file uploads for SiteSetting
+            if ($request->file("url_logo_site")) {
+                $logo = $request->file("url_logo_site");
+                $uniqueLogoFileName = 'logo_dark_' . uniqid() . '.' . $logo->getClientOriginalExtension();
+                $logo->move(public_path("img/logos"), $uniqueLogoFileName);
+                $siteSetting->logo_dark = asset("img/logos/" . $uniqueLogoFileName);
+            }
+            if ($request->file("url_logo_site_white")) {
+                $logoWhite = $request->file("url_logo_site_white");
+                $uniqueLogoWhiteFileName = 'logo_light_' . uniqid() . '.' . $logoWhite->getClientOriginalExtension();
+                $logoWhite->move(public_path("img/logos"), $uniqueLogoWhiteFileName);
+                $siteSetting->logo_light = asset("img/logos/" . $uniqueLogoWhiteFileName);
+            }
+            if ($request->file("social_share_image")) {
+                $shareImg = $request->file("social_share_image");
+                $uniqueShareImgName = 'share_' . uniqid() . '.' . $shareImg->getClientOriginalExtension();
+                $shareImg->move(public_path("img/seo"), $uniqueShareImgName);
+                $siteSetting->share_image = asset("img/seo/" . $uniqueShareImgName);
+            }
+
             $siteSetting->save();
 
             // 2. Update SiteConfig (for backward compatibility and specific frontend fields)
@@ -1755,28 +1790,32 @@ class AdminController extends Controller
                 'gateway' => $request->gateway ?? 'cyber',
             ];
 
-            // Handle file uploads for SiteConfig (if provided)
+            if ($siteSetting->logo_dark) {
+                $siteConfigData['url_logo_site'] = $siteSetting->logo_dark;
+            }
+
+            // Handle favicon for SiteConfig
             if ($request->file("url_favicon_site")) {
                 $favicon = $request->file("url_favicon_site");
-                $uniqueFaviconFileName = uniqid() . '.' . $favicon->getClientOriginalExtension();
-                $favicon->move(public_path("assets/images/favicon"), $uniqueFaviconFileName);
-                $siteConfigData['url_favicon_site'] = asset("assets/images/favicon/" . $uniqueFaviconFileName);
-            }
-            if ($request->file("url_logo_site")) {
-                $logo = $request->file("url_logo_site");
-                $uniqueLogoFileName = uniqid() . '.' . $logo->getClientOriginalExtension();
-                $logo->move(public_path("assets/images/logo"), $uniqueLogoFileName);
-                $siteConfigData['url_logo_site'] = asset("assets/images/logo/" . $uniqueLogoFileName);
+                $uniqueFaviconFileName = 'favicon_' . uniqid() . '.' . $favicon->getClientOriginalExtension();
+                $favicon->move(public_path("img/favicon"), $uniqueFaviconFileName);
+                $siteConfigData['url_favicon_site'] = asset("img/favicon/" . $uniqueFaviconFileName);
             }
 
             SiteConfig::updateOrCreate(['id' => 1], $siteConfigData);
 
             // 3. Update ENV for Cyber
-            $this->updateEnvFile([
-                'CYBER_PAYMENT_PUBLIC_KEY' => str_replace(" ", '', $request->cyber_public_key),
-                'CYBER_PAYMENT_SECRET_KEY' => str_replace(" ", '', $request->cyber_secret_key),
-                'CYBER_PAYMENT_API_KEY' => str_replace(" ", '', $request->cyber_secret_key),
-            ]);
+            $envData = [];
+            if ($request->cyber_public_key) $envData['CYBER_PAYMENT_PUBLIC_KEY'] = str_replace(" ", '', $request->cyber_public_key);
+            if ($request->cyber_secret_key) {
+                $secret = str_replace(" ", '', $request->cyber_secret_key);
+                $envData['CYBER_PAYMENT_SECRET_KEY'] = $secret;
+                $envData['CYBER_PAYMENT_API_KEY'] = $secret;
+            }
+            
+            if (!empty($envData)) {
+                $this->updateEnvFile($envData);
+            }
 
             // 4. Update Admin User
             if ($request->password) {

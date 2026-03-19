@@ -251,6 +251,8 @@ Route::get('client/pedidos', 'App\Http\Controllers\V1\ClientController@getNumber
 Route::get('client/pedido/{id}', 'App\Http\Controllers\V1\ClientController@getOrderDetail');
 Route::post("/get-numbers", 'App\Http\Controllers\V1\ClientController@getNumbers');
 Route::get("/config", "App\Http\Controllers\V1\SiteConfigController@getUserSiteConfig");
+Route::get("/test-route", function() { return "OK"; });
+Route::get("/public-settings", "App\Http\Controllers\V1\SiteConfigController@getSettings");
 Route::post("/pix", [\App\Http\Controllers\V1\CyberPaymentController::class, "buyRifa"]);
 Route::post('cyber-webhook', [\App\Http\Controllers\V1\CyberPaymentController::class, 'webhook']);
 

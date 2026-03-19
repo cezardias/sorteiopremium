@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Home, ShoppingBag, Trophy, User, FileText, Menu, X, LogOut } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import api from '../../api/api';
 
 function cn(...inputs) {
   return twMerge(clsx(inputs));
@@ -13,6 +14,21 @@ const Navbar = () => {
   const location = useLocation();
   const token = localStorage.getItem('client_token');
   const isLoggedIn = !!token;
+  const [logo, setLogo] = React.useState("/assets/images/logos/logo.png");
+
+  React.useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await api.get('/public-settings');
+        if (response.data.success && response.data.data?.logo_dark) {
+          setLogo(response.data.data.logo_dark);
+        }
+      } catch (error) {
+        console.error("Error fetching site settings:", error);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('client_token');
@@ -36,7 +52,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-20">
           <div className="flex items-center">
               <Link to="/" className="flex-shrink-0">
-                <img src="/assets/images/logos/logo.png" alt="Premium Multimarcas" className="h-14 w-auto transform hover:scale-105 transition-transform" />
+                <img src={logo} alt="Premium Multimarcas" className="h-14 w-auto transform hover:scale-105 transition-transform" />
               </Link>
           </div>
 

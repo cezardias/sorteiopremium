@@ -21,11 +21,25 @@ const Sidebar = () => {
     navigate('/login');
   };
 
+  const [logo, setLogo] = React.useState("/assets/images/logos/logo.png");
+
+  React.useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await api.get('/admin/dashboard/site-settings');
+        if (response.data?.success && response.data.data?.logo_dark) {
+          setLogo(response.data.data.logo_dark);
+        }
+      } catch (error) {}
+    };
+    fetchSettings();
+  }, []);
+
   return (
     <aside className="w-64 bg-[#141523] h-screen fixed left-0 top-0 border-r border-[#2a2d3e] flex flex-col">
       <div className="p-6 border-b border-[#2a2d3e] mb-6 flex justify-center">
         <Link to="/dashboard">
-          <img src="/assets/images/logos/logo.png" alt="Premium Multimarcas" className="h-12 w-auto" />
+          <img src={logo} alt="Premium Multimarcas" className="h-12 w-auto" />
         </Link>
       </div>
       

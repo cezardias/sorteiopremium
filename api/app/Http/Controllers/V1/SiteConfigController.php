@@ -98,16 +98,16 @@ class SiteConfigController extends Controller
             if ($request->file("faviconsite")) {
                 $favicon = $request->file("faviconsite");
                 $uniqueFaviconFileName = uniqid() . '.' . $favicon->getClientOriginalExtension();
-                $favicon->move(public_path("assets/images/favicon"), $uniqueFaviconFileName);
-                $faviconRelativePath = "assets/images/favicon/" . $uniqueFaviconFileName;
+                $favicon->move(public_path("img/favicon"), $uniqueFaviconFileName);
+                $faviconRelativePath = "img/favicon/" . $uniqueFaviconFileName;
                 $faviconUrl = asset($faviconRelativePath);
                 $dataArray['url_favicon_site'] = $faviconUrl;
             }
             if ($request->file("logosite")) {
                 $logo = $request->file("logosite");
                 $uniqueLogoFileName = uniqid() . '.' . $logo->getClientOriginalExtension();
-                $logo->move(public_path("assets/images/logo"), $uniqueLogoFileName);
-                $logoRelativePath = "assets/images/logo/" . $uniqueLogoFileName;
+                $logo->move(public_path("img/logo"), $uniqueLogoFileName);
+                $logoRelativePath = "img/logo/" . $uniqueLogoFileName;
                 $logoUrl = asset($logoRelativePath);
                 $dataArray['url_logo_site'] = $logoUrl;
             }
@@ -129,6 +129,27 @@ class SiteConfigController extends Controller
 
             return response()->json(["success" => true, "data" => new SiteConfigResource($newSiteConfigData)], 200);
         } catch (Throwable $e) {
+            return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
+        }
+    }
+
+    public function getSettings()
+    {
+        try {
+            $settings = \App\Models\SiteSetting::first();
+            $config = SiteConfig::where("id", "1")->first();
+            
+            $data = $settings ? $settings->toArray() : [];
+            if ($config) {
+                $data = array_merge($data, [
+                    'meta_pixel' => $config->meta_pixel,
+                    'plataform_name' => $config->plataform_name,
+                    'site_name' => $config->site_name ?? ($settings ? $settings->site_title : null)
+                ]);
+            }
+
+            return response()->json(["success" => true, "data" => $data], 200);
+        } catch (Exception $e) {
             return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
         }
     }
