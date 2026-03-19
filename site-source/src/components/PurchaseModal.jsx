@@ -187,7 +187,7 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
             </button>
           </div>
 
-          <div className="p-8">
+          <div className="p-4 sm:p-8">
             {loading ? (
               <div className="py-20 flex flex-col items-center justify-center space-y-4">
                 <Loader2 className="w-10 h-10 text-primary animate-spin" />

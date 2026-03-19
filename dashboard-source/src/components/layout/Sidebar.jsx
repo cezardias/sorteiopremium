@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, Link } from 'react-router-dom';
 import { 
   BarChart, 
   ShoppingCart, 
@@ -24,10 +24,9 @@ const Sidebar = () => {
   return (
     <aside className="w-64 bg-[#141523] h-screen fixed left-0 top-0 border-r border-[#2a2d3e] flex flex-col">
       <div className="p-6 border-b border-[#2a2d3e] mb-6 flex justify-center">
-        {/* Mock Logo Space */}
-        <h1 className="text-xl font-black italic tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600">
-          PREMIUM MULTIMARCAS
-        </h1>
+        <Link to="/dashboard">
+          <img src="/assets/images/logos/logo.png" alt="Premium Multimarcas" className="h-12 w-auto" />
+        </Link>
       </div>
       
       <nav className="flex-1 px-4 space-y-2 overflow-y-auto custom-scrollbar">

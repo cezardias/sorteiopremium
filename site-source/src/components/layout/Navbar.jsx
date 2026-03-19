@@ -36,7 +36,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-20">
           <div className="flex items-center">
               <Link to="/" className="flex-shrink-0">
-                <img src="/assets/images/logos/logo.png" alt="Premium Multimarcas" className="h-10 w-auto" />
+                <img src="/assets/images/logos/logo.png" alt="Premium Multimarcas" className="h-14 w-auto transform hover:scale-105 transition-transform" />
               </Link>
           </div>
 

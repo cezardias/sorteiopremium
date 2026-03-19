@@ -6,6 +6,12 @@
   body {
     @apply bg-dark text-gray-200 antialiased min-h-screen;
     font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+  }
+  
+  /* Ensure large screens don't stretch content too much */
+  #root {
+    @apply mx-auto w-full overflow-x-hidden;
   }
 }
 
