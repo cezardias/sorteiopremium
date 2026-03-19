@@ -21,7 +21,7 @@ const Sidebar = () => {
     navigate('/login');
   };
 
-  const [logo, setLogo] = React.useState("/assets/images/logos/logo.png");
+  const [logo, setLogo] = React.useState("https://api.sorteiospremiummultimarcas.com.br/img/logos/logo_dark_68ccdd8e977f5.png");
 
   React.useEffect(() => {
     const fetchSettings = async () => {
