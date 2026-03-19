@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate, Link } from 'react-router-dom';
+import api from '../../api/api';
 import { 
   BarChart, 
   ShoppingCart, 
