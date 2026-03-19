@@ -144,7 +144,9 @@ class SiteConfigController extends Controller
                 $data = array_merge($data, [
                     'meta_pixel' => $config->meta_pixel,
                     'plataform_name' => $config->plataform_name,
-                    'site_name' => $config->site_name ?? ($settings ? $settings->site_title : null)
+                    'site_name' => $config->site_name ?? ($settings ? $settings->site_title : null),
+                    'whatsapp_number' => $settings ? $settings->whatsapp : null,
+                    'instagram_link' => $settings ? $settings->instagram : null
                 ]);
             }
 

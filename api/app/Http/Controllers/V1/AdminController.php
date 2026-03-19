@@ -1755,6 +1755,8 @@ class AdminController extends Controller
             if ($request->social_share_title) $siteSetting->share_title = $request->social_share_title;
             if ($request->whatsapp_number) $siteSetting->whatsapp = $request->whatsapp_number;
             if ($request->instagram_link) $siteSetting->instagram = $request->instagram_link;
+            if ($request->whatsapp_group_url) $siteSetting->whatsapp_group_url = $request->whatsapp_group_url;
+            if ($request->helpdesk_url) $siteSetting->helpdesk_url = $request->helpdesk_url;
 
             $siteSetting->fill($data);
 
