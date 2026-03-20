@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/api';
+import { 
+  X, 
+  Save, 
+  User, 
+  Mail, 
+  Fingerprint, 
+  Phone,
+  AlertCircle,
+  CheckCircle2
+} from 'lucide-react';
 
 const ClientEditModal = ({ client, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -12,6 +22,7 @@ const ClientEditModal = ({ client, onClose, onSuccess }) => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     if (client) {
@@ -34,126 +45,145 @@ const ClientEditModal = ({ client, onClose, onSuccess }) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess(false);
     
     try {
-      // Replicating the backend's expected PUT requirement
       const response = await api.put('/admin/dashboard/editar/cliente', formData);
       
       if (response.data && response.data.success) {
-        onSuccess();
+        setSuccess(true);
+        setTimeout(() => {
+            onSuccess();
+        }, 1500);
       } else {
         setError(response.data.msg || 'Erro ao atualizar o cliente.');
       }
     } catch (err) {
       console.error('Update error:', err);
-      setError('Falha na comunicação com a API. Verifique os dados.');
+      setError(err.response?.data?.msg || 'Falha na comunicação com a API.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-[#1c1f2e] w-full max-w-md rounded-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 backdrop-blur-md p-4">
+      <div className="bg-[#141523] w-full max-w-xl rounded-[40px] shadow-2xl overflow-hidden border border-[#2a2d3e] flex flex-col animate-in zoom-in-95 duration-200">
         
         {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b border-[#2a2d3e]">
-          <h2 className="text-lg font-bold text-white uppercase tracking-wide">
-            CLIENTE
-          </h2>
-          <button 
-            onClick={onClose}
-            className="w-8 h-8 flex justify-center items-center rounded bg-red-500 hover:bg-red-600 text-white transition-colors"
-          >
-            &times;
+        <div className="px-8 py-6 border-b border-[#2a2d3e] bg-[#1c1f2e] flex justify-between items-center">
+          <div>
+            <h2 className="text-lg font-black text-white uppercase tracking-[0.2em] flex items-center gap-3">
+              <User className="text-blue-500" /> Editar Perfil
+            </h2>
+            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
+              ID: <span className="text-white">#{formData.id}</span>
+            </p>
+          </div>
+          <button onClick={onClose} className="w-10 h-10 flex justify-center items-center rounded-2xl bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white transition-all">
+            <X size={20} />
           </button>
         </div>
 
-        {/* Body */}
-        <div className="p-6">
+        <form onSubmit={handleSubmit} className="p-8 space-y-6">
           {error && (
-            <div className="mb-4 bg-red-500/10 border border-red-500 text-red-500 px-3 py-2 rounded text-sm">
-              {error}
+            <div className="bg-red-500/10 border border-red-500/20 text-red-500 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3">
+              <AlertCircle size={18} /> {error}
             </div>
           )}
-          
-          <form onSubmit={handleSubmit} className="space-y-4">
+
+          {success && (
+            <div className="bg-green-500/10 border border-green-500/20 text-green-500 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3">
+              <CheckCircle2 size={18} /> Dados atualizados com sucesso!
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Nome</label>
+              <label className="block text-[10px] font-black text-gray-500 uppercase mb-2 tracking-widest flex items-center gap-2">
+                 <User size={12}/> Nome
+              </label>
               <input 
                 type="text" 
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className="input-field" 
+                className="w-full bg-[#0f111a] border border-[#2a2d3e] text-white text-xs font-bold p-4 rounded-2xl focus:outline-none focus:border-blue-500/50 uppercase" 
                 required 
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Sobrenome</label>
+              <label className="block text-[10px] font-black text-gray-500 uppercase mb-2 tracking-widest">Sobrenome</label>
               <input 
                 type="text" 
                 name="surname"
                 value={formData.surname}
                 onChange={handleChange}
-                className="input-field" 
+                className="w-full bg-[#0f111a] border border-[#2a2d3e] text-white text-xs font-bold p-4 rounded-2xl focus:outline-none focus:border-blue-500/50 uppercase" 
+                required
               />
             </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Telefone</label>
+          </div>
+
+          <div>
+              <label className="block text-[10px] font-black text-gray-500 uppercase mb-2 tracking-widest flex items-center gap-2">
+                 <Phone size={12} className="text-green-500"/> Telefone (Não Editável)
+              </label>
               <input 
                 type="text" 
                 name="cellphone"
                 value={formData.cellphone}
-                onChange={handleChange}
                 readOnly
-                className="input-field bg-[#141523] opacity-70 cursor-not-allowed" 
-                title="A chave telefone não pode ser editada"
+                className="w-full bg-black/40 border border-[#2a2d3e] text-gray-600 text-xs font-bold p-4 rounded-2xl cursor-not-allowed" 
               />
-            </div>
+          </div>
 
-            <div className="grid grid-cols-2 gap-4 pt-2 mt-2 border-t border-[#2a2d3e]">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-green-500"></span> CPF
+          <div className="space-y-6 pt-4 border-t border-[#2a2d3e]">
+             <div>
+                <label className="block text-[10px] font-black text-gray-500 uppercase mb-2 tracking-widest flex items-center gap-2">
+                   <Fingerprint size={12} className="text-purple-500"/> CPF (Obrigatório)
                 </label>
                 <input 
                   type="text" 
                   name="cpf"
                   value={formData.cpf}
                   onChange={handleChange}
-                  className="input-field border-[#1db954]/50 focus:border-[#1db954]" 
                   placeholder="000.000.000-00"
+                  className="w-full bg-[#0f111a] border border-[#2a2d3e] text-white text-xs font-bold p-4 rounded-2xl focus:outline-none focus:border-purple-500/50" 
+                  required
                 />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-green-500"></span> E-mail
+             </div>
+             
+             <div>
+                <label className="block text-[10px] font-black text-gray-500 uppercase mb-2 tracking-widest flex items-center gap-2">
+                   <Mail size={12} className="text-blue-500"/> E-mail (Obrigatório)
                 </label>
                 <input 
                   type="email" 
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="input-field border-[#1db954]/50 focus:border-[#1db954]" 
-                  placeholder="cliente@email.com"
+                  placeholder="cliente@exemplo.com"
+                  className="w-full bg-[#0f111a] border border-[#2a2d3e] text-white text-xs font-bold p-4 rounded-2xl focus:outline-none focus:border-blue-500/50 lowercase" 
+                  required
                 />
-              </div>
-            </div>
+             </div>
+          </div>
 
-            <div className="pt-4">
-              <button 
-                type="submit" 
-                disabled={loading}
-                className={`btn-primary ${loading ? 'opacity-50 cursor-wait' : ''}`}
-              >
-                {loading ? 'Salvando...' : 'Atualizar'}
-              </button>
-            </div>
-          </form>
+          <button 
+            type="submit" 
+            disabled={loading}
+            className={`w-full bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-[10px] tracking-[0.2em] py-5 rounded-3xl transition-all shadow-xl shadow-blue-500/10 flex items-center justify-center gap-3 ${loading ? 'opacity-50 cursor-wait' : ''}`}
+          >
+            <Save size={18} /> {loading ? 'Sincronizando...' : 'Salvar Alterações'}
+          </button>
+        </form>
+
+        <div className="px-8 py-4 border-t border-[#2a2d3e] bg-[#0f111a]/50">
+            <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center">
+               Certifique-se de que o CPF e E-mail estão corretos para garantir a validade das premiações.
+            </p>
         </div>
       </div>
     </div>

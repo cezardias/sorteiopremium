@@ -1,2 +1,0 @@
-<?php
-echo "TIMESTAMP SYNC CHECK: 2026-03-13 02:56";
