@@ -56,10 +56,7 @@ class RifasController extends Controller
 
             // Consulta base apenas com dados essenciais
             $rifas = Rifas::query()
-                ->with([
-                    'cota:id,rifas_id,qntd_cota',
-                    'rifaImage:id,rifas_id,path',
-                ])
+                ->with(['cota', 'rifaImage', 'rifaPayment', 'rifaOthers'])
                 ->orderByDesc('created_at')
                 ->paginate($perPage);
 
@@ -67,29 +64,30 @@ class RifasController extends Controller
             $rifas->through(function ($rifa) {
 
                 // Faturamento total
-                $fatTotal = $rifa->rifaPay()->where('status', 1)->sum('value');
+                $revenue_total = $rifa->rifaPay()->where('status', 1)->sum('value');
 
                 // Faturamento de hoje
-                $fatHoje = $rifa->rifaPay()
+                $revenue_today = $rifa->rifaPay()
                     ->where('status', 1)
                     ->whereDate('created_at', Carbon::today())
                     ->sum('value');
 
                 // Quantidade de cotas vendidas (ativo)
-                $qntdNumeros = $rifa->rifaNumberActive()->pluck('numbers')->flatMap(function ($str) {
-                    return explode(',', $str);
-                })->filter()->count();
+                $total_vendas = $rifa->rifaNumberActive()->count();
 
                 // Quantidade de cotas reservadas
-                $qntdNumerosReservado = $rifa->rifaNumberReservado()->pluck('numbers')->flatMap(function ($str) {
-                    return explode(',', $str);
-                })->filter()->count();
+                $total_reservas = $rifa->rifaNumberReservado()->count();
+
+                // Percentual de vendas
+                $qntdTotal = $rifa->cota ? (int)$rifa->cota->qntd_cota : 0;
+                $vendas_percent = $qntdTotal > 0 ? round(($total_vendas / $qntdTotal) * 100, 2) : 0;
 
                 // Adiciona ao objeto
-                $rifa->fat_total = $fatTotal;
-                $rifa->fat_hoje = $fatHoje;
-                $rifa->qntd_numeros = $qntdNumeros;
-                $rifa->qntd_numeros_reservado = $qntdNumerosReservado;
+                $rifa->revenue_total = $revenue_total;
+                $rifa->revenue_today = $revenue_today;
+                $rifa->total_vendas = $total_vendas;
+                $rifa->total_reservas = $total_reservas;
+                $rifa->vendas_percent = $vendas_percent;
 
                 return $rifa;
             });
@@ -116,18 +114,10 @@ class RifasController extends Controller
 
             $query = Rifas::query()
                 ->with(['cota', 'rifaImage'])
-                ->withSum('rifaPayActiva as fat_total', 'value')
-                ->withSum('rifaPayToday as fat_hoje', 'value')
-                ->withCount([
-                    'rifaNumberActive as qntd_numeros' => function ($query) {
-                        $query->select(DB::raw("SUM(LENGTH(numbers) - LENGTH(REPLACE(numbers, ',', '')) + 1) as number_count"));
-                    }
-                ])
-                ->withCount([
-                    'rifaNumberReservado as qntd_numeros_reservado' => function ($query) {
-                        $query->select(DB::raw("SUM(LENGTH(numbers) - LENGTH(REPLACE(numbers, ',', '')) + 1) as number_count"));
-                    }
-                ]);
+                ->withSum('rifaPayActiva as revenue_total', 'value')
+                ->withSum('rifaPayToday as revenue_today', 'value')
+                ->withCount('rifaNumberActive as total_vendas')
+                ->withCount('rifaNumberReservado as total_reservas');
 
             // Adiciona filtros se os parâmetros estiverem presentes e não estiverem vazios
             if ($request->has('title') && $request->input('title') != '') {
@@ -139,6 +129,14 @@ class RifasController extends Controller
             }
 
             $rifasData = $query->latest()->get();
+
+            // Montar dados adicionais
+            $rifasData->map(function ($rifa) {
+                $total_vendas = (int)$rifa->total_vendas;
+                $qntdTotal = $rifa->cota ? (int)$rifa->cota->qntd_cota : 0;
+                $rifa->vendas_percent = $qntdTotal > 0 ? round(($total_vendas / $qntdTotal) * 100, 2) : 0;
+                return $rifa;
+            });
 
             // if ($rifasData->isEmpty()) {
             //     return response()->json(["success" => false, "msg" => "Rifas não foram encontradas."], 404);
