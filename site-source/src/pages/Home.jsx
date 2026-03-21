@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingBag, Trophy, MessageCircle, ArrowRight, Zap, Target, Star, Shield } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/api';
 import PurchaseModal from '../components/PurchaseModal';
 
@@ -11,6 +11,7 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedRaffleId, setSelectedRaffleId] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -88,9 +89,9 @@ const Home = () => {
           ) : raffles.length > 0 ? (
             raffles.map(raffle => (
               <div key={raffle.id} className="glass rounded-[32px] overflow-hidden group hover:border-primary/50 transition-all duration-500 transform hover:-translate-y-2 shadow-2xl shadow-black/50">
-                <div className="h-64 overflow-hidden relative">
+                <div className="h-64 overflow-hidden relative cursor-pointer" onClick={() => navigate(`/raffle/${raffle.id}`)}>
                   <img 
-                    src={raffle.rifa_image?.[0]?.path ? `/api/img/rifas/${raffle.rifa_image[0].path}` : 'https://placehold.co/800x600?text=Foto+do+Prêmio'} 
+                    src={raffle.rifa_image?.[0]?.path ? `https://sorteiospremiummultimarcas.com.br/api/public/storage/${raffle.rifa_image[0].path}` : 'https://placehold.co/800x600?text=Foto+do+Prêmio'} 
                     alt={raffle.title} 
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
@@ -107,7 +108,12 @@ const Home = () => {
                   </div>
                 </div>
                 <div className="p-8">
-                  <h3 className="text-xl font-black text-white uppercase tracking-tight mb-2 leading-tight">{raffle.title}</h3>
+                  <h3 
+                    className="text-xl font-black text-white uppercase tracking-tight mb-2 leading-tight cursor-pointer hover:text-primary transition-colors"
+                    onClick={() => navigate(`/raffle/${raffle.id}`)}
+                  >
+                    {raffle.title}
+                  </h3>
                   <p className="text-gray-500 text-sm font-bold uppercase tracking-widest line-clamp-2 mb-6">{raffle.subtitle || raffle.description}</p>
                   
                   <div className="flex items-center justify-between pt-6 border-t border-white/5">

@@ -55,7 +55,7 @@ class RifasController extends Controller
             $perPage = $request->input('per_page', 10);
 
             // Consulta base apenas com dados essenciais
-            $rifas = Rifas::select('id', 'title', 'slug', 'status', 'data_sortition', 'created_at')
+            $rifas = Rifas::query()
                 ->with([
                     'cota:id,rifas_id,qntd_cota',
                     'rifaImage:id,rifas_id,path',
@@ -96,7 +96,7 @@ class RifasController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $rifas->items() // <- devolve só o array da paginação
+                'data' => $rifas
             ], 200);
 
 
@@ -112,7 +112,10 @@ class RifasController extends Controller
     public function getAllRifasAdminFiltro(Request $request)
     {
         try {
-            $query = Rifas::with(['cota', 'rifaImage'])
+            $perPage = $request->input('per_page', 10);
+
+            $query = Rifas::query()
+                ->with(['cota', 'rifaImage'])
                 ->withSum('rifaPayActiva as fat_total', 'value')
                 ->withSum('rifaPayToday as fat_hoje', 'value')
                 ->withCount([

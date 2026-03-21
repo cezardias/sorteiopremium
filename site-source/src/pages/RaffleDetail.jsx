@@ -114,9 +114,10 @@ const RaffleDetail = () => {
         >
           <div className="aspect-square rounded-[40px] overflow-hidden glass border-white/5 relative group">
             <img 
-              src={raffle.rifa_image?.[0]?.path ? `/api/img/rifas/${raffle.rifa_image[0].path}` : 'https://placehold.co/800x800?text=Foto+do+Prêmio'} 
+              src={raffle.rifa_image?.[0]?.path ? `https://sorteiospremiummultimarcas.com.br/api/public/storage/${raffle.rifa_image[0].path}` : 'https://placehold.co/800x600?text=Foto+do+Prêmio'} 
               alt={raffle.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              onError={(e) => { e.target.src = "https://placehold.co/800x800?text=Foto+do+Prêmio"; }}
             />
             <div className="absolute top-6 left-6">
               <span className="px-4 py-2 rounded-full bg-primary text-black text-xs font-black uppercase tracking-widest shadow-xl">
@@ -128,7 +129,7 @@ const RaffleDetail = () => {
           <div className="grid grid-cols-4 gap-4">
             {raffle.rifa_image?.slice(1, 5).map((img, i) => (
               <div key={i} className="aspect-square rounded-2xl overflow-hidden glass border-white/5">
-                <img src={`/api/img/rifas/${img.path}`} alt="" className="w-full h-full object-cover" />
+                <img src={`https://sorteiospremiummultimarcas.com.br/api/public/storage/${img.path}`} alt="" className="w-full h-full object-cover" />
               </div>
             ))}
           </div>
@@ -177,21 +178,34 @@ const RaffleDetail = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[5, 10, 50, 100].map(qty => (
-                <button
-                  key={qty}
-                  onClick={() => handleQuantityChange(quantity + qty)}
-                  className={`py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                    quantity === qty 
-                      ? "bg-primary text-black shadow-lg" 
-                      : "bg-dark hover:bg-white/5 text-gray-500 border border-white/5"
-                  }`}
-                >
-                  +{qty} Bilhetes
-                </button>
-              ))}
-            </div>
+            {raffle.discount_package?.length > 0 && (
+              <div className="space-y-4 pt-4 border-t border-white/5">
+                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                  <Zap size={14} className="text-primary" /> Pacotes Promocionais
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {raffle.discount_package.map((pkg) => (
+                    <button
+                      key={pkg.id}
+                      onClick={() => {
+                        setQuantity(parseInt(pkg.qntd_cota));
+                        setModalOpen(true);
+                      }}
+                      className="relative glass p-4 rounded-2xl border-white/5 hover:border-primary/50 transition-all text-center group overflow-hidden"
+                    >
+                      {pkg.popular === 'sim' && (
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[8px] font-black px-3 py-0.5 rounded-b-lg uppercase tracking-widest z-10 shadow-lg">
+                          Mais Popular
+                        </div>
+                      )}
+                      <div className="text-lg font-black text-white group-hover:text-primary transition-colors">{pkg.qntd_cota}</div>
+                      <div className="text-[9px] font-black text-gray-500 line-through uppercase">R$ {(parseFloat(raffle.price) * pkg.qntd_cota).toFixed(2)}</div>
+                      <div className="text-xs font-black text-primary italic">R$ {parseFloat(pkg.valor_total).toFixed(2)}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="pt-8 border-t border-white/5 space-y-6">
               <div className="flex items-center justify-between">
@@ -223,6 +237,44 @@ const RaffleDetail = () => {
           </div>
         </motion.div>
       </div>
+
+      {/* Awarded Tickets Section */}
+      {raffle.awarded_quota?.length > 0 && (
+        <section className="glass rounded-[40px] p-10 border-white/5">
+          <div className="mb-8">
+            <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white flex items-center gap-3">
+              <Star className="text-primary" fill="currentColor" /> Bilhetes <span className="text-gray-600">Premiados</span>
+            </h2>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mt-1">Achou? Levou na hora!</p>
+          </div>
+          
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {raffle.awarded_quota.map((award) => (
+              <div 
+                key={award.id} 
+                className={`p-4 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${
+                  award.client ? 'bg-dark/40 border-gray-800 opacity-60' : 'bg-primary/5 border-primary/20 hover:scale-105'
+                }`}
+              >
+                <div className={`p-2 rounded-full mb-2 ${award.client ? 'text-gray-600' : 'text-primary animate-pulse'}`}>
+                  <Star size={20} fill={award.client ? "transparent" : "currentColor"} />
+                </div>
+                <div className={`text-sm font-black uppercase tracking-tight ${award.client ? 'line-through text-gray-500' : 'text-white'}`}>
+                  {award.number_cota}
+                </div>
+                <div className="text-[10px] font-black text-primary mt-1">
+                  R$ {parseFloat(award.award).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                </div>
+                {award.client && (
+                  <div className="text-[8px] font-black text-gray-600 uppercase mt-2 line-clamp-1 italic">
+                    {award.client.name.split(' ')[0]}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Ranking / Ranking Section if needed */}
       {ranking.length > 0 && (

@@ -53,9 +53,18 @@ const Raffles = () => {
     try {
       setLoading(true);
       const response = await api.get('/admin/dashboard/todas-rifas');
+      
+      let rifasList = [];
       if (response.data && response.data.success) {
-        setRifas(response.data.data || []);
+        // Handle Laravel Pagination object or direct array
+        if (Array.isArray(response.data.data)) {
+          rifasList = response.data.data;
+        } else if (response.data.data && Array.isArray(response.data.data.data)) {
+          rifasList = response.data.data.data;
+        }
       }
+      
+      setRifas(rifasList);
     } catch (error) {
       console.error('Erro ao buscar rifas:', error);
     } finally {
@@ -226,7 +235,7 @@ const Raffles = () => {
                   <td className="px-8 py-6 text-center">
                      <span className="text-[10px] font-black text-gray-600 font-mono">#{rifa.id}</span>
                   </td>
-                  <td className="px-6 py-6">
+                  <td className="px-6 py-6 cursor-pointer" onClick={() => handleEdit(rifa)}>
                     <div className="flex items-center gap-5">
                       <div className="w-16 h-16 rounded-2xl bg-[#0f111a] border border-[#2a2d3e] overflow-hidden group-hover:border-green-500/50 transition-all duration-500">
                         <img 
