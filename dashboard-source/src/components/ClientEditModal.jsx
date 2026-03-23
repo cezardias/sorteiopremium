@@ -34,6 +34,15 @@ const ClientEditModal = ({ client, onClose, onSuccess }) => {
         cpf: client.cpf || '',
         email: client.email || ''
       });
+    } else {
+      setFormData({
+        id: '',
+        name: '',
+        surname: '',
+        cellphone: '',
+        cpf: '',
+        email: ''
+      });
     }
   }, [client]);
 
@@ -48,7 +57,13 @@ const ClientEditModal = ({ client, onClose, onSuccess }) => {
     setSuccess(false);
     
     try {
-      const response = await api.put('/admin/dashboard/editar/cliente', formData);
+      const endpoint = client 
+        ? '/admin/dashboard/editar/cliente' 
+        : '/admin/dashboard/cadastrar/cliente';
+      
+      const response = client 
+        ? await api.put(endpoint, formData)
+        : await api.post(endpoint, formData);
       
       if (response.data && response.data.success) {
         setSuccess(true);
@@ -56,10 +71,10 @@ const ClientEditModal = ({ client, onClose, onSuccess }) => {
             onSuccess();
         }, 1500);
       } else {
-        setError(response.data.msg || 'Erro ao atualizar o cliente.');
+        setError(response.data.msg || 'Erro ao processar a solicitação.');
       }
     } catch (err) {
-      console.error('Update error:', err);
+      console.error('Submit error:', err);
       setError(err.response?.data?.msg || 'Falha na comunicação com a API.');
     } finally {
       setLoading(false);
@@ -74,10 +89,10 @@ const ClientEditModal = ({ client, onClose, onSuccess }) => {
         <div className="px-8 py-6 border-b border-[#2a2d3e] bg-[#1c1f2e] flex justify-between items-center">
           <div>
             <h2 className="text-lg font-black text-white uppercase tracking-[0.2em] flex items-center gap-3">
-              <User className="text-blue-500" /> Editar Perfil
+              <User className="text-blue-500" /> {client ? 'Editar Perfil' : 'Novo Cliente'}
             </h2>
             <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
-              ID: <span className="text-white">#{formData.id}</span>
+              {client ? `ID: #${formData.id}` : 'Cadastro Manual'}
             </p>
           </div>
           <button onClick={onClose} className="w-10 h-10 flex justify-center items-center rounded-2xl bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white transition-all">
@@ -94,7 +109,7 @@ const ClientEditModal = ({ client, onClose, onSuccess }) => {
 
           {success && (
             <div className="bg-green-500/10 border border-green-500/20 text-green-500 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3">
-              <CheckCircle2 size={18} /> Dados atualizados com sucesso!
+              <CheckCircle2 size={18} /> {client ? 'Dados atualizados com sucesso!' : 'Cliente cadastrado com sucesso!'}
             </div>
           )}
 
@@ -128,14 +143,16 @@ const ClientEditModal = ({ client, onClose, onSuccess }) => {
 
           <div>
               <label className="block text-[10px] font-black text-gray-500 uppercase mb-2 tracking-widest flex items-center gap-2">
-                 <Phone size={12} className="text-green-500"/> Telefone (Não Editável)
+                 <Phone size={12} className="text-green-500"/> Telefone {client && '(Não Editável)'}
               </label>
               <input 
                 type="text" 
                 name="cellphone"
                 value={formData.cellphone}
-                readOnly
-                className="w-full bg-black/40 border border-[#2a2d3e] text-gray-600 text-xs font-bold p-4 rounded-2xl cursor-not-allowed" 
+                onChange={handleChange}
+                readOnly={!!client}
+                className={`w-full border border-[#2a2d3e] text-xs font-bold p-4 rounded-2xl ${client ? 'bg-black/40 text-gray-600 cursor-not-allowed' : 'bg-[#0f111a] text-white focus:border-blue-500/50'}`} 
+                required
               />
           </div>
 
@@ -145,13 +162,13 @@ const ClientEditModal = ({ client, onClose, onSuccess }) => {
                    <Fingerprint size={12} className="text-purple-500"/> CPF (Obrigatório)
                 </label>
                 <input 
-                  type="text" 
-                  name="cpf"
-                  value={formData.cpf}
-                  onChange={handleChange}
-                  placeholder="000.000.000-00"
-                  className="w-full bg-[#0f111a] border border-[#2a2d3e] text-white text-xs font-bold p-4 rounded-2xl focus:outline-none focus:border-purple-500/50" 
-                  required
+                   type="text" 
+                   name="cpf"
+                   value={formData.cpf}
+                   onChange={handleChange}
+                   placeholder="000.000.000-00"
+                   className="w-full bg-[#0f111a] border border-[#2a2d3e] text-white text-xs font-bold p-4 rounded-2xl focus:outline-none focus:border-purple-500/50" 
+                   required
                 />
              </div>
              
@@ -160,13 +177,13 @@ const ClientEditModal = ({ client, onClose, onSuccess }) => {
                    <Mail size={12} className="text-blue-500"/> E-mail (Obrigatório)
                 </label>
                 <input 
-                  type="email" 
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="cliente@exemplo.com"
-                  className="w-full bg-[#0f111a] border border-[#2a2d3e] text-white text-xs font-bold p-4 rounded-2xl focus:outline-none focus:border-blue-500/50 lowercase" 
-                  required
+                   type="email" 
+                   name="email"
+                   value={formData.email}
+                   onChange={handleChange}
+                   placeholder="cliente@exemplo.com"
+                   className="w-full bg-[#0f111a] border border-[#2a2d3e] text-white text-xs font-bold p-4 rounded-2xl focus:outline-none focus:border-blue-500/50 lowercase" 
+                   required
                 />
              </div>
           </div>
@@ -176,7 +193,7 @@ const ClientEditModal = ({ client, onClose, onSuccess }) => {
             disabled={loading}
             className={`w-full bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-[10px] tracking-[0.2em] py-5 rounded-3xl transition-all shadow-xl shadow-blue-500/10 flex items-center justify-center gap-3 ${loading ? 'opacity-50 cursor-wait' : ''}`}
           >
-            <Save size={18} /> {loading ? 'Sincronizando...' : 'Salvar Alterações'}
+            <Save size={18} /> {loading ? 'Sincronizando...' : client ? 'Salvar Alterações' : 'Cadastrar Cliente'}
           </button>
         </form>
 

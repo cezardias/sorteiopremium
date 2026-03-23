@@ -50,8 +50,7 @@ const RaffleDetail = () => {
     const token = localStorage.getItem('client_token');
     const clientData = JSON.parse(localStorage.getItem('client_user') || '{}');
     if (!token || (!clientData.id && !clientData.phone && !clientData.cellphone)) {
-      toast.error('Você precisa estar logado para comprar');
-      navigate('/login', { state: { from: `/raffle/${id}` } });
+      setModalOpen(true);
       return;
     }
 
@@ -429,7 +428,7 @@ const RaffleDetail = () => {
         onClose={() => setModalOpen(false)} 
         raffleId={raffle.id} 
         initialQuantity={quantity}
-        startStep="payment"
+        startStep="selection"
       />
     </div>
   );

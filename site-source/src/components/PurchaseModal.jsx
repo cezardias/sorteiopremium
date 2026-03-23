@@ -5,22 +5,45 @@ import api from '../api/api';
 import toast from 'react-hot-toast';
 
 const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startStep = 'selection' }) => {
-  console.log("DEBUG: PurchaseModal Version 2.1 Loaded");
   const [raffle, setRaffle] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [quantity, setQuantity] = useState(1);
-  const [step, setStep] = useState('selection'); // selection, payment, success
+  const [quantity, setQuantity] = useState(initialQuantity);
+  const [step, setStep] = useState('selection'); // selection, auth, payment, success
+  const [authMode, setAuthMode] = useState('register'); // register, login
   const [paymentData, setPaymentData] = useState(null);
   const [buying, setBuying] = useState(false);
   const [statusPooling, setStatusPooling] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+
+  const [formData, setFormData] = useState({
+    name: '',
+    surname: '',
+    cellphone: '',
+    email: '',
+    cpf: ''
+  });
+
+  const [loadingAuth, setLoadingAuth] = useState(false);
 
   useEffect(() => {
     if (isOpen && raffleId) {
       setQuantity(initialQuantity);
       setStep(startStep);
       fetchRaffle();
+      
+      // Load user data if logged in
+      const clientInfo = JSON.parse(localStorage.getItem('client_user') || '{}');
+      if (clientInfo.id) {
+          setFormData(prev => ({
+              ...prev,
+              name: clientInfo.name || '',
+              surname: clientInfo.surname || '',
+              cellphone: clientInfo.cellphone || clientInfo.phone || '',
+              email: clientInfo.email || '',
+              cpf: clientInfo.cpf || ''
+          }));
+      }
     } else {
-        // Reset state when closing
         setStep('selection');
         setQuantity(1);
         setPaymentData(null);
@@ -28,58 +51,39 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
     }
   }, [isOpen, raffleId, initialQuantity, startStep]);
 
-  // Auto-trigger purchase if starting at payment step
-  useEffect(() => {
-    if (isOpen && step === 'payment' && raffle && !paymentData && !buying) {
-      handleBuy();
-    }
-  }, [isOpen, step, raffle, paymentData, buying]);
-
-  const fetchRaffle = async () => {
-    setLoading(true);
-    try {
-      const response = await api.get(`/produtos/detalhes/${raffleId}`);
-      if (response.data?.success) {
-        setRaffle(response.data.data.rifa);
-      } else {
-        toast.error('Erro ao buscar detalhes da rifa');
-        onClose();
-      }
-    } catch (error) {
-      console.error('Fetch error:', error);
-      toast.error('Erro de conexão');
-      onClose();
-    } finally {
-      setLoading(false);
-    }
+  const maskPhone = (value) => {
+    const numbers = value.replace(/\D/g, '').substring(0, 11);
+    if (numbers.length <= 2) return numbers;
+    if (numbers.length <= 6) return `(${numbers.substring(0, 2)}) ${numbers.substring(2)}`;
+    if (numbers.length <= 10) return `(${numbers.substring(0, 2)}) ${numbers.substring(2, 6)}-${numbers.substring(6)}`;
+    return `(${numbers.substring(0, 2)}) ${numbers.substring(2, 7)}-${numbers.substring(7)}`;
   };
 
-  const handleQuantityChange = (val) => {
-    const max = raffle?.cota?.qntd_cota_max_order || 1000;
-    setQuantity(Math.max(1, Math.min(val, max)));
+  const handlePhoneChange = (e) => {
+    const masked = maskPhone(e.target.value);
+    setFormData({ ...formData, cellphone: masked });
   };
-
-  const [profileData, setProfileData] = useState({ name: '', surname: '', cpf: '', email: '' });
-  const [updatingProfile, setUpdatingProfile] = useState(false);
 
   const handleBuy = async () => {
     const token = localStorage.getItem('client_token');
     const clientInfo = JSON.parse(localStorage.getItem('client_user') || '{}');
 
     if (!token || (!clientInfo.id && !clientInfo.phone && !clientInfo.cellphone)) {
-      toast.error('Você precisa estar logado para comprar');
+      setStep('auth');
       return;
     }
 
-    // Check for incomplete profile
-    if (!clientInfo.cpf || !clientInfo.email || !clientInfo.name || !clientInfo.surname) {
-      setProfileData({
+    // Check for incomplete profile (CPF/Email mandated by user)
+    if (!clientInfo.cpf || !clientInfo.email) {
+      setFormData({
+        ...formData,
         name: clientInfo.name || '',
         surname: clientInfo.surname || '',
+        cellphone: clientInfo.cellphone || clientInfo.phone || '',
         cpf: clientInfo.cpf || '',
         email: clientInfo.email || ''
       });
-      setStep('profile');
+      setStep('auth'); // Show form to complete
       return;
     }
 
@@ -103,10 +107,73 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
       }
     } catch (error) {
         console.error('Purchase error:', error);
-        const msg = error.response?.data?.msg;
-        toast.error(typeof msg === 'string' ? msg : 'Erro ao realizar compra');
+        if (error.response?.status === 401) {
+            localStorage.removeItem('client_token');
+            localStorage.removeItem('client_user');
+            setStep('auth');
+            toast.error('Sessão expirada. Por favor, entre novamente.');
+        } else {
+            toast.error(error.response?.data?.msg || 'Erro ao realizar compra');
+        }
     } finally {
       setBuying(false);
+    }
+  };
+
+  const handleAuth = async (e) => {
+    e.preventDefault();
+    setLoadingAuth(true);
+    try {
+      if (authMode === 'register') {
+          if (!termsAccepted) {
+              toast.error('Você precisa aceitar os termos');
+              return;
+          }
+          const response = await api.post('/client/register', formData);
+          if (response.data?.message === 'Novo cliente criado.' || response.status === 201) {
+              toast.success('Cadastro realizado!');
+              // Auto-login after register
+              const loginRes = await api.post('/client/login', { cellphone: formData.cellphone });
+              if (loginRes.data?.access_token) {
+                  localStorage.setItem('client_token', loginRes.data.access_token);
+                  localStorage.setItem('client_user', JSON.stringify(loginRes.data.user));
+                  handleBuy(); // Proceed
+              }
+          } else {
+              toast.error(response.data?.message || 'Erro no cadastro. Verifique se o telefone já existe.');
+          }
+      } else {
+          // Login Mode
+          const response = await api.post('/client/login', { cellphone: formData.cellphone });
+          if (response.data?.access_token) {
+              localStorage.setItem('client_token', response.data.access_token);
+              localStorage.setItem('client_user', JSON.stringify(response.data.user));
+              
+              // Verify if profile needs update
+              const user = response.data.user;
+              if (!user.cpf || !user.email) {
+                  setFormData({
+                    ...formData,
+                    name: user.name || '',
+                    surname: user.surname || '',
+                    cellphone: user.cellphone || user.phone || '',
+                    cpf: user.cpf || '',
+                    email: user.email || ''
+                  });
+                  toast.success('Login realizado! Por favor, complete seu cadastro.');
+                  setAuthMode('register'); // Use register view for update
+              } else {
+                toast.success('Bem-vindo de volta!');
+                handleBuy();
+              }
+          } else {
+              toast.error('Telefone não encontrado');
+          }
+      }
+    } catch (error) {
+        toast.error('Erro na autenticação. Verifique os dados.');
+    } finally {
+        setLoadingAuth(false);
     }
   };
 
@@ -114,34 +181,24 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
     e.preventDefault();
     const clientInfo = JSON.parse(localStorage.getItem('client_user') || '{}');
     
-    if (!profileData.cpf || !profileData.email) {
-      toast.error('Preencha todos os campos obrigatórios');
-      return;
-    }
-
-    setUpdatingProfile(true);
+    setLoadingAuth(true);
     try {
       const response = await api.post('/client/update-profile', {
-        ...profileData,
+        ...formData,
         client_id: clientInfo.id
       });
 
-      if (response.data?.success || response.status === 200) {
+      if (response.data?.success) {
         toast.success('Perfil atualizado com sucesso!');
-        const updatedUser = { ...clientInfo, ...profileData };
-        localStorage.setItem('client_user', JSON.stringify(updatedUser));
-        
-        // Transition back to selection or directly to buy
-        setStep('selection');
-        handleBuy(); // Try to buy again now that profile is complete
+        localStorage.setItem('client_user', JSON.stringify(response.data.client));
+        handleBuy();
       } else {
         toast.error(response.data?.msg || 'Erro ao atualizar perfil');
       }
     } catch (error) {
-      console.error('Profile update error:', error);
-      toast.error('Erro ao salvar dados do perfil');
+      toast.error('Erro ao salvar dados');
     } finally {
-      setUpdatingProfile(false);
+      setLoadingAuth(false);
     }
   };
 
@@ -230,7 +287,7 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
           <div className="p-6 flex items-center justify-between border-b border-white/5 bg-dark-accent/30">
             <h2 className="text-xl font-black text-white italic uppercase tracking-tighter flex items-center gap-3">
                <ShoppingBag className="text-primary" />
-               {step === 'selection' ? 'Participar' : step === 'profile' ? 'Completar Cadastro' : step === 'payment' ? 'Pagamento PIX' : 'Sucesso!'}
+                {step === 'selection' ? 'Participar' : step === 'auth' ? (authMode === 'register' ? 'Cadastro' : 'Acesse sua Conta') : step === 'payment' ? 'Pagamento PIX' : 'Sucesso!'}
             </h2>
             <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors">
               <X size={20} className="text-gray-500" />
@@ -245,87 +302,147 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
               </div>
             ) : (
               <>
-                {step === 'profile' && (
-                  <div className="space-y-6">
-                    <div className="bg-primary/10 border border-primary/20 p-6 rounded-3xl flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary flex-shrink-0">
-                            <AlertCircle size={24} />
-                        </div>
-                        <div className="space-y-1">
-                            <h4 className="text-sm font-black text-white uppercase tracking-widest">Informações Necessárias</h4>
-                            <p className="text-xs font-bold text-gray-400 uppercase tracking-tight leading-relaxed">
-                                Precisamos do seu <span className="text-primary underline">CPF e E-mail</span> para processar o pagamento e garantir a entrega do seu prêmio.
-                            </p>
-                        </div>
+            {step === 'auth' && (
+                  <div className="space-y-4">
+                    {/* Header with Toggle */}
+                    <div className="flex items-center justify-between pb-4 border-b border-white/5">
+                        <h3 className="text-sm font-black text-white uppercase tracking-widest">
+                            {authMode === 'register' ? 'Registrar Conta' : 'Fazer Login'}
+                        </h3>
+                        <button 
+                            type="button"
+                            onClick={() => setAuthMode(authMode === 'register' ? 'login' : 'register')}
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black uppercase rounded-lg transition-all"
+                        >
+                            {authMode === 'register' ? 'Já sou cliente!' : 'Quero me registrar'}
+                        </button>
                     </div>
 
-                    <form onSubmit={handleUpdateProfile} className="space-y-6">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-2">Nome</label>
-                                <input 
-                                    type="text" 
-                                    required
-                                    className="w-full bg-dark border border-white/5 rounded-2xl px-6 py-4 text-sm font-bold tracking-widest focus:outline-none focus:border-primary/50 transition-all placeholder:text-gray-800 text-white"
-                                    placeholder="Nome"
-                                    value={profileData.name}
-                                    onChange={(e) => setProfileData({...profileData, name: e.target.value})}
-                                />
+                    <form onSubmit={authMode === 'register' ? handleAuth : handleAuth} className="space-y-4">
+                        {/* Fields Container */}
+                        <div className="bg-white/5 p-6 rounded-3xl space-y-4 border border-white/5">
+                            {authMode === 'register' ? (
+                                <>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Nome</label>
+                                            <input 
+                                                type="text" 
+                                                required
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white focus:outline-none focus:border-primary/50 transition-all"
+                                                placeholder="Nome"
+                                                value={formData.name}
+                                                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Sobrenome</label>
+                                            <input 
+                                                type="text" 
+                                                required
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white focus:outline-none focus:border-primary/50 transition-all"
+                                                placeholder="Sobrenome"
+                                                value={formData.surname}
+                                                onChange={(e) => setFormData({...formData, surname: e.target.value})}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">WhatsApp / Celular</label>
+                                        <input 
+                                            type="text" 
+                                            required
+                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white focus:outline-none focus:border-primary/50 transition-all font-mono"
+                                            placeholder="(00) 00000-0000"
+                                            value={formData.cellphone}
+                                            onChange={handlePhoneChange}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">E-mail</label>
+                                        <input 
+                                            type="email" 
+                                            required
+                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white focus:outline-none focus:border-primary/50 transition-all"
+                                            placeholder="seu@email.com"
+                                            value={formData.email}
+                                            onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">CPF</label>
+                                        <input 
+                                            type="text" 
+                                            required
+                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white focus:outline-none focus:border-primary/50 transition-all"
+                                            placeholder="000.000.000-00"
+                                            value={formData.cpf}
+                                            onChange={(e) => setFormData({...formData, cpf: e.target.value})}
+                                        />
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">WhatsApp / Celular</label>
+                                    <input 
+                                        type="text" 
+                                        required
+                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white focus:outline-none focus:border-primary/50 transition-all font-mono"
+                                        placeholder="(00) 00000-0000"
+                                        value={formData.cellphone}
+                                        onChange={handlePhoneChange}
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Order Summary Box */}
+                        <div className="bg-primary/10 border border-primary/20 p-4 rounded-2xl flex items-center justify-between">
+                            <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Valor do pedido:</span>
+                            <span className="text-lg font-black text-white italic">{totalPrice}</span>
+                        </div>
+
+                        {/* Terms Box */}
+                        {authMode === 'register' && (
+                            <div className="bg-yellow-400/5 border border-yellow-400/20 p-4 rounded-2xl">
+                                <div className="flex items-center gap-3 cursor-pointer" onClick={() => setTermsAccepted(!termsAccepted)}>
+                                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${termsAccepted ? 'bg-primary border-primary' : 'border-white/10 bg-black/40'}`}>
+                                        {termsAccepted && <CheckCircle2 size={12} className="text-black" />}
+                                    </div>
+                                    <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">
+                                        Aceito os termos e condições de uso
+                                    </span>
+                                </div>
+                                <button type="button" className="mt-2 text-[9px] font-black text-blue-500 uppercase tracking-widest hover:underline">
+                                    Ver Termos e Condições
+                                </button>
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-2">Sobrenome</label>
-                                <input 
-                                    type="text" 
-                                    required
-                                    className="w-full bg-dark border border-white/5 rounded-2xl px-6 py-4 text-sm font-bold tracking-widest focus:outline-none focus:border-primary/50 transition-all placeholder:text-gray-800 text-white"
-                                    placeholder="Sobrenome"
-                                    value={profileData.surname}
-                                    onChange={(e) => setProfileData({...profileData, surname: e.target.value})}
-                                />
-                            </div>
-                        </div>
+                        )}
 
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-2">Telefone</label>
-                            <input 
-                                type="text" 
-                                readOnly
-                                className="w-full bg-dark/50 border border-white/5 rounded-2xl px-6 py-4 text-sm font-bold tracking-widest opacity-60 cursor-not-allowed text-white"
-                                value={JSON.parse(localStorage.getItem('client_user') || '{}').cellphone || ''}
-                            />
+                        {/* Footer Buttons */}
+                        <div className="flex items-center gap-4 pt-4">
+                            <button 
+                                type="button"
+                                onClick={() => setStep('selection')}
+                                className="px-8 py-4 bg-red-600 hover:bg-red-700 text-white font-black uppercase text-xs rounded-xl transition-all"
+                            >
+                                Voltar
+                            </button>
+                            <button 
+                                type="submit"
+                                disabled={loadingAuth || (authMode === 'register' && !termsAccepted)}
+                                className={`flex-1 flex items-center justify-center gap-2 py-4 font-black uppercase text-xs rounded-xl transition-all ${
+                                    (authMode === 'register' && !termsAccepted) ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-[#1db954] hover:bg-[#1ed760] text-black shadow-[0_5px_15px_rgba(29,185,84,0.2)]'
+                                }`}
+                            >
+                                {loadingAuth ? <Loader2 className="animate-spin" size={18} /> : (
+                                    <>
+                                        {authMode === 'register' ? 'Finalizar Cadastro' : 'Acesse sua Conta'}
+                                        <CheckCircle2 size={16} />
+                                    </>
+                                )}
+                            </button>
                         </div>
-
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-2">E-mail</label>
-                            <input 
-                                type="email" 
-                                required
-                                className="w-full bg-dark border border-white/5 rounded-2xl px-6 py-4 text-sm font-bold tracking-widest focus:outline-none focus:border-primary/50 transition-all placeholder:text-gray-800 text-white"
-                                placeholder="seu@email.com"
-                                value={profileData.email}
-                                onChange={(e) => setProfileData({...profileData, email: e.target.value})}
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-2">CPF</label>
-                            <input 
-                                type="text" 
-                                required
-                                className="w-full bg-dark border border-white/5 rounded-2xl px-6 py-4 text-sm font-bold tracking-widest focus:outline-none focus:border-primary/50 transition-all placeholder:text-gray-800 text-white"
-                                placeholder="000.000.000-00"
-                                value={profileData.cpf}
-                                onChange={(e) => setProfileData({...profileData, cpf: e.target.value})}
-                            />
-                        </div>
-
-                        <button 
-                            type="submit"
-                            disabled={updatingProfile}
-                            className="w-full bg-primary hover:bg-secondary text-black font-black uppercase py-5 rounded-2xl transition-all shadow-[0_10px_30px_rgba(29,185,84,0.3)] flex items-center justify-center gap-3 disabled:opacity-50"
-                        >
-                            {updatingProfile ? <Loader2 className="animate-spin" /> : <>Salvar e Continuar <ChevronRight size={18} /></>}
-                        </button>
                     </form>
                   </div>
                 )}
@@ -335,7 +452,7 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
                     <div className="flex items-center gap-6">
                       <div className="w-24 h-24 rounded-2xl overflow-hidden glass border-white/5 flex-shrink-0">
                         <img 
-                          src={raffle?.rifa_image?.[0]?.path ? `/api/img/rifas/${raffle.rifa_image[0].path}` : 'https://placehold.co/200?text=Rifa'} 
+                          src={raffle?.rifa_image?.[0]?.path ? `https://sorteiospremiummultimarcas.com.br/api/public/storage/${raffle.rifa_image[0].path}` : 'https://placehold.co/200?text=Rifa'} 
                           alt="" 
                           className="w-full h-full object-cover"
                         />
@@ -360,10 +477,8 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
                         {[5, 10, 50, 100].map(qty => (
                           <button
                             key={qty}
-                            onClick={() => setQuantity(prev => prev + qty)}
-                            className={`py-3 rounded-xl text-[10px] font-black uppercase transition-all ${
-                                false ? "bg-primary text-black" : "bg-dark text-gray-500 border border-white/5"
-                            }`}
+                            onClick={() => handleQuantityChange(quantity + qty)}
+                            className="py-3 bg-dark text-gray-500 border border-white/5 rounded-xl text-[10px] font-black uppercase hover:border-primary/50 transition-all hover:text-white"
                           >
                             +{qty}
                           </button>
@@ -392,16 +507,13 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
                   <div className="space-y-8 text-center">
                     <div className="space-y-2">
                         <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Pedido #{paymentData?.id}</p>
-                        <h3 className="text-2xl font-black text-white italic">R$ {paymentData?.value || '0,00'}</h3>
+                        <h3 className="text-2xl font-black text-white italic">R$ {parseFloat(paymentData?.value || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</h3>
                     </div>
 
                     <div className="mx-auto w-48 h-48 bg-white p-2 rounded-3xl shadow-2xl relative">
                         {paymentData?.qr_code_base64 && (
                             <img src={paymentData.qr_code_base64} alt="QR Code PIX" className="w-full h-full" />
                         )}
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/0 group">
-                            {/* Overlay if needed */}
-                        </div>
                     </div>
 
                     <div className="space-y-4">
@@ -458,7 +570,7 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
 
                     <button 
                         onClick={onClose}
-                        className="btn-primary w-full"
+                        className="w-full bg-primary hover:bg-secondary text-black font-black uppercase py-5 rounded-2xl transition-all"
                     >
                         Fechar Janela
                     </button>

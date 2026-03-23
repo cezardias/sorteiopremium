@@ -15,6 +15,12 @@ import {
   MoreVertical
 } from 'lucide-react';
 import ClientEditModal from '../components/ClientEditModal';
+import { twMerge } from 'tailwind-merge';
+import { clsx } from 'clsx';
+
+function cn(...inputs) {
+  return twMerge(clsx(inputs));
+}
 
 const Clients = () => {
   const [clients, setClients] = useState([]);
@@ -81,6 +87,11 @@ const Clients = () => {
     handleModalClose();
   };
 
+  const handleAddNew = () => {
+    setSelectedClient(null);
+    setEditModalOpen(true);
+  };
+
   const handleSearch = (e) => {
     e.preventDefault();
     fetchClients(1, searchQuery);
@@ -110,14 +121,23 @@ const Clients = () => {
            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.3em] ml-5">Gerenciamento centralizado de usuários e compradores</p>
         </div>
         
-        <div className="flex bg-[#1c1f2e] border border-[#2a2d3e] p-4 rounded-3xl items-center gap-4 transition-all hover:border-blue-500/30">
-           <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
-              <Users size={24} />
+        <div className="flex flex-col md:flex-row items-center gap-4">
+           <div className="flex bg-[#1c1f2e] border border-[#2a2d3e] p-4 rounded-3xl items-center gap-4 transition-all hover:border-blue-500/30">
+              <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                 <Users size={24} />
+              </div>
+              <div>
+                 <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">Total Registrado</p>
+                 <p className="text-xl font-black text-white leading-none">{pagination.total}</p>
+              </div>
            </div>
-           <div>
-              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">Total Registrado</p>
-              <p className="text-xl font-black text-white leading-none">{pagination.total}</p>
-           </div>
+
+           <button 
+             onClick={handleAddNew}
+             className="bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-[10px] tracking-[0.2em] px-8 py-5 rounded-3xl transition-all shadow-xl shadow-blue-500/20 flex items-center gap-3"
+           >
+              <Users size={18} /> Novo Cliente
+           </button>
         </div>
       </div>
 
@@ -147,7 +167,7 @@ const Clients = () => {
             <thead>
               <tr className="bg-[#0f111a]">
                 <th className="px-8 py-6 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] w-20">#</th>
-                <th className="px-6 py-6 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Cliente</th>
+                <th className="px-6 py-6 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Cliente / Status</th>
                 <th className="px-6 py-6 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Contato</th>
                 <th className="px-6 py-6 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Documento</th>
                 <th className="px-6 py-6 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] text-center">Ações</th>
@@ -167,54 +187,80 @@ const Clients = () => {
                    </td>
                 </tr>
               ) : (
-                clients.map((client) => (
-                  <tr key={client.id} className="hover:bg-white/[0.02] transition-colors group">
-                    <td className="px-8 py-6 text-[10px] font-black text-gray-600 font-mono">#{client.id}</td>
-                    <td className="px-6 py-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-[#2a2d3e] flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
-                           <User size={20} />
-                        </div>
-                        <div>
-                           <div className="text-sm font-black text-white uppercase tracking-tight">{client.name} {client.surname}</div>
-                           <div className="text-[9px] font-bold text-gray-500 uppercase tracking-wider mt-0.5 flex items-center gap-1">
-                              <Mail size={10} className="text-blue-400" /> {client.email || 'SEM E-MAIL'}
-                           </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-6">
-                       <div className="flex flex-col">
-                          <div className="text-[10px] font-black text-gray-300 flex items-center gap-2">
-                             <Phone size={12} className="text-green-500" /> {client.cellphone}
+                clients.map((client) => {
+                  const isIncomplete = !client.cpf || !client.email;
+                  return (
+                    <tr key={client.id} className="hover:bg-white/[0.02] transition-colors group">
+                      <td className="px-8 py-6 text-[10px] font-black text-gray-600 font-mono">#{client.id}</td>
+                      <td className="px-6 py-6">
+                        <div className="flex items-center gap-4">
+                          <div className={cn(
+                            "w-12 h-12 rounded-2xl border flex items-center justify-center transition-transform group-hover:scale-110",
+                            isIncomplete 
+                              ? "bg-red-500/10 border-red-500/20 text-red-500" 
+                              : "bg-gradient-to-br from-blue-500/20 to-purple-500/20 border-[#2a2d3e] text-blue-500"
+                          )}>
+                             <User size={20} />
                           </div>
-                          <span className="text-[8px] font-bold text-gray-600 uppercase tracking-widest mt-1">Registrado em: {client.created_at ? new Date(client.created_at).toLocaleDateString() : 'Desconhecido'}</span>
-                       </div>
-                    </td>
-                    <td className="px-6 py-6">
-                       <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#0f111a] border border-[#2a2d3e]">
-                          <Fingerprint size={12} className="text-purple-500" />
-                          <span className="text-[10px] font-black text-gray-400 font-mono tracking-tighter">{client.cpf || 'SEM CPF'}</span>
-                       </div>
-                    </td>
-                    <td className="px-6 py-6">
-                       <div className="flex justify-center gap-2">
-                          <button 
-                            onClick={() => handleEditClick(client)}
-                            className="w-10 h-10 flex items-center justify-center rounded-xl bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-black transition-all group/btn"
-                          >
-                             <Edit size={16} />
-                          </button>
-                          <button 
-                            onClick={() => handleDelete(client.id)}
-                            className="w-10 h-10 flex items-center justify-center rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-black transition-all group/btn"
-                          >
-                             <Trash2 size={16} />
-                          </button>
-                       </div>
-                    </td>
-                  </tr>
-                ))
+                          <div>
+                             <div className="flex items-center gap-2">
+                                <span className={cn(
+                                  "text-sm font-black uppercase tracking-tight",
+                                  isIncomplete ? "text-red-400" : "text-white"
+                                )}>
+                                  {client.name} {client.surname}
+                                </span>
+                                {isIncomplete && (
+                                   <span className="bg-red-500 text-white text-[7px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-tighter animate-pulse">Pendente</span>
+                                )}
+                             </div>
+                             <div className="text-[9px] font-bold text-gray-500 uppercase tracking-wider mt-0.5 flex items-center gap-1">
+                                <Mail size={10} className="text-blue-400" /> {client.email || 'SEM E-MAIL'}
+                             </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-6">
+                         <div className="flex flex-col">
+                            <div className="text-[10px] font-black text-gray-300 flex items-center gap-2">
+                               <Phone size={12} className="text-green-500" /> {client.cellphone}
+                            </div>
+                            <span className="text-[8px] font-bold text-gray-600 uppercase tracking-widest mt-1">Registrado em: {client.created_at ? new Date(client.created_at).toLocaleDateString() : 'Desconhecido'}</span>
+                         </div>
+                      </td>
+                      <td className="px-6 py-6">
+                         <div className={cn(
+                            "inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border",
+                            !client.cpf ? "bg-red-500/5 border-red-500/20" : "bg-[#0f111a] border-[#2a2d3e]"
+                         )}>
+                            <Fingerprint size={12} className={!client.cpf ? "text-red-500" : "text-purple-500"} />
+                            <span className={cn(
+                               "text-[10px] font-black font-mono tracking-tighter",
+                               !client.cpf ? "text-red-500/70" : "text-gray-400"
+                            )}>
+                               {client.cpf || 'SEM CPF'}
+                            </span>
+                         </div>
+                      </td>
+                      <td className="px-6 py-6">
+                         <div className="flex justify-center gap-2">
+                            <button 
+                              onClick={() => handleEditClick(client)}
+                              className="w-10 h-10 flex items-center justify-center rounded-xl bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-black transition-all group/btn"
+                            >
+                               <Edit size={16} />
+                            </button>
+                            <button 
+                              onClick={() => handleDelete(client.id)}
+                              className="w-10 h-10 flex items-center justify-center rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-black transition-all group/btn"
+                            >
+                               <Trash2 size={16} />
+                            </button>
+                         </div>
+                      </td>
+                    </tr>
+                  )
+                })
               )}
             </tbody>
           </table>

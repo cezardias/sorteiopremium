@@ -99,6 +99,7 @@ Route::group(['prefix' => 'admin', 'namespace' => 'App\Http\Controllers\V1'], fu
         // Config e Vendas
         Route::get("/dashboard/todos/clientes", "AdminController@allClients");
         Route::post("/dashboard/todos/clientes/filtro", "AdminController@allClientsFiltro");
+        Route::post("/dashboard/cadastrar/cliente", "AdminController@storeClients");
         Route::put("/dashboard/editar/cliente", "AdminController@editarClients");
         Route::get("/dashboard/ranking-geral", "AdminController@rankingGeral");
         Route::post("/dashboard/ranking-geral/filtro", "AdminController@rankingGeralFiltro");

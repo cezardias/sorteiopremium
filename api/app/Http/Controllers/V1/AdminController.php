@@ -576,6 +576,28 @@ class AdminController extends Controller
     }
 
 
+    public function storeClients(Request $request)
+    {
+        try {
+            $validatedData = $request->validate([
+                'name' => 'required|string|max:191',
+                'surname' => 'required|string|max:191',
+                'cellphone' => 'required|string|unique:clients,cellphone|max:191',
+                'cpf' => 'required|string|max:191',
+                'email' => 'required|email|max:191',
+            ]);
+
+            $client = Clients::create($validatedData);
+            
+            if (!$client) {
+                return response()->json(["success" => false, "msg" => "Erro ao cadastrar cliente"], 500);
+            }
+            return response()->json(["success" => true, "data" => $client], 201);
+        } catch (Exception $e) {
+            return response()->json(["success" => false, "msg" => $e->getMessage()], 500);
+        }
+    }
+
     public function getOneClient($id)
     {
         try {

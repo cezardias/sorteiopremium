@@ -46,8 +46,28 @@ const Navbar = () => {
     ] : []),
   ];
 
+  const clientUser = JSON.parse(localStorage.getItem('client_user') || '{}');
+  const isProfileIncomplete = isLoggedIn && (!clientUser.cpf || !clientUser.email);
+
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-dark/80 backdrop-blur-xl border-b border-white/5">
+    <>
+      {isProfileIncomplete && (
+        <div className="fixed top-0 left-0 right-0 z-[60] bg-accent text-black py-2 px-4 text-center overflow-hidden">
+          <div className="max-w-7xl mx-auto flex items-center justify-center gap-3">
+             <AlertCircle size={14} className="animate-pulse" />
+             <p className="text-[9px] font-black uppercase tracking-[0.1em]">
+               Cadastro Incompleto! <span className="hidden sm:inline">Atualize seu CPF e E-mail para garantir seus prêmios.</span>
+             </p>
+             <Link to="/perfil" className="bg-black text-white text-[8px] font-black px-3 py-1 rounded-full uppercase hover:scale-105 transition-transform">
+                Atualizar Agora
+             </Link>
+          </div>
+        </div>
+      )}
+      <nav className={cn(
+        "fixed left-0 right-0 z-50 bg-dark/80 backdrop-blur-xl border-b border-white/5 transition-all duration-300",
+        isProfileIncomplete ? "top-10" : "top-0"
+      )}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           <div className="flex items-center">
@@ -160,6 +180,7 @@ const Navbar = () => {
         </div>
       )}
     </nav>
+    </>
   );
 };
 
