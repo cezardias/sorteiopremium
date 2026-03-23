@@ -111,6 +111,8 @@ class ClientController extends Controller
         try {
             $validator = \Validator::make($request->all(), [
                 'client_id' => 'required|exists:clients,id',
+                'name' => 'required|string|max:255',
+                'surname' => 'required|string|max:255',
                 'cpf' => 'required|string|max:20',
                 'email' => 'required|email|max:255',
             ]);
@@ -121,6 +123,8 @@ class ClientController extends Controller
 
             $client = Clients::find($request->client_id);
             $client->update([
+                'name' => $request->name,
+                'surname' => $request->surname,
                 'cpf' => $request->cpf,
                 'email' => $request->email
             ]);

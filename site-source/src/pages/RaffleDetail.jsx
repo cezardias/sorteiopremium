@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ShoppingBag, Shield, Zap, Target, Star, ChevronLeft, Plus, Minus, AlertCircle, Loader2 } from 'lucide-react';
+import { ShoppingBag, Shield, Zap, Target, Star, ChevronLeft, Plus, Minus, AlertCircle, Loader2, ChevronDown, ChevronUp, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api/api';
 import toast from 'react-hot-toast';
@@ -15,6 +15,9 @@ const RaffleDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [buying, setBuying] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [showProductDesc, setShowProductDesc] = useState(false);
+  const [showSorteioDesc, setShowSorteioDesc] = useState(false);
+  const [awardedTab, setAwardedTab] = useState('ativas');
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -156,25 +159,60 @@ const RaffleDetail = () => {
                 <span className="text-xs font-black text-gray-500 uppercase tracking-widest mb-1">Valor Unitário</span>
                 <span className="text-3xl font-black text-primary italic">R$ {raffle.price || '0,00'}</span>
               </div>
-              <div className="flex items-center gap-4 bg-dark rounded-2xl p-2 border border-white/5">
-                <button 
-                  onClick={() => handleQuantityChange(quantity - 1)}
-                  className="p-3 hover:bg-white/5 rounded-xl text-gray-400 hover:text-white transition-colors"
-                >
-                  <Minus size={20} />
-                </button>
-                <input 
-                  type="number" 
-                  value={quantity}
-                  onChange={(e) => handleQuantityChange(parseInt(e.target.value) || 1)}
-                  className="w-16 bg-transparent text-center font-black text-xl text-white outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                />
-                <button 
-                  onClick={() => handleQuantityChange(quantity + 1)}
-                  className="p-3 hover:bg-white/5 rounded-xl text-gray-400 hover:text-white transition-colors"
-                >
-                  <Plus size={20} />
-                </button>
+              <div className="flex flex-col gap-6 bg-dark/30 rounded-3xl p-6 border border-white/5">
+                <div className="flex items-center justify-between">
+                  <input 
+                    type="range" 
+                    min={raffle?.cota?.qntd_cota_min_order || 1}
+                    max={raffle?.cota?.qntd_cota_max_order || 1000}
+                    step={1}
+                    value={quantity}
+                    onChange={(e) => handleQuantityChange(parseInt(e.target.value))}
+                    className="flex-1 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary"
+                  />
+                </div>
+                
+                <div className="flex flex-wrap gap-2">
+                  {[1, 5, 10, 50, 100].map(val => (
+                    <button 
+                      key={val}
+                      onClick={() => handleQuantityChange(quantity + val)}
+                      className="px-4 py-2 rounded-xl bg-white/5 hover:bg-primary hover:text-black transition-all text-[10px] font-black uppercase tracking-widest border border-white/5"
+                    >
+                      +{val}
+                    </button>
+                  ))}
+                  <button 
+                    onClick={() => setQuantity(raffle?.cota?.qntd_cota_min_order || 1)}
+                    className="px-4 py-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest border border-red-500/20"
+                  >
+                    Reset
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                  <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Quantidade</span>
+                  <div className="flex items-center gap-4 bg-[#0f111a] rounded-2xl p-1 border border-white/5">
+                    <button 
+                      onClick={() => handleQuantityChange(quantity - 1)}
+                      className="p-3 hover:bg-white/5 rounded-xl text-gray-400 hover:text-white transition-colors"
+                    >
+                      <Minus size={18} />
+                    </button>
+                    <input 
+                      type="number" 
+                      value={quantity}
+                      onChange={(e) => handleQuantityChange(parseInt(e.target.value) || 1)}
+                      className="w-16 bg-transparent text-center font-black text-xl text-white outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    <button 
+                      onClick={() => handleQuantityChange(quantity + 1)}
+                      className="p-3 hover:bg-white/5 rounded-xl text-gray-400 hover:text-white transition-colors"
+                    >
+                      <Plus size={18} />
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -208,17 +246,24 @@ const RaffleDetail = () => {
             )}
 
             <div className="pt-8 border-t border-white/5 space-y-6">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-black text-gray-500 uppercase tracking-widest">Total a pagar</span>
-                <span className="text-4xl font-black text-white italic">{totalPrice}</span>
+              <div className="flex items-center justify-between px-2">
+                <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Total a pagar</span>
+                <span className="text-4xl font-black text-white italic tracking-tighter">{totalPrice}</span>
               </div>
               
               <button 
                 onClick={() => setModalOpen(true)}
-                className="w-full bg-primary hover:bg-secondary text-black font-black uppercase py-6 rounded-2xl transition-all shadow-[0_10px_30px_rgba(29,185,84,0.3)] flex items-center justify-center gap-3 group"
+                disabled={buying}
+                className="w-full bg-primary hover:bg-[#1ed760] text-black font-black uppercase py-6 rounded-[2rem] transition-all shadow-[0_20px_40px_rgba(29,185,84,0.25)] hover:shadow-[0_25px_50px_rgba(29,185,84,0.35)] flex flex-col items-center justify-center gap-1 group relative overflow-hidden"
               >
-                  <ShoppingBag size={24} />
-                  <span>Comprar Agora</span>
+                  <div className="flex items-center gap-3 relative z-10">
+                    <ShoppingBag size={24} className="group-hover:scale-110 transition-transform" />
+                    <span className="text-lg tracking-wider">Comprar Agora</span>
+                  </div>
+                  <span className="text-[10px] opacity-70 relative z-10">PAGAMENTO SEGURO VIA PIX</span>
+                  
+                  {/* Glossy Effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
               </button>
             </div>
           </div>
@@ -235,21 +280,94 @@ const RaffleDetail = () => {
                </div>
              ))}
           </div>
+
+          {/* Expandable Descriptions */}
+          <div className="space-y-4">
+             <div className="glass rounded-3xl border border-white/5 overflow-hidden">
+                <button 
+                  onClick={() => setShowProductDesc(!showProductDesc)}
+                  className="w-full flex items-center justify-between p-6 hover:bg-white/5 transition-colors"
+                >
+                   <span className="text-xs font-black uppercase tracking-widest text-white flex items-center gap-3">
+                      <ShoppingBag size={18} className="text-primary" /> Descrição do Produto
+                   </span>
+                   {showProductDesc ? <ChevronUp size={20} className="text-gray-500" /> : <ChevronDown size={20} className="text-gray-500" />}
+                </button>
+                <AnimatePresence>
+                   {showProductDesc && (
+                      <motion.div 
+                        initial={{ height: 0 }}
+                        animate={{ height: 'auto' }}
+                        exit={{ height: 0 }}
+                        className="overflow-hidden"
+                      >
+                         <div className="px-6 pb-6 text-sm text-gray-400 leading-relaxed font-bold whitespace-pre-wrap">
+                            {raffle.description_product || 'Nenhuma descrição detalhada disponível.'}
+                         </div>
+                      </motion.div>
+                   )}
+                </AnimatePresence>
+             </div>
+
+             <div className="glass rounded-3xl border border-white/5 overflow-hidden">
+                <button 
+                  onClick={() => setShowSorteioDesc(!showSorteioDesc)}
+                  className="w-full flex items-center justify-between p-6 hover:bg-white/5 transition-colors"
+                >
+                   <span className="text-xs font-black uppercase tracking-widest text-white flex items-center gap-3">
+                      <Info size={18} className="text-primary" /> Detalhes do Sorteio
+                   </span>
+                   {showSorteioDesc ? <ChevronUp size={20} className="text-gray-500" /> : <ChevronDown size={20} className="text-gray-500" />}
+                </button>
+                <AnimatePresence>
+                   {showSorteioDesc && (
+                      <motion.div 
+                        initial={{ height: 0 }}
+                        animate={{ height: 'auto' }}
+                        exit={{ height: 0 }}
+                        className="overflow-hidden"
+                      >
+                         <div className="px-6 pb-6 text-sm text-gray-400 leading-relaxed font-bold whitespace-pre-wrap">
+                            {raffle.description_sortition || 'As regras gerais deste sorteio seguem os termos de uso do site.'}
+                         </div>
+                      </motion.div>
+                   )}
+                </AnimatePresence>
+             </div>
+          </div>
         </motion.div>
       </div>
 
       {/* Awarded Tickets Section */}
       {raffle.awarded_quota?.length > 0 && (
         <section className="glass rounded-[40px] p-10 border-white/5">
-          <div className="mb-8">
-            <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white flex items-center gap-3">
-              <Star className="text-primary" fill="currentColor" /> Bilhetes <span className="text-gray-600">Premiados</span>
-            </h2>
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mt-1">Achou? Levou na hora!</p>
+          <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+               <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white flex items-center gap-3">
+                 <Star className="text-primary" fill="currentColor" /> Bilhetes <span className="text-gray-600">Premiados</span>
+               </h2>
+               <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mt-1">Achou? Levou na hora!</p>
+            </div>
+            <div className="flex bg-dark/50 p-1 rounded-2xl border border-white/5 self-start">
+               <button 
+                onClick={() => setAwardedTab('ativas')}
+                className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${awardedTab === 'ativas' ? 'bg-primary text-black' : 'text-gray-500 hover:text-white'}`}
+               >
+                 Cotas Ativas
+               </button>
+               <button 
+                onClick={() => setAwardedTab('resgatadas')}
+                className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${awardedTab === 'resgatadas' ? 'bg-primary text-black' : 'text-gray-500 hover:text-white'}`}
+               >
+                 Resgatadas
+               </button>
+            </div>
           </div>
           
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {raffle.awarded_quota.map((award) => (
+            {raffle.awarded_quota
+              .filter(award => awardedTab === 'ativas' ? !award.client : !!award.client)
+              .map((award) => (
               <div 
                 key={award.id} 
                 className={`p-4 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${
@@ -272,6 +390,11 @@ const RaffleDetail = () => {
                 )}
               </div>
             ))}
+            {raffle.awarded_quota.filter(award => awardedTab === 'ativas' ? !award.client : !!award.client).length === 0 && (
+               <div className="col-span-full py-12 text-center text-[10px] font-black uppercase text-gray-600 tracking-[0.3em]">
+                  Nenhum bilhete {awardedTab === 'ativas' ? 'disponível' : 'resgatado'} no momento
+               </div>
+            )}
           </div>
         </section>
       )}

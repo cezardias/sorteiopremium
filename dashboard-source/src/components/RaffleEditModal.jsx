@@ -258,6 +258,16 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
                   <textarea name="description_resume" value={formData.description_resume} onChange={handleChange} className="w-full bg-[#1c1f2e] border border-[#2a2d3e] text-white text-xs font-bold p-4 rounded-2xl focus:outline-none focus:border-green-500/50 transition-all min-h-[80px]" required />
                 </div>
 
+                <div className="md:col-span-2">
+                  <label className="block text-[10px] font-black text-gray-500 uppercase mb-2 tracking-widest">Descrição do Produto</label>
+                  <textarea name="description_product" value={formData.description_product} onChange={handleChange} className="w-full bg-[#1c1f2e] border border-[#2a2d3e] text-white text-xs font-bold p-4 rounded-2xl focus:outline-none focus:border-green-500/50 transition-all min-h-[120px]" />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-[10px] font-black text-gray-500 uppercase mb-2 tracking-widest">Descrição do Sorteio</label>
+                  <textarea name="description_sortition" value={formData.description_sortition} onChange={handleChange} className="w-full bg-[#1c1f2e] border border-[#2a2d3e] text-white text-xs font-bold p-4 rounded-2xl focus:outline-none focus:border-green-500/50 transition-all min-h-[120px]" />
+                </div>
+
                 <div>
                   <label className="block text-[10px] font-black text-gray-500 uppercase mb-2 tracking-widest">Valor Unitário (R$)</label>
                   <input type="number" step="0.01" name="price" value={formData.price} onChange={handleChange} className="w-full bg-[#1c1f2e] border border-[#2a2d3e] text-green-500 text-sm font-black p-4 rounded-2xl focus:outline-none focus:border-green-500/50 transition-all" required />

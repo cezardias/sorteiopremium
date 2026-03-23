@@ -59,12 +59,27 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
     setQuantity(Math.max(1, Math.min(val, max)));
   };
 
+  const [profileData, setProfileData] = useState({ name: '', surname: '', cpf: '', email: '' });
+  const [updatingProfile, setUpdatingProfile] = useState(false);
+
   const handleBuy = async () => {
     const token = localStorage.getItem('client_token');
     const clientInfo = JSON.parse(localStorage.getItem('client_user') || '{}');
 
     if (!token || (!clientInfo.id && !clientInfo.phone && !clientInfo.cellphone)) {
       toast.error('Você precisa estar logado para comprar');
+      return;
+    }
+
+    // Check for incomplete profile
+    if (!clientInfo.cpf || !clientInfo.email || !clientInfo.name || !clientInfo.surname) {
+      setProfileData({
+        name: clientInfo.name || '',
+        surname: clientInfo.surname || '',
+        cpf: clientInfo.cpf || '',
+        email: clientInfo.email || ''
+      });
+      setStep('profile');
       return;
     }
 
@@ -92,6 +107,41 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
         toast.error(typeof msg === 'string' ? msg : 'Erro ao realizar compra');
     } finally {
       setBuying(false);
+    }
+  };
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    const clientInfo = JSON.parse(localStorage.getItem('client_user') || '{}');
+    
+    if (!profileData.cpf || !profileData.email) {
+      toast.error('Preencha todos os campos obrigatórios');
+      return;
+    }
+
+    setUpdatingProfile(true);
+    try {
+      const response = await api.post('/client/update-profile', {
+        ...profileData,
+        client_id: clientInfo.id
+      });
+
+      if (response.data?.success || response.status === 200) {
+        toast.success('Perfil atualizado com sucesso!');
+        const updatedUser = { ...clientInfo, ...profileData };
+        localStorage.setItem('client_user', JSON.stringify(updatedUser));
+        
+        // Transition back to selection or directly to buy
+        setStep('selection');
+        handleBuy(); // Try to buy again now that profile is complete
+      } else {
+        toast.error(response.data?.msg || 'Erro ao atualizar perfil');
+      }
+    } catch (error) {
+      console.error('Profile update error:', error);
+      toast.error('Erro ao salvar dados do perfil');
+    } finally {
+      setUpdatingProfile(false);
     }
   };
 
@@ -180,7 +230,7 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
           <div className="p-6 flex items-center justify-between border-b border-white/5 bg-dark-accent/30">
             <h2 className="text-xl font-black text-white italic uppercase tracking-tighter flex items-center gap-3">
                <ShoppingBag className="text-primary" />
-               {step === 'selection' ? 'Participar' : step === 'payment' ? 'Pagamento PIX' : 'Sucesso!'}
+               {step === 'selection' ? 'Participar' : step === 'profile' ? 'Completar Cadastro' : step === 'payment' ? 'Pagamento PIX' : 'Sucesso!'}
             </h2>
             <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors">
               <X size={20} className="text-gray-500" />
@@ -195,6 +245,91 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
               </div>
             ) : (
               <>
+                {step === 'profile' && (
+                  <div className="space-y-6">
+                    <div className="bg-primary/10 border border-primary/20 p-6 rounded-3xl flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary flex-shrink-0">
+                            <AlertCircle size={24} />
+                        </div>
+                        <div className="space-y-1">
+                            <h4 className="text-sm font-black text-white uppercase tracking-widest">Informações Necessárias</h4>
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-tight leading-relaxed">
+                                Precisamos do seu <span className="text-primary underline">CPF e E-mail</span> para processar o pagamento e garantir a entrega do seu prêmio.
+                            </p>
+                        </div>
+                    </div>
+
+                    <form onSubmit={handleUpdateProfile} className="space-y-6">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-2">Nome</label>
+                                <input 
+                                    type="text" 
+                                    required
+                                    className="w-full bg-dark border border-white/5 rounded-2xl px-6 py-4 text-sm font-bold tracking-widest focus:outline-none focus:border-primary/50 transition-all placeholder:text-gray-800 text-white"
+                                    placeholder="Nome"
+                                    value={profileData.name}
+                                    onChange={(e) => setProfileData({...profileData, name: e.target.value})}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-2">Sobrenome</label>
+                                <input 
+                                    type="text" 
+                                    required
+                                    className="w-full bg-dark border border-white/5 rounded-2xl px-6 py-4 text-sm font-bold tracking-widest focus:outline-none focus:border-primary/50 transition-all placeholder:text-gray-800 text-white"
+                                    placeholder="Sobrenome"
+                                    value={profileData.surname}
+                                    onChange={(e) => setProfileData({...profileData, surname: e.target.value})}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-2">Telefone</label>
+                            <input 
+                                type="text" 
+                                readOnly
+                                className="w-full bg-dark/50 border border-white/5 rounded-2xl px-6 py-4 text-sm font-bold tracking-widest opacity-60 cursor-not-allowed text-white"
+                                value={JSON.parse(localStorage.getItem('client_user') || '{}').cellphone || ''}
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-2">E-mail</label>
+                            <input 
+                                type="email" 
+                                required
+                                className="w-full bg-dark border border-white/5 rounded-2xl px-6 py-4 text-sm font-bold tracking-widest focus:outline-none focus:border-primary/50 transition-all placeholder:text-gray-800 text-white"
+                                placeholder="seu@email.com"
+                                value={profileData.email}
+                                onChange={(e) => setProfileData({...profileData, email: e.target.value})}
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-2">CPF</label>
+                            <input 
+                                type="text" 
+                                required
+                                className="w-full bg-dark border border-white/5 rounded-2xl px-6 py-4 text-sm font-bold tracking-widest focus:outline-none focus:border-primary/50 transition-all placeholder:text-gray-800 text-white"
+                                placeholder="000.000.000-00"
+                                value={profileData.cpf}
+                                onChange={(e) => setProfileData({...profileData, cpf: e.target.value})}
+                            />
+                        </div>
+
+                        <button 
+                            type="submit"
+                            disabled={updatingProfile}
+                            className="w-full bg-primary hover:bg-secondary text-black font-black uppercase py-5 rounded-2xl transition-all shadow-[0_10px_30px_rgba(29,185,84,0.3)] flex items-center justify-center gap-3 disabled:opacity-50"
+                        >
+                            {updatingProfile ? <Loader2 className="animate-spin" /> : <>Salvar e Continuar <ChevronRight size={18} /></>}
+                        </button>
+                    </form>
+                  </div>
+                )}
+
                 {step === 'selection' && (
                   <div className="space-y-8">
                     <div className="flex items-center gap-6">
