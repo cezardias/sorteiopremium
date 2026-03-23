@@ -24,6 +24,20 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
   });
 
   const [loadingAuth, setLoadingAuth] = useState(false);
+ 
+  const fetchRaffle = async () => {
+    try {
+      const response = await api.get(`/produtos/rifas-id/${raffleId}`);
+      if (response.data) {
+        setRaffle(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching raffle:', error);
+      toast.error('Erro ao carregar detalhes da rifa');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (isOpen && raffleId) {
