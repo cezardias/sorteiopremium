@@ -59,11 +59,16 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
       }
     } else {
         setStep('selection');
-        setQuantity(1);
+        setQuantity(initialQuantity || 1);
         setPaymentData(null);
         setStatusPooling(false);
     }
   }, [isOpen, raffleId, initialQuantity, startStep]);
+
+  const handleQuantityChange = (newQty) => {
+    if (newQty < 1) return;
+    setQuantity(newQty);
+  };
 
   const maskPhone = (value) => {
     const numbers = value.replace(/\D/g, '').substring(0, 11);
@@ -273,7 +278,8 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
 
   if (!isOpen) return null;
 
-  const totalPrice = (parseFloat(raffle?.price || 0) * quantity).toLocaleString('pt-BR', {
+  const totalPriceValue = parseFloat(raffle?.price || 0) * quantity;
+  const totalPrice = totalPriceValue.toLocaleString('pt-BR', {
     style: 'currency',
     currency: 'BRL'
   });
@@ -451,7 +457,7 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
                             >
                                 {loadingAuth ? <Loader2 className="animate-spin" size={18} /> : (
                                     <>
-                                        {authMode === 'register' ? 'Finalizar Cadastro' : 'Acesse sua Conta'}
+                                        {authMode === 'register' ? 'Quero participar' : 'Acesse sua Conta'}
                                         <CheckCircle2 size={16} />
                                     </>
                                 )}
