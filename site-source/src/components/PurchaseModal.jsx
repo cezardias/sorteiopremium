@@ -278,7 +278,8 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
 
   if (!isOpen) return null;
 
-  const totalPriceValue = parseFloat(raffle?.price || 0) * quantity;
+  const pricePerCota = parseFloat(raffle?.discount_package?.[0]?.value_cota || 0);
+  const totalPriceValue = pricePerCota * quantity;
   const totalPrice = totalPriceValue.toLocaleString('pt-BR', {
     style: 'currency',
     currency: 'BRL'
@@ -479,7 +480,7 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
                       </div>
                       <div className="space-y-1">
                         <h3 className="text-lg font-black text-white uppercase tracking-tight">{raffle?.title}</h3>
-                        <p className="text-primary font-black italic text-xl">R$ {raffle?.price || '0,00'}</p>
+                        <p className="text-primary font-black italic text-xl">R$ {parseFloat(raffle?.discount_package?.[0]?.value_cota || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})} / cota</p>
                       </div>
                     </div>
 
