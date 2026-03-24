@@ -398,31 +398,8 @@ const RaffleDetail = () => {
         </section>
       )}
 
-      {/* Ranking / Ranking Section if needed */}
-      {ranking.length > 0 && (
-          <section className="glass rounded-[40px] p-10 border-white/5">
-              <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white flex items-center gap-3 mb-8">
-                <Star className="text-primary" fill="currentColor" /> Top <span className="text-gray-600">Compradores</span>
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {ranking.map((rank, i) => (
-                      <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-dark/50 border border-white/5">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black ${
-                              i === 0 ? 'bg-yellow-400 text-black' :
-                              i === 1 ? 'bg-gray-400 text-black' :
-                              i === 2 ? 'bg-orange-400 text-black' : 'bg-dark-secondary text-gray-500'
-                          }`}>
-                              {i + 1}
-                          </div>
-                          <div>
-                              <p className="text-sm font-black text-white uppercase tracking-tight">{rank.client_name}</p>
-                              <p className="text-[10px] font-bold text-primary uppercase tracking-widest">{rank.total_tickets} Bilhetes</p>
-                          </div>
-                      </div>
-                  ))}
-              </div>
-          </section>
-      )}
+
+
       <PurchaseModal 
         isOpen={modalOpen} 
         onClose={() => setModalOpen(false)} 
