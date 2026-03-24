@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, X, Minus, Plus, Loader2, QrCode, Copy, CheckCircle2, ChevronRight, AlertCircle, ShieldCheck } from 'lucide-react';
+import { ShoppingBag, X, Minus, Plus, Loader2, Copy, CheckCircle2, ChevronRight, AlertCircle, ShieldCheck, ChevronDown, ChevronUp, Star, Smile } from 'lucide-react';
 import api from '../api/api';
 import toast from 'react-hot-toast';
 
@@ -8,12 +8,15 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
   const [raffle, setRaffle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(initialQuantity);
-  const [step, setStep] = useState('selection'); // selection, auth, payment, success
-  const [authMode, setAuthMode] = useState('register'); // register, login
+  const [step, setStep] = useState('selection');
+  const [authMode, setAuthMode] = useState('register');
   const [paymentData, setPaymentData] = useState(null);
   const [buying, setBuying] = useState(false);
   const [statusPooling, setStatusPooling] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [awardedTab, setAwardedTab] = useState('ativas');
+  const [showProductDesc, setShowProductDesc] = useState(false);
+  const [showSorteioDesc, setShowSorteioDesc] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -26,6 +29,7 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
   const [loadingAuth, setLoadingAuth] = useState(false);
  
   const fetchRaffle = async () => {
+    setLoading(true);
     try {
       const response = await api.get(`/produtos/detalhes/${raffleId}`);
       if (response.data?.success) {
@@ -43,11 +47,13 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
 
   useEffect(() => {
     if (isOpen && raffleId) {
-      setQuantity(initialQuantity);
+      setQuantity(initialQuantity || 1);
       setStep(startStep);
+      setAwardedTab('ativas');
+      setShowProductDesc(false);
+      setShowSorteioDesc(false);
       fetchRaffle();
       
-      // Load user data if logged in
       const clientInfo = JSON.parse(localStorage.getItem('client_user') || '{}');
       if (clientInfo.id) {
           setFormData(prev => ({
@@ -68,7 +74,10 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
   }, [isOpen, raffleId, initialQuantity, startStep]);
 
   const handleQuantityChange = (newQty) => {
-    if (newQty < 1) return;
+    const min = raffle?.cota?.qntd_cota_min_order || 1;
+    const max = raffle?.cota?.qntd_cota_max_order || 99999;
+    if (newQty < min) return;
+    if (newQty > max) return;
     setQuantity(newQty);
   };
 
@@ -81,30 +90,29 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
   };
 
   const handlePhoneChange = (e) => {
-    const masked = maskPhone(e.target.value);
-    setFormData({ ...formData, cellphone: masked });
+    setFormData({ ...formData, cellphone: maskPhone(e.target.value) });
   };
 
   const handleBuy = async () => {
     const token = localStorage.getItem('client_token');
     const clientInfo = JSON.parse(localStorage.getItem('client_user') || '{}');
 
-    if (!token || (!clientInfo.id && !clientInfo.phone && !clientInfo.cellphone)) {
+    if (!token || !clientInfo.id) {
       setStep('auth');
       return;
     }
-
-    // Check for incomplete profile (CPF/Email mandated by user)
+    
     if (!clientInfo.cpf || !clientInfo.email) {
-      setFormData({
-        ...formData,
+      setFormData(prev => ({
+        ...prev,
         name: clientInfo.name || '',
         surname: clientInfo.surname || '',
-        cellphone: clientInfo.cellphone || clientInfo.phone || '',
-        cpf: clientInfo.cpf || '',
-        email: clientInfo.email || ''
-      });
-      setStep('auth'); // Show form to complete
+        cellphone: clientInfo.cellphone || '',
+        email: clientInfo.email || '',
+        cpf: clientInfo.cpf || ''
+      }));
+      setAuthMode('register');
+      setStep('auth');
       return;
     }
 
@@ -153,24 +161,21 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
           const response = await api.post('/client/register', formData);
           if (response.data?.message === 'Novo cliente criado.' || response.status === 201) {
               toast.success('Cadastro realizado!');
-              // Auto-login after register
               const loginRes = await api.post('/client/login', { cellphone: formData.cellphone });
               if (loginRes.data?.access_token) {
                   localStorage.setItem('client_token', loginRes.data.access_token);
                   localStorage.setItem('client_user', JSON.stringify(loginRes.data.user));
-                  handleBuy(); // Proceed
+                  handleBuy();
               }
           } else {
               toast.error(response.data?.message || 'Erro no cadastro. Verifique se o telefone já existe.');
           }
       } else {
-          // Login Mode
           const response = await api.post('/client/login', { cellphone: formData.cellphone });
           if (response.data?.access_token) {
               localStorage.setItem('client_token', response.data.access_token);
               localStorage.setItem('client_user', JSON.stringify(response.data.user));
               
-              // Verify if profile needs update
               const user = response.data.user;
               if (!user.cpf || !user.email) {
                   setFormData({
@@ -182,7 +187,7 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
                     email: user.email || ''
                   });
                   toast.success('Login realizado! Por favor, complete seu cadastro.');
-                  setAuthMode('register'); // Use register view for update
+                  setAuthMode('register');
               } else {
                 toast.success('Bem-vindo de volta!');
                 handleBuy();
@@ -223,7 +228,6 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
     }
   };
 
-  // Pooling for status
   useEffect(() => {
     let interval;
     if (statusPooling && paymentData?.id) {
@@ -235,7 +239,6 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
             setStep('success');
             toast.success('Pagamento Confirmado!');
             
-            // Auto close after 3 seconds
             setTimeout(() => {
                 onClose();
                 window.location.href = '#/meus-pedidos';
@@ -251,7 +254,7 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
 
   const checkManualStatus = async () => {
     if (!paymentData?.id) return;
-    setBuying(true); // Re-use buying state for local loader if needed, or just let it spin
+    setBuying(true);
     try {
         const res = await api.get(`/produtos/compra-rifas-status/${paymentData.id}`);
         if (res.data?.success && res.data.status == 1) {
@@ -287,6 +290,14 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
     currency: 'BRL'
   });
 
+  const cotasAtivas = (raffle?.awarded_quota || []).filter(q => q.status === 'imediato' || q.status === 'bloqueada');
+  const cotasResgatadas = (raffle?.awarded_quota || []).filter(q => q.status === 'resgatada');
+
+  const stripHtml = (html) => {
+    if (!html) return '';
+    return html.replace(/<[^>]*>/g, ' ').replace(/\s\s+/g, ' ').trim();
+  };
+
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -304,10 +315,10 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          className="relative w-full max-w-lg bg-dark-secondary rounded-[40px] border border-white/10 shadow-2xl overflow-hidden"
+          className="relative w-full max-w-lg bg-dark-secondary rounded-[40px] border border-white/10 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
         >
           {/* Header */}
-          <div className="p-6 flex items-center justify-between border-b border-white/5 bg-dark-accent/30">
+          <div className="p-6 flex items-center justify-between border-b border-white/5 bg-dark-accent/30 flex-shrink-0">
             <h2 className="text-xl font-black text-white italic uppercase tracking-tighter flex items-center gap-3">
                <ShoppingBag className="text-primary" />
                 {step === 'selection' ? 'Participar' : step === 'auth' ? (authMode === 'register' ? 'Cadastro' : 'Acesse sua Conta') : step === 'payment' ? 'Pagamento PIX' : 'Sucesso!'}
@@ -317,17 +328,18 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
             </button>
           </div>
 
-          <div className="p-4 sm:p-8">
-            {loading ? (
-              <div className="py-20 flex flex-col items-center justify-center space-y-4">
-                <Loader2 className="w-10 h-10 text-primary animate-spin" />
-                <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Carregando detalhes...</p>
-              </div>
-            ) : (
-              <>
-            {step === 'auth' && (
+          <div className="overflow-y-auto flex-1">
+            <div className="p-4 sm:p-6">
+              {loading ? (
+                <div className="py-20 flex flex-col items-center justify-center space-y-4">
+                  <Loader2 className="w-10 h-10 text-primary animate-spin" />
+                  <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Carregando detalhes...</p>
+                </div>
+              ) : (
+                <>
+                {/* ===== STEP: AUTH ===== */}
+                {step === 'auth' && (
                   <div className="space-y-4">
-                    {/* Header with Toggle */}
                     <div className="flex items-center justify-between pb-4 border-b border-white/5">
                         <h3 className="text-sm font-black text-white uppercase tracking-widest">
                             {authMode === 'register' ? 'Registrar Conta' : 'Fazer Login'}
@@ -342,7 +354,6 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
                     </div>
 
                     <form onSubmit={authMode === 'register' ? handleAuth : handleAuth} className="space-y-4">
-                        {/* Fields Container */}
                         <div className="bg-white/5 p-6 rounded-3xl space-y-4 border border-white/5">
                             {authMode === 'register' ? (
                                 <>
@@ -419,17 +430,15 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
                             )}
                         </div>
 
-                        {/* Order Summary Box */}
                         <div className="bg-primary/10 border border-primary/20 p-4 rounded-2xl flex items-center justify-between">
                             <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Valor do pedido:</span>
                             <span className="text-lg font-black text-white italic">{totalPrice}</span>
                         </div>
 
-                        {/* Terms Box */}
                         {authMode === 'register' && (
                             <div className="bg-yellow-400/5 border border-yellow-400/20 p-4 rounded-2xl">
                                 <div className="flex items-center gap-3 cursor-pointer" onClick={() => setTermsAccepted(!termsAccepted)}>
-                                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${termsAccepted ? 'bg-primary border-primary' : 'border-white/10 bg-black/40'}`}>
+                                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${termsAccepted ? 'bg-primary border-primary' : 'border-yellow-400/50 bg-black/40'}`}>
                                         {termsAccepted && <CheckCircle2 size={12} className="text-black" />}
                                     </div>
                                     <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">
@@ -442,7 +451,6 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
                             </div>
                         )}
 
-                        {/* Footer Buttons */}
                         <div className="flex items-center gap-4 pt-4">
                             <button 
                                 type="button"
@@ -470,38 +478,54 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
                   </div>
                 )}
 
+                {/* ===== STEP: SELECTION ===== */}
                 {step === 'selection' && (
-                  <div className="space-y-8">
-                    <div className="flex items-center gap-6">
-                      <div className="w-24 h-24 rounded-2xl overflow-hidden glass border-white/5 flex-shrink-0">
+                  <div className="space-y-6">
+                    {/* Raffle Header */}
+                    <div className="flex items-center gap-4">
+                      <div className="w-20 h-20 rounded-2xl overflow-hidden glass border border-white/10 flex-shrink-0">
                         <img 
-                          src={raffle?.rifa_image?.[0]?.path ? `https://sorteiospremiummultimarcas.com.br/api/public/storage/${raffle.rifa_image[0].path}` : 'https://placehold.co/200?text=Rifa'} 
+                          src={raffle?.rifa_image?.[0]?.path ? `/api/img/rifas/${raffle.rifa_image[0].path}` : 'https://placehold.co/200?text=Rifa'} 
                           alt="" 
                           className="w-full h-full object-cover"
                         />
                       </div>
                       <div className="space-y-1">
-                        <h3 className="text-lg font-black text-white uppercase tracking-tight">{raffle?.title}</h3>
-                        <p className="text-primary font-black italic text-xl">R$ {parseFloat(raffle?.discount_package?.[0]?.value_cota || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})} / cota</p>
+                        <h3 className="text-base font-black text-white uppercase tracking-tight leading-tight">{raffle?.title}</h3>
+                        <p className="text-primary font-black italic text-lg">
+                          {pricePerCota.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} / cota
+                        </p>
                       </div>
                     </div>
 
-                    <div className="space-y-4">
+                    {/* Quantity Selector */}
+                    <div className="space-y-3">
                       <div className="flex items-center justify-between p-4 bg-dark rounded-2xl border border-white/5">
                         <span className="text-xs font-black text-gray-500 uppercase tracking-widest">Bilhetes</span>
-                        <div className="flex items-center gap-6">
-                          <button onClick={() => handleQuantityChange(quantity - 1)} className="p-2 text-gray-400 hover:text-white transition-colors"><Minus size={18} /></button>
-                          <span className="text-2xl font-black text-white w-8 text-center">{quantity}</span>
-                          <button onClick={() => handleQuantityChange(quantity + 1)} className="p-2 text-gray-400 hover:text-white transition-colors"><Plus size={18} /></button>
+                        <div className="flex items-center gap-4">
+                          <button 
+                            onClick={() => handleQuantityChange(quantity - 1)} 
+                            className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                          >
+                            <Minus size={16} />
+                          </button>
+                          <span className="text-2xl font-black text-white w-12 text-center">{quantity}</span>
+                          <button 
+                            onClick={() => handleQuantityChange(quantity + 1)}
+                            className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                          >
+                            <Plus size={16} />
+                          </button>
                         </div>
                       </div>
 
+                      {/* Quick add buttons */}
                       <div className="grid grid-cols-4 gap-2">
                         {[5, 10, 50, 100].map(qty => (
                           <button
                             key={qty}
                             onClick={() => handleQuantityChange(quantity + qty)}
-                            className="py-3 bg-dark text-gray-500 border border-white/5 rounded-xl text-[10px] font-black uppercase hover:border-primary/50 transition-all hover:text-white"
+                            className="py-2.5 bg-dark text-gray-500 border border-white/5 rounded-xl text-[10px] font-black uppercase hover:border-primary/50 transition-all hover:text-white"
                           >
                             +{qty}
                           </button>
@@ -509,7 +533,39 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
                       </div>
                     </div>
 
-                    <div className="pt-6 border-t border-white/5 space-y-6">
+                    {/* Promotional Packages */}
+                    {raffle?.discount_package?.length > 0 && (
+                      <div className="space-y-3">
+                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Pacotes Promocionais</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                          {raffle.discount_package.map(pkg => (
+                            <button
+                              key={pkg.id}
+                              onClick={() => setQuantity(parseInt(pkg.qntd_cota))}
+                              className={`p-3 rounded-2xl border text-left transition-all ${
+                                quantity === parseInt(pkg.qntd_cota)
+                                  ? 'border-primary bg-primary/10 shadow-[0_0_10px_rgba(29,185,84,0.2)]'
+                                  : 'border-white/5 bg-dark hover:border-white/20'
+                              } ${pkg.popular === 'sim' ? 'ring-1 ring-primary' : ''}`}
+                            >
+                              {pkg.popular === 'sim' && (
+                                <span className="block text-[8px] font-black text-primary uppercase tracking-widest mb-1">⭐ Mais Popular</span>
+                              )}
+                              <p className="text-xs font-black text-white">{parseInt(pkg.qntd_cota).toLocaleString('pt-BR')} cotas</p>
+                              <p className="text-lg font-black text-primary italic">
+                                R$ {parseFloat(pkg.valor_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                              </p>
+                              <p className="text-[9px] text-gray-500 font-bold mt-0.5">
+                                R$ {parseFloat(pkg.value_cota).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/cota
+                              </p>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Total + Continuar */}
+                    <div className="pt-4 border-t border-white/5 space-y-4">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-black text-gray-500 uppercase tracking-widest">Total a pagar</span>
                         <span className="text-3xl font-black text-white italic">{totalPrice}</span>
@@ -523,9 +579,99 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
                         {buying ? <Loader2 className="animate-spin" /> : <>Continuar <ChevronRight size={18} /></>}
                       </button>
                     </div>
+
+                    {/* Cotas Premiadas */}
+                    {raffle?.awarded_quota?.length > 0 && (
+                      <div className="space-y-3 pt-2 border-t border-white/5">
+                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-2">🏆 Cotas Premiadas</h4>
+                        {/* Tabs */}
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setAwardedTab('ativas')}
+                            className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${
+                              awardedTab === 'ativas' ? 'bg-primary text-black' : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                            }`}
+                          >
+                            Cotas Ativas ({cotasAtivas.length})
+                          </button>
+                          <button
+                            onClick={() => setAwardedTab('resgatadas')}
+                            className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${
+                              awardedTab === 'resgatadas' ? 'bg-primary text-black' : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                            }`}
+                          >
+                            Cotas Resgatadas ({cotasResgatadas.length})
+                          </button>
+                        </div>
+
+                        {/* Cotas Grid */}
+                        <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
+                          {(awardedTab === 'ativas' ? cotasAtivas : cotasResgatadas).map(cota => (
+                            <div
+                              key={cota.id}
+                              className={`p-3 rounded-xl border text-center space-y-1 ${
+                                awardedTab === 'resgatadas' 
+                                  ? 'border-primary/30 bg-primary/5' 
+                                  : 'border-white/10 bg-dark'
+                              }`}
+                            >
+                              <div className="text-lg">😊</div>
+                              {cota.client && (
+                                <p className="text-[10px] font-black text-white truncate">
+                                  {cota.client.name} {cota.client.surname?.charAt(0)}.
+                                </p>
+                              )}
+                              <p className="text-xs font-black text-primary">{cota.award}</p>
+                              <p className="text-[9px] text-gray-500 font-bold">Nº {cota.number_cota?.toLocaleString('pt-BR')}</p>
+                            </div>
+                          ))}
+                          {(awardedTab === 'ativas' ? cotasAtivas : cotasResgatadas).length === 0 && (
+                            <div className="col-span-2 py-4 text-center text-gray-600 text-xs font-bold">
+                              Nenhuma cota nesta categoria
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Description Accordions */}
+                    {raffle?.description_product && (
+                      <div className="border border-white/10 rounded-2xl overflow-hidden">
+                        <button
+                          onClick={() => setShowProductDesc(!showProductDesc)}
+                          className="w-full p-4 flex items-center justify-between bg-white/5 hover:bg-white/10 transition-colors"
+                        >
+                          <span className="text-xs font-black text-white uppercase tracking-widest">📦 Descrição do Produto</span>
+                          {showProductDesc ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+                        </button>
+                        {showProductDesc && (
+                          <div className="p-4 text-xs text-gray-400 leading-relaxed whitespace-pre-line bg-dark/50">
+                            {stripHtml(raffle.description_product)}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {raffle?.description_role && (
+                      <div className="border border-white/10 rounded-2xl overflow-hidden">
+                        <button
+                          onClick={() => setShowSorteioDesc(!showSorteioDesc)}
+                          className="w-full p-4 flex items-center justify-between bg-white/5 hover:bg-white/10 transition-colors"
+                        >
+                          <span className="text-xs font-black text-white uppercase tracking-widest">📋 Descrição do Sorteio</span>
+                          {showSorteioDesc ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+                        </button>
+                        {showSorteioDesc && (
+                          <div className="p-4 text-xs text-gray-400 leading-relaxed whitespace-pre-line bg-dark/50">
+                            {stripHtml(raffle.description_role)}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
 
+                {/* ===== STEP: PAYMENT ===== */}
                 {step === 'payment' && (
                   <div className="space-y-8 text-center">
                     <div className="space-y-2">
@@ -569,6 +715,7 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
                   </div>
                 )}
 
+                {/* ===== STEP: SUCCESS ===== */}
                 {step === 'success' && (
                   <div className="py-12 space-y-8 text-center">
                     <motion.div
@@ -599,8 +746,9 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
                     </button>
                   </div>
                 )}
-              </>
-            )}
+                </>
+              )}
+            </div>
           </div>
         </motion.div>
       </div>
