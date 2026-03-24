@@ -537,29 +537,39 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
                     {raffle?.discount_package?.length > 0 && (
                       <div className="space-y-3">
                         <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Pacotes Promocionais</h4>
-                        <div className="grid grid-cols-2 gap-2">
-                          {raffle.discount_package.map(pkg => (
-                            <button
-                              key={pkg.id}
-                              onClick={() => setQuantity(parseInt(pkg.qntd_cota))}
-                              className={`p-3 rounded-2xl border text-left transition-all ${
-                                quantity === parseInt(pkg.qntd_cota)
-                                  ? 'border-primary bg-primary/10 shadow-[0_0_10px_rgba(29,185,84,0.2)]'
-                                  : 'border-white/5 bg-dark hover:border-white/20'
-                              } ${pkg.popular === 'sim' ? 'ring-1 ring-primary' : ''}`}
-                            >
-                              {pkg.popular === 'sim' && (
-                                <span className="block text-[8px] font-black text-primary uppercase tracking-widest mb-1">⭐ Mais Popular</span>
-                              )}
-                              <p className="text-xs font-black text-white">{parseInt(pkg.qntd_cota).toLocaleString('pt-BR')} cotas</p>
-                              <p className="text-lg font-black text-primary italic">
-                                R$ {parseFloat(pkg.valor_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                              </p>
-                              <p className="text-[9px] text-gray-500 font-bold mt-0.5">
-                                R$ {parseFloat(pkg.value_cota).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/cota
-                              </p>
-                            </button>
-                          ))}
+                        <div className="grid grid-cols-4 gap-2">
+                          {raffle.discount_package.map(pkg => {
+                            const isSelected = quantity === parseInt(pkg.qntd_cota);
+                            const isPopular = pkg.popular === 'sim';
+                            return (
+                              <button
+                                key={pkg.id}
+                                onClick={() => setQuantity(parseInt(pkg.qntd_cota))}
+                                className={`relative flex flex-col items-center justify-center p-2 pt-4 rounded-xl border text-center transition-all ${
+                                  isSelected
+                                    ? 'border-primary bg-primary/10 shadow-[0_0_10px_rgba(29,185,84,0.2)]'
+                                    : isPopular
+                                      ? 'border-red-500/50 bg-white/5 hover:border-red-400'
+                                      : 'border-white/5 bg-dark hover:border-white/20'
+                                }`}
+                              >
+                                {isPopular && (
+                                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[6px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-widest whitespace-nowrap shadow-lg">
+                                    Mais popular
+                                  </div>
+                                )}
+                                <span className={`text-[11px] font-black leading-tight ${isSelected ? 'text-primary' : 'text-white'}`}>
+                                  {parseInt(pkg.qntd_cota).toLocaleString('pt-BR')}
+                                </span>
+                                <span className="text-[7px] font-black text-gray-500 line-through leading-none">
+                                  R$ {(pricePerCota * parseInt(pkg.qntd_cota)).toFixed(2)}
+                                </span>
+                                <span className={`text-[10px] font-black leading-none ${isSelected ? 'text-white' : 'text-primary'}`}>
+                                  R$ {parseFloat(pkg.valor_total).toFixed(2)}
+                                </span>
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
