@@ -27,9 +27,11 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
  
   const fetchRaffle = async () => {
     try {
-      const response = await api.get(`/produtos/rifas-id/${raffleId}`);
-      if (response.data) {
-        setRaffle(response.data);
+      const response = await api.get(`/produtos/detalhes/${raffleId}`);
+      if (response.data?.success) {
+        setRaffle(response.data.data.rifa);
+      } else {
+        toast.error('Sorteio não encontrado');
       }
     } catch (error) {
       console.error('Error fetching raffle:', error);
