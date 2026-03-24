@@ -95,7 +95,8 @@ const RaffleDetail = () => {
     );
   }
 
-  const totalPrice = (parseFloat(raffle.price || 0) * quantity).toLocaleString('pt-BR', {
+  const pricePerCota = parseFloat(raffle?.discount_package?.[0]?.value_cota || 0);
+  const totalPrice = (pricePerCota * quantity).toLocaleString('pt-BR', {
     style: 'currency',
     currency: 'BRL'
   });
@@ -116,7 +117,7 @@ const RaffleDetail = () => {
         >
           <div className="aspect-square rounded-[40px] overflow-hidden glass border-white/5 relative group">
             <img 
-              src={raffle.rifa_image?.[0]?.path ? `https://sorteiospremiummultimarcas.com.br/api/public/storage/${raffle.rifa_image[0].path}` : 'https://placehold.co/800x600?text=Foto+do+Prêmio'} 
+              src={raffle.rifa_image?.[0]?.path ? `/api/img/rifas/${raffle.rifa_image[0].path}` : 'https://placehold.co/800x600?text=Foto+do+Prêmio'} 
               alt={raffle.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               onError={(e) => { e.target.src = "https://placehold.co/800x800?text=Foto+do+Prêmio"; }}
@@ -131,7 +132,7 @@ const RaffleDetail = () => {
           <div className="grid grid-cols-4 gap-4">
             {raffle.rifa_image?.slice(1, 5).map((img, i) => (
               <div key={i} className="aspect-square rounded-2xl overflow-hidden glass border-white/5">
-                <img src={`https://sorteiospremiummultimarcas.com.br/api/public/storage/${img.path}`} alt="" className="w-full h-full object-cover" />
+                <img src={`/api/img/rifas/${img.path}`} alt="" className="w-full h-full object-cover" />
               </div>
             ))}
           </div>
@@ -156,7 +157,7 @@ const RaffleDetail = () => {
             <div className="flex items-center justify-between">
               <div className="flex flex-col">
                 <span className="text-xs font-black text-gray-500 uppercase tracking-widest mb-1">Valor Unitário</span>
-                <span className="text-3xl font-black text-primary italic">R$ {raffle.price || '0,00'}</span>
+                <span className="text-3xl font-black text-primary italic">R$ {pricePerCota.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
               </div>
               <div className="flex flex-col gap-6 bg-dark/30 rounded-3xl p-6 border border-white/5">
                 <div className="flex items-center justify-between">
@@ -236,7 +237,7 @@ const RaffleDetail = () => {
                         </div>
                       )}
                       <div className="text-lg font-black text-white group-hover:text-primary transition-colors">{pkg.qntd_cota}</div>
-                      <div className="text-[9px] font-black text-gray-500 line-through uppercase">R$ {(parseFloat(raffle.price) * pkg.qntd_cota).toFixed(2)}</div>
+                      <div className="text-[9px] font-black text-gray-500 line-through uppercase">R$ {(pricePerCota * parseInt(pkg.qntd_cota)).toFixed(2)}</div>
                       <div className="text-xs font-black text-primary italic">R$ {parseFloat(pkg.valor_total).toFixed(2)}</div>
                     </button>
                   ))}
@@ -365,7 +366,10 @@ const RaffleDetail = () => {
           
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {raffle.awarded_quota
-              .filter(award => awardedTab === 'ativas' ? !award.client : !!award.client)
+              .filter(award => awardedTab === 'ativas' 
+                ? (award.status === 'imediato' || award.status === 'bloqueada') 
+                : award.status === 'resgatada'
+              )
               .map((award) => (
               <div 
                 key={award.id} 
@@ -389,7 +393,10 @@ const RaffleDetail = () => {
                 )}
               </div>
             ))}
-            {raffle.awarded_quota.filter(award => awardedTab === 'ativas' ? !award.client : !!award.client).length === 0 && (
+            {raffle.awarded_quota.filter(award => awardedTab === 'ativas' 
+              ? (award.status === 'imediato' || award.status === 'bloqueada') 
+              : award.status === 'resgatada'
+            ).length === 0 && (
                <div className="col-span-full py-12 text-center text-[10px] font-black uppercase text-gray-600 tracking-[0.3em]">
                   Nenhum bilhete {awardedTab === 'ativas' ? 'disponível' : 'resgatado'} no momento
                </div>
