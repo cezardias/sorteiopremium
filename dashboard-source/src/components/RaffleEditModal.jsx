@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../api/api';
+import api, { IMAGE_BASE_URL } from '../api/api';
 import { 
   X, 
   Save, 
@@ -230,7 +230,7 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
                     <div className="w-40 h-40 rounded-3xl bg-[#0f111a] border-2 border-dashed border-[#2a2d3e] flex items-center justify-center overflow-hidden group relative">
                       {formData.img ? (
                         <>
-                          <img src={formData.img.startsWith('data:') ? formData.img : `https://sorteiospremiummultimarcas.com.br/api/public/img/rifas/${formData.img}`} alt="Preview" className="w-full h-full object-cover" />
+                          <img src={formData.img.startsWith('data:') ? formData.img : `${IMAGE_BASE_URL}/${formData.img}`} alt="Preview" className="w-full h-full object-cover" />
                           <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                             <span className="text-[10px] font-black text-white uppercase tracking-widest">Trocar</span>
                           </div>

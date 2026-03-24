@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../api/api';
+import api, { IMAGE_BASE_URL } from '../api/api';
 import { 
   Plus, 
   Search, 
@@ -239,7 +239,7 @@ const Raffles = () => {
                     <div className="flex items-center gap-5">
                       <div className="w-16 h-16 rounded-2xl bg-[#0f111a] border border-[#2a2d3e] overflow-hidden group-hover:border-green-500/50 transition-all duration-500">
                         <img 
-                          src={rifa.img ? `https://sorteiospremiummultimarcas.com.br/api/public/img/rifas/${rifa.img}` : `https://via.placeholder.com/64?text=RIFA`} 
+                          src={rifa.img ? `${IMAGE_BASE_URL}/${rifa.img}` : `https://via.placeholder.com/64?text=RIFA`} 
                           alt={rifa.title} 
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                         />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../api/api';
+import api, { IMAGE_BASE_URL } from '../api/api';
 import { 
   X, 
   Plus, 
@@ -134,7 +134,7 @@ const RaffleImagesModal = ({ raffle, onClose }) => {
                 images.map((img) => (
                   <div key={img.id} className="aspect-square rounded-3xl bg-[#0f111a] border border-[#2a2d3e] overflow-hidden relative group">
                     <img 
-                      src={`https://sorteiospremiummultimarcas.com.br/api/public/img/rifas/${img.img}`} 
+                      src={`${IMAGE_BASE_URL}/${img.img}`} 
                       alt="Gallery" 
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                     />
