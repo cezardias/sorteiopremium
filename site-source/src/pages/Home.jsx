@@ -91,7 +91,7 @@ const Home = () => {
               <div key={raffle.id} className="glass rounded-[32px] overflow-hidden group hover:border-primary/50 transition-all duration-500 transform hover:-translate-y-2 shadow-2xl shadow-black/50">
                 <div className="h-64 overflow-hidden relative cursor-pointer" onClick={() => navigate(`/raffle/${raffle.id}`)}>
                   <img 
-                    src={raffle.rifa_image?.[0]?.path ? `https://sorteiospremiummultimarcas.com.br/api/public/storage/${raffle.rifa_image[0].path}` : 'https://placehold.co/800x600?text=Foto+do+Prêmio'} 
+                    src={raffle.rifa_image?.[0]?.path ? `/api/img/rifas/${raffle.rifa_image[0].path}` : 'https://placehold.co/800x600?text=Foto+do+Prêmio'} 
                     alt={raffle.title} 
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
@@ -119,7 +119,7 @@ const Home = () => {
                   <div className="flex items-center justify-between pt-6 border-t border-white/5">
                     <div className="flex flex-col">
                       <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Bilhete</span>
-                      <span className="text-2xl font-black text-primary italic leading-none">R$ {raffle.price || '0,00'}</span>
+                      <span className="text-2xl font-black text-primary italic leading-none">R$ {parseFloat(raffle.discount_package?.[0]?.value_cota || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
                     </div>
                     <button 
                       onClick={() => {
