@@ -171,24 +171,28 @@ const RaffleDetail = () => {
                   <button
                     key={pkg.id}
                     onClick={() => setQuantity(parseInt(pkg.qntd_cota))}
-                    className={`relative p-3 rounded-2xl border text-center transition-all overflow-hidden ${
+                    className={`relative rounded-2xl border text-center transition-all ${
+                      pkg.popular === 'sim' ? 'pt-6 pb-3 px-3' : 'p-3'
+                    } ${
                       isSelected
                         ? 'border-primary bg-primary/15 shadow-[0_0_12px_rgba(29,185,84,0.3)]'
-                        : 'border-white/10 bg-dark hover:border-white/30'
+                        : pkg.popular === 'sim'
+                          ? 'border-red-500/60 bg-dark hover:border-red-400'
+                          : 'border-white/10 bg-dark hover:border-white/30'
                     }`}
                   >
                     {pkg.popular === 'sim' && (
-                      <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[7px] font-black px-2 py-0.5 rounded-b-lg uppercase tracking-widest">
-                        + Popular
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest whitespace-nowrap shadow-lg">
+                        Mais popular
                       </div>
                     )}
-                    <div className={`text-sm font-black mt-2 ${isSelected ? 'text-primary' : 'text-white'}`}>
+                    <div className={`text-sm font-black ${isSelected ? 'text-primary' : 'text-white'}`}>
                       {parseInt(pkg.qntd_cota).toLocaleString('pt-BR')}
                     </div>
                     <div className="text-[9px] font-black text-gray-500 line-through">
                       R$ {(pricePerCota * parseInt(pkg.qntd_cota)).toFixed(2)}
                     </div>
-                    <div className={`text-xs font-black italic ${isSelected ? 'text-white' : 'text-primary'}`}>
+                    <div className={`text-xs font-black ${isSelected ? 'text-white' : 'text-primary'}`}>
                       R$ {parseFloat(pkg.valor_total).toFixed(2)}
                     </div>
                   </button>
