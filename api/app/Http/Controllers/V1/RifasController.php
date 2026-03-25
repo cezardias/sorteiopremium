@@ -423,16 +423,25 @@ class RifasController extends Controller
         try {
             $rifaId = $request->rifas_id;
 
-            $rifa = Rifas::withCount('cota')->find($rifaId);
+            $rifa = Rifas::find($rifaId);
             if (!$rifa) {
                 return response()->json(['response' => false, 'msg' => 'Rifa não encontrada'], 404);
             }
 
-            $pacote = DiscountPackage::createDiscountPackage($request);
+            $pacote = DiscountPackage::updateOrCreate(
+                ['id' => $request->id],
+                [
+                    'qntd_cota' => $request->qntd_cota,
+                    'value_cota' => $request->value_cota,
+                    'popular' => $request->popular,
+                    'status' => $request->status,
+                    'rifas_id' => $rifaId
+                ]
+            );
 
             if ($pacote) {
-                $pacote = DiscountPackage::getAllPacotes($rifaId);
-                return response()->json(["success" => true, "msg" => "Pacote editado com sucesso", 'data' => $pacote], 200);
+                $pacotesAll = DiscountPackage::getAllPacotes($rifaId);
+                return response()->json(["success" => true, "msg" => "Pacote atualizado com sucesso", 'data' => $pacotesAll], 200);
             }
 
             return response()->json(['response' => false, 'msg' => 'Erro ao editar o pacote'], 500);
@@ -444,19 +453,19 @@ class RifasController extends Controller
     public function deletePacote(Request $request)
     {
         try {
-
             $packageId = $request->id;
-
             $package = DiscountPackage::find($packageId);
 
             if (!$package) {
-                return response()->json(['response' => false, 'msg' => 'Pacote não encontrada'], 404);
+                return response()->json(['response' => false, 'msg' => 'Pacote não encontrado'], 404);
             }
 
+            $rifaId = $package->rifas_id;
             $isDelete = $package->delete();
+
             if ($isDelete) {
-                $pacotesAll = DiscountPackage::getAllPacotes($packageId);
-                return response()->json(["success" => true, "msg" => "Pacote excluido com sucesso", 'data' => $pacotesAll], 200);
+                $pacotesAll = DiscountPackage::getAllPacotes($rifaId);
+                return response()->json(["success" => true, "msg" => "Pacote excluído com sucesso", 'data' => $pacotesAll], 200);
             }
 
         } catch (Exception $e) {

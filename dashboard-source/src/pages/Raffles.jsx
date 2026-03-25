@@ -300,26 +300,58 @@ const Raffles = () => {
                         onClick={(e) => e.stopPropagation()}
                       >
                         <div className="grid grid-cols-1 gap-1">
+                          <div className="text-[8px] font-black text-gray-500 uppercase tracking-widest px-4 py-2 opacity-50">Gestão</div>
                           {[
                             { label: 'Editar Campanha', icon: <Edit size={16}/>, onClick: () => handleEdit(rifa), color: 'blue' },
                             { label: 'Realizar Sorteio', icon: <Trophy size={16}/>, onClick: () => { setSelectedRifa(rifa); setIsDrawOpen(true); setOpenMenuId(null); }, color: 'green' },
-                            { label: 'Bilhetes Premiados', icon: <Trophy size={16}/>, onClick: () => { setSelectedRifa(rifa); setIsPrizesOpen(true); setOpenMenuId(null); }, color: 'yellow' },
-                            { label: 'Consultar Cota', icon: <Layers size={16}/>, onClick: () => { setSelectedRifa(rifa); setIsNumbersOpen(true); setOpenMenuId(null); }, color: 'blue' },
+                            { label: 'Bilhetes Premiados', icon: <Layers size={16}/>, onClick: () => { setSelectedRifa(rifa); setIsPrizesOpen(true); setOpenMenuId(null); }, color: 'yellow' },
+                          ].map((item, idx) => (
+                            <button
+                              key={idx}
+                              onClick={item.onClick}
+                              className={`flex items-center gap-3 w-full px-4 py-3 text-[10px] font-black uppercase tracking-widest text-${item.color}-500 hover:bg-${item.color}-500/10 rounded-2xl transition-all group`}
+                            >
+                              <div className={`p-2 rounded-xl bg-${item.color}-500/10 group-hover:scale-110 transition-transform`}>
+                                {item.icon}
+                              </div>
+                              {item.label}
+                            </button>
+                          ))}
+
+                          <div className="text-[8px] font-black text-gray-500 uppercase tracking-widest px-4 py-2 opacity-50 mt-2 border-t border-[#2a2d3e]/30 pt-4">Configuração</div>
+                          {[
+                            { label: 'Consultar Cota', icon: <Search size={16}/>, onClick: () => { setSelectedRifa(rifa); setIsNumbersOpen(true); setOpenMenuId(null); }, color: 'indigo' },
                             { label: 'Pacotes de Desconto', icon: <Package size={16}/>, onClick: () => { setSelectedRifa(rifa); setIsPackagesOpen(true); setOpenMenuId(null); }, color: 'purple' },
                             { label: 'Ofertas de Upsell', icon: <TrendingUp size={16}/>, onClick: () => { setSelectedRifa(rifa); setIsUpsellOpen(true); setOpenMenuId(null); }, color: 'orange' },
                             { label: 'Galeria de Fotos', icon: <ImageIcon size={16}/>, onClick: () => { setSelectedRifa(rifa); setIsImagesOpen(true); setOpenMenuId(null); }, color: 'pink' },
-                            { label: rifa.status === 'ativas' ? 'Interromper Sorteio' : 'Ativar Sorteio', icon: rifa.status === 'ativas' ? <Pause size={16}/> : <Play size={16}/>, onClick: () => handleToggleStatus(rifa.id, rifa.status), color: rifa.status === 'ativas' ? 'orange' : 'green' },
-                            { label: 'Remover Permanentemente', icon: <Trash2 size={16}/>, onClick: () => handleDelete(rifa.id), color: 'red' },
                           ].map((item, idx) => (
-                            <button 
+                            <button
                               key={idx}
                               onClick={item.onClick}
-                              className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-white/5 transition-all group/item"
+                              className={`flex items-center gap-3 w-full px-4 py-3 text-[10px] font-black uppercase tracking-widest text-${item.color}-500 hover:bg-${item.color}-500/10 rounded-2xl transition-all group`}
                             >
-                              <div className={`p-2 rounded-xl bg-${item.color}-500/10 text-${item.color}-500 group-hover/item:scale-125 transition-transform duration-300`}>
+                              <div className={`p-2 rounded-xl bg-${item.color}-500/10 group-hover:scale-110 transition-transform`}>
                                 {item.icon}
                               </div>
-                              <span className="text-[10px] font-black text-gray-400 group-hover/item:text-white uppercase tracking-widest">{item.label}</span>
+                              {item.label}
+                            </button>
+                          ))}
+
+                          <div className="text-[8px] font-black text-gray-500 uppercase tracking-widest px-4 py-2 opacity-50 mt-2 border-t border-[#2a2d3e]/30 pt-4">Ações</div>
+                          {[
+                            { label: 'Numeros Vendidos', icon: <Clock size={16}/>, onClick: () => { setSelectedRifa(rifa); setIsNumbersOpen(true); setOpenMenuId(null); }, color: 'blue' },
+                            { label: rifa.status === 'ativas' ? 'Pausar Sorteio' : 'Ativar Sorteio', icon: rifa.status === 'ativas' ? <Pause size={16}/> : <Play size={16}/>, onClick: () => handleToggleStatus(rifa.id, rifa.status), color: rifa.status === 'ativas' ? 'orange' : 'green' },
+                            { label: 'Remover Permanentemente', icon: <Trash2 size={16}/>, onClick: () => handleDelete(rifa.id), color: 'red' },
+                          ].map((item, idx) => (
+                            <button
+                              key={idx}
+                              onClick={item.onClick}
+                              className={`flex items-center gap-3 w-full px-4 py-3 text-[10px] font-black uppercase tracking-widest text-${item.color}-500 hover:bg-${item.color}-500/10 rounded-2xl transition-all group`}
+                            >
+                              <div className={`p-2 rounded-xl bg-${item.color}-500/10 group-hover:scale-110 transition-transform`}>
+                                {item.icon}
+                              </div>
+                              {item.label}
                             </button>
                           ))}
                         </div>
