@@ -296,7 +296,7 @@ const Raffles = () => {
                     
                     {openMenuId === rifa.id && (
                       <div 
-                        className="absolute right-full mr-4 top-0 z-50 bg-[#141523] border border-[#2a2d3e] rounded-[32px] shadow-[0_30px_60px_rgba(0,0,0,0.8)] p-3 w-72 backdrop-blur-2xl animate-in fade-in slide-in-from-top-4 duration-300 max-h-[70vh] overflow-y-auto custom-scrollbar"
+                        className="absolute right-0 top-full mt-2 z-50 bg-[#141523] border border-[#2a2d3e] rounded-[32px] shadow-[0_30px_60px_rgba(0,0,0,0.8)] p-3 w-72 backdrop-blur-2xl animate-in fade-in slide-in-from-top-2 duration-300 max-h-[70vh] overflow-y-auto custom-scrollbar"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <div className="grid grid-cols-1 gap-1">
