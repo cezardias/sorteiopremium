@@ -31,7 +31,15 @@ const RafflePackagesModal = ({ raffle, onClose }) => {
       setLoading(true);
       const response = await api.get(`/admin/dashboard/todos-pacotes/${raffle.id}`);
       if (response.data && response.data.success) {
-        setPackages(response.data.data);
+        // Handle direct array or Laravel Paginator object
+        const data = response.data.data;
+        if (Array.isArray(data)) {
+          setPackages(data);
+        } else if (data && Array.isArray(data.data)) {
+          setPackages(data.data);
+        } else {
+          setPackages([]);
+        }
       }
     } catch (err) {
       console.error('Error fetching packages:', err);

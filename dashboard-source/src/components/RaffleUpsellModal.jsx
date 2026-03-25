@@ -33,7 +33,9 @@ const RaffleUpsellModal = ({ raffle, onClose }) => {
       setFetching(true);
       const response = await api.get(`/admin/dashboard/upsell/${raffle.id}`);
       if (response.data && response.data.response && response.data.data) {
-        const item = response.data.data[0] || {}; // Assuming one upsell per raffle as per current logic
+        // Handle array or single item from Laravel
+        const items = Array.isArray(response.data.data) ? response.data.data : (response.data.data.data || []);
+        const item = items[0] || {}; // Assuming one upsell per raffle
         if (item.id) {
             setFormData({
                 id: item.id,

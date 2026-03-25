@@ -33,7 +33,15 @@ const RafflePrizesModal = ({ raffle, onClose }) => {
       setLoading(true);
       const response = await api.get(`/admin/dashboard/bilhete-premiado/all/${raffle.id}`);
       if (response.data && response.data.success) {
-        setPrizes(response.data.data);
+        // Handle direct array or Laravel Paginator object
+        const data = response.data.data;
+        if (Array.isArray(data)) {
+          setPrizes(data);
+        } else if (data && Array.isArray(data.data)) {
+          setPrizes(data.data);
+        } else {
+          setPrizes([]);
+        }
       }
     } catch (err) {
       console.error('Error fetching prizes:', err);
