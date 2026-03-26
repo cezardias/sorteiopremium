@@ -11,8 +11,14 @@ $response = $kernel->handle(
 
 try {
     $rifas = DB::table('rifas')->select('id', 'title', 'status', 'show_site')->get();
-    echo "<h1>Lista de Rifas no Banco</h1>";
-    echo "Conexão: " . DB::connection()->getDatabaseName() . "<br><br>";
+    $clientsCount = DB::table('clients')->count();
+    $ordersCount = DB::table('rifa_pays')->count();
+
+    echo "<h1>Diagnóstico de Dados</h1>";
+    echo "Conexão: " . DB::connection()->getDatabaseName() . "<br>";
+    echo "Total de Clientes: " . $clientsCount . "<br>";
+    echo "Total de Pedidos: " . $ordersCount . "<br><br>";
+
     echo "<table border='1'><tr><th>ID</th><th>Título</th><th>Status</th><th>Show Site</th></tr>";
     foreach ($rifas as $rifa) {
         echo "<tr>";
