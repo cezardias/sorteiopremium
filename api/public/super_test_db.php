@@ -1,7 +1,7 @@
 <?php
 $users = ['u434605668_sorteiopremium', 'u434605668_sorteiospremium'];
 $passwords = ['SorteioPremiumMultiMarca1!2#%34.', 'SorteiosPremiumMultiMarca1!2#%34.'];
-$dbs = ['u434605668_sorteiospremium', 'u434605668_sorteiopremium'];
+$dbs = ['u434605668_sorteiospremium', 'u434605668_sorteiopremium', 'u434605668_sorteiospremiu'];
 $hosts = ['localhost', '127.0.0.1'];
 
 echo "<h1>Super Teste de Conexão</h1>";
