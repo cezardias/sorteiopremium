@@ -18,6 +18,7 @@ class Cotas extends Model {
         'qntd_cota_min_order',
         'qntd_cota_max_order',
         'qntd_cota_max_client',
+        'qntd_cota_digit',
         'rifas_id',
     ];
 

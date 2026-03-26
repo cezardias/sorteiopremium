@@ -33,6 +33,7 @@ class Rifas extends Model
         'end_rifa',
         'user_id',
         'winner_id',
+        'winner_number',
     ];
 
 

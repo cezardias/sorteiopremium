@@ -1,44 +1,40 @@
 <?php
 require __DIR__ . '/../vendor/autoload.php';
 $app = require_once __DIR__ . '/../bootstrap/app.php';
+$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$kernel->bootstrap();
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-$kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
-$response = $kernel->handle(
-    $request = Illuminate\Http\Request::capture()
-);
+header('Content-Type: text/plain');
+
+echo "--- DB DIAGNOSTIC ---\n";
+echo "DB_DATABASE: " . env('DB_DATABASE') . "\n";
 
 try {
-    echo "<h1>Removendo Fator de Duplicidade (img/rifas/)</h1>";
-
-    // 1. Corrigir rifa_images
-    if (Schema::hasTable('rifa_images')) {
-        $images = DB::table('rifa_images')->get();
-        foreach ($images as $img) {
-            if (strpos($img->path, 'img/rifas/') === 0) {
-                $newPath = str_replace('img/rifas/', '', $img->path);
-                DB::table('rifa_images')->where('id', $img->id)->update(['path' => $newPath]);
-                echo "<p>Tabela rifa_images: ID {$img->id} -> $newPath</p>";
-            }
-        }
+    $tables_list = DB::select('SHOW TABLES');
+    $dbname_key = "Tables_in_" . env('DB_DATABASE');
+    
+    echo "TABLES FOUND:\n";
+    foreach ($tables_list as $table_obj) {
+        $props = get_object_vars($table_obj);
+        $tableName = reset($props);
+        echo "- $tableName\n";
     }
 
-    // 2. Corrigir rifas
-    if (Schema::hasTable('rifas')) {
-        $rifas = DB::table('rifas')->get();
-        foreach ($rifas as $rifa) {
-            if ($rifa->img && strpos($rifa->img, 'img/rifas/') === 0) {
-                $newPath = str_replace('img/rifas/', '', $rifa->img);
-                DB::table('rifas')->where('id', $rifa->id)->update(['img' => $newPath]);
-                echo "<p>Tabela rifas: ID {$rifa->id} -> $newPath</p>";
-            }
+    $tables_to_check = ['rifas', 'cotas', 'rifas_awarded', 'rifas_others', 'rifas_payment', 'rifa_pays', 'rifas_pay'];
+    foreach ($tables_to_check as $table) {
+        echo "\n--- Table: $table ---\n";
+        if (!Schema::hasTable($table)) {
+            echo "NOT FOUND\n";
+            continue;
+        }
+        $columns = Schema::getColumnListing($table);
+        foreach ($columns as $column) {
+            echo "- $column\n";
         }
     }
-
-    echo "<p style='color:green'><b>Reparo Concluído!</b> As imagens devem carregar agora.</p>";
-
 } catch (\Exception $e) {
-    echo "Erro: " . $e->getMessage();
+    echo "ERROR: " . $e->getMessage() . "\n";
 }

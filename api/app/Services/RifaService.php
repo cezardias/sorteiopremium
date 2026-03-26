@@ -25,6 +25,15 @@ class RifaService
             } catch (\Exception $e2) {}
         }
 
+        // Garante que a coluna qntd_cota_digit existe na tabela cotas
+        try {
+            DB::statement("ALTER TABLE cotas ADD COLUMN IF NOT EXISTS qntd_cota_digit INT DEFAULT 0 AFTER qntd_cota");
+        } catch (\Exception $e) {
+            try {
+                DB::statement("ALTER TABLE cotas ADD qntd_cota_digit INT DEFAULT 0 AFTER qntd_cota");
+            } catch (\Exception $e2) {}
+        }
+
         $rifasId = $datas->id ?? $rifasId; // Use $rifasId from parameter if $datas->id is null
         $datas->user_id = Auth::user()->id ?? null;
 
