@@ -3,6 +3,7 @@ require __DIR__ . '/../vendor/autoload.php';
 $app = require_once __DIR__ . '/../bootstrap/app.php';
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
 $response = $kernel->handle(
@@ -10,32 +11,50 @@ $response = $kernel->handle(
 );
 
 try {
-    echo "<h1>Verificação de Imagens de Rifas</h1>";
+    echo "<h1>Diagnóstico Profundo de Imagens</h1>";
 
+    // 1. Verificar rifas
     $rifas = DB::table('rifas')->get();
-
+    echo "<h2>Tabela rifas:</h2>";
     foreach ($rifas as $rifa) {
-        echo "<h3>Rifa ID: $rifa->id - $rifa->title</h3>";
-        
-        // Verificar campos possíveis de imagem
-        $imageFields = ['image', 'favicon', 'capa']; 
-        // Vou listar todas as colunas para ter certeza
-        $columns = (array)$rifa;
-        
-        foreach ($columns as $col => $value) {
-            if (stripos($col, 'image') !== false || stripos($col, 'img') !== false || stripos($col, 'capa') !== false || stripos($col, 'foto') !== false) {
-                echo "<p>Campo <b>$col</b>: $value ";
-                
-                if ($value) {
-                    $path = public_path($value);
+        $img = $rifa->img ?? 'Vazio';
+        echo "<p>Rifa ID: $rifa->id | Título: $rifa->title | Coluna 'img': $img ";
+        if ($rifa->img) {
+            $path = public_path($rifa->img);
+            if (file_exists($path)) {
+                echo " <span style='color:green'> [OK] </span>";
+            } else {
+                echo " <span style='color:red'> [ARQUIVO NÃO EXISTE EM: $path] </span>";
+            }
+        }
+        echo "</p>";
+    }
+
+    // 2. Verificar rifa_images
+    echo "<h2>Tabela rifa_images:</h2>";
+    $tableNames = ['rifa_images', 'rifa_image', 'rifas_images'];
+    foreach ($tableNames as $tableName) {
+        if (Schema::hasTable($tableName)) {
+            echo "<h3>Tabela '$tableName' encontrada:</h3>";
+            $images = DB::table($tableName)->get();
+            if ($images->count() == 0) {
+                echo "<p>Tabela está vazia.</p>";
+            }
+            foreach ($images as $img) {
+                $p = $img->path ?? 'N/A';
+                echo "<p>Rifa ID: " . ($img->rifas_id ?? 'N/A') . " | Path: $p ";
+                if ($p != 'N/A') {
+                    $path = public_path($p);
                     if (file_exists($path)) {
-                        echo " <span style='color:green'> [ARQUIVO EXISTE] </span>";
+                        echo " <span style='color:green'> [OK] </span>";
                     } else {
-                        echo " <span style='color:red'> [ARQUIVO NÃO ENCONTRADO EM: $path] </span>";
+                        echo " <span style='color:red'> [ARQUIVO NÃO EXISTE EM: $path] </span>";
                     }
                 }
                 echo "</p>";
             }
+        } else {
+            echo "<p>Tabela '$tableName' não existe.</p>";
         }
     }
 
@@ -50,8 +69,6 @@ try {
             }
         }
         echo "</ul>";
-    } else {
-        echo "<p style='color:red'>Diretório $dir não existe!</p>";
     }
 
 } catch (\Exception $e) {
