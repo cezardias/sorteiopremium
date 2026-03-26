@@ -184,3 +184,29 @@ Route::get('/run-migrations', function () {
         return "Erro: " . $e->getMessage();
     }
 });
+
+Route::get('/debug-env', function () {
+    try {
+        return [
+            'APP_ENV' => env('APP_ENV'),
+            'DB_DATABASE' => config('database.connections.mysql.database'),
+            'DB_HOST' => config('database.connections.mysql.host'),
+            'User_Count' => \App\Models\User::count(),
+            'Token_Count' => \DB::table('personal_access_tokens')->count(),
+            'Last_User' => \App\Models\User::orderBy('id', 'desc')->first()
+        ];
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
+});
+
+Route::get('/clear-all-cache', function () {
+    try {
+        Artisan::call('config:clear');
+        Artisan::call('cache:clear');
+        Artisan::call('route:clear');
+        return "All caches cleared!";
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
+});
