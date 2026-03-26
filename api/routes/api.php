@@ -184,37 +184,3 @@ Route::get('/run-migrations', function () {
         return "Erro: " . $e->getMessage();
     }
 });
-
-Route::get('/debug-env', function () {
-    $results = [];
-    $databases = ['u434605668_sorteiospremiu', 'u434605668_sorteiopremium'];
-    
-    foreach ($databases as $db) {
-        try {
-            config(['database.connections.mysql.database' => $db]);
-            DB::purge('mysql');
-            DB::reconnect('mysql');
-            $user_count = DB::table('users')->count();
-            $results[$db] = "SUCCESS - Users: $user_count";
-        } catch (\Exception $e) {
-            $results[$db] = "ERROR: " . $e->getMessage();
-        }
-    }
-    
-    return [
-        'current_config' => config('database.connections.mysql.database'),
-        'test_results' => $results,
-        'app_key_set' => !empty(env('APP_KEY'))
-    ];
-});
-
-Route::get('/clear-all-cache', function () {
-    try {
-        Artisan::call('config:clear');
-        Artisan::call('cache:clear');
-        Artisan::call('route:clear');
-        return "All caches cleared!";
-    } catch (\Exception $e) {
-        return "Error: " . $e->getMessage();
-    }
-});
