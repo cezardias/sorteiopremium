@@ -30,11 +30,13 @@ try {
     }
     echo "</table>";
 
-    $counts = DB::table('rifas')->select('status', DB::raw('count(*) as total'))->groupBy('status')->get();
-    echo "<h2>Resumo por Status:</h2>";
-    foreach ($counts as $c) {
-        echo "- {$c->status}: {$c->total}<br>";
+    $users = DB::table('users')->select('id', 'name', 'email', 'role')->limit(5)->get();
+    echo "<h2>Amostra de Usuários e Roles:</h2>";
+    echo "<table border='1'><tr><th>ID</th><th>Nome</th><th>Email</th><th>Role</th></tr>";
+    foreach ($users as $user) {
+        echo "<tr><td>{$user->id}</td><td>{$user->name}</td><td>{$user->email}</td><td>{$user->role}</td></tr>";
     }
+    echo "</table>";
 
 } catch (\Exception $e) {
     echo "Erro: " . $e->getMessage();
