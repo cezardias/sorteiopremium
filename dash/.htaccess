@@ -6,14 +6,13 @@
   RewriteCond %{HTTPS} off
   RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-  # SPA Routing for Dash
-  # Se o arquivo existir no sistema de arquivos, serve ele diretamente
+  # Ignorar arquivos reais de assets e outros
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # Caso contrário, serve o index.html (React Router assume daqui)
-  RewriteRule . index.html [L]
+  # SPA Routing: Fallback para index.html para qualquer coisa que não seja arquivo/diretório
+  RewriteRule ^ index.html [L]
 </IfModule>
 
 # Security Headers
