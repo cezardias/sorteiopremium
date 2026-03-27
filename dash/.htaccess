@@ -1,0 +1,17 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  
+  # Redirecionar HTTP para HTTPS
+  RewriteCond %{HTTPS} off
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # Se for um arquivo real (JS, CSS, Imagem, PHP), NÃO REESCREVE
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # SPA Routing: Fallback para o index.html (React Router assume daqui)
+  # Usamos [L] para garantir que é o último processamento
+  RewriteRule . index.html [L]
+</IfModule>
