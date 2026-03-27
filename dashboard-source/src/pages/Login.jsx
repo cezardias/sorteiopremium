@@ -85,8 +85,16 @@ const Login = () => {
           </button>
         </form>
 
-        <div className="mt-8 text-center text-gray-500 text-xs uppercase tracking-widest font-bold">
-          v2.0 Native React Build
+        <div className="mt-8 flex flex-col items-center gap-4">
+          <button 
+            onClick={() => { localStorage.clear(); window.location.reload(); }}
+            className="text-red-500 text-[10px] uppercase font-bold tracking-tighter hover:underline opacity-50"
+          >
+            Limpar Cache do Navegador (Emergency Reset)
+          </button>
+          <div className="text-gray-500 text-xs uppercase tracking-widest font-bold">
+            v2.1 Emergency Fix
+          </div>
         </div>
       </div>
     </div>
