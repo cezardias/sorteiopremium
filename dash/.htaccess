@@ -9,9 +9,11 @@
   # Ignorar arquivos reais de assets e outros
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
+  # Excluir explicitamente extensões comuns para garantir que o Apache não as entregue para o index.html
+  RewriteCond %{REQUEST_URI} \.(js|css|php|svg|png|jpg|jpeg|gif|ico|woff|woff2|ttf|eot)$ [NC]
   RewriteRule ^ - [L]
 
-  # SPA Routing: Fallback para index.html para qualquer coisa que não seja arquivo/diretório
+  # SPA Routing: Fallback para index.html
   RewriteRule ^ index.html [L]
 </IfModule>
 
