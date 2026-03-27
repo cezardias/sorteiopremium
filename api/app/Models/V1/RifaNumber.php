@@ -56,7 +56,7 @@ class RifaNumber extends Model {
 
     public static function cancelarCompra($id) {
         $data = self::where('pay_id', $id)->first();
-        AwardedQuota::excluirBilhetePremiado($data->numbers, $data->rifas_id, $data->rifa_pays_id);
+        AwardedQuota::excluirBilhetePremiado($data->numbers, $data->rifas_id, $data->pay_id);
         return $data ->update(['status' => 2, 'numbers' => null]);
     }
 
@@ -212,7 +212,7 @@ class RifaNumber extends Model {
     }
     public static function getRankingRifaGeral() {
         $result = self::where('rifa_numbers.status', 1)
-            ->join('rifa_pays', 'rifa_pays.id', '=', 'rifa_numbers.pay_id')
+            ->join('rifas_pay', 'rifas_pay.id', '=', 'rifa_numbers.pay_id')
             ->select(
                 'rifa_numbers.client_id',
                 'rifa_numbers.rifas_id',
@@ -221,7 +221,7 @@ class RifaNumber extends Model {
             )
             ->selectRaw('
                 SUM(CASE WHEN JSON_VALID(rifa_numbers.numbers) THEN JSON_LENGTH(rifa_numbers.numbers) ELSE 0 END) as total_numbers,
-                SUM(rifa_pays.value) as total_value
+                SUM(rifas_pay.value) as total_value
             ')
             ->with(['client', 'rifa', 'rifaPay'])
             ->groupBy(['rifa_numbers.client_id', 'rifa_numbers.rifas_id'])
@@ -234,7 +234,7 @@ class RifaNumber extends Model {
 
     public static function getRankingRifaGeralFiltro($totalNumbers = null, $rifasId = null, $startDate = null, $endDate = null) {
         $query = self::where('rifa_numbers.status', 1)
-            ->join('rifa_pays', 'rifa_pays.id', '=', 'rifa_numbers.pay_id') // Faz o JOIN correto
+            ->join('rifas_pay', 'rifas_pay.id', '=', 'rifa_numbers.pay_id') // Faz o JOIN correto
             ->select(
                 'rifa_numbers.client_id',
                 'rifa_numbers.rifas_id',
@@ -243,7 +243,7 @@ class RifaNumber extends Model {
             )
             ->selectRaw('
                 SUM(CASE WHEN JSON_VALID(rifa_numbers.numbers) THEN JSON_LENGTH(rifa_numbers.numbers) ELSE 0 END) as total_numbers,
-                SUM(rifa_pays.value) as total_value
+                SUM(rifas_pay.value) as total_value
             ')
             ->with(['client', 'rifa', 'rifaPay'])
             ->groupBy(['rifa_numbers.client_id', 'rifa_numbers.rifas_id'])
