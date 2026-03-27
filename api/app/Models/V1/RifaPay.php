@@ -11,6 +11,7 @@ use App\Services\RewardPassService;
 class RifaPay extends Model
 {
     use HasFactory;
+    protected $table = 'rifas_pay';
     protected $fillable = ['status', 'verify', 'value', 'qntd_number', 'pix_id', 'qr_code', 'qr_code_base64', 'cod', 'checkout','rifas_id', 'client_id'];
 
     public function rifaNumber(): hasOne {
