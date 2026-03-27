@@ -19,7 +19,9 @@ try {
     $ranking = RifaNumber::getRankingRifaGeral();
     if ($ranking) {
         echo "Success! Count: " . $ranking->count() . "\n";
-        print_r($ranking->toArray());
+        foreach ($ranking as $item) {
+            echo "Client ID: {$item->client_id} | Name: " . ($item->client->name ?? 'N/A') . " | Total Numbers: {$item->total_numbers} | Value: {$item->total_value}\n";
+        }
     } else {
         echo "Returned false or empty.\n";
     }
