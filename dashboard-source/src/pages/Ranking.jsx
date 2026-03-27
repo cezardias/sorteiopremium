@@ -29,12 +29,13 @@ const Ranking = () => {
     try {
       setLoading(true);
       
-      // Load raffles list once
+      // Load raffles list only once and don't block ranking
       if (raffles.length === 0) {
-        const rafflesRes = await api.get('/admin/dashboard/todas-rifas');
-        if (rafflesRes.data && rafflesRes.data.success) {
-          setRaffles(rafflesRes.data.data);
-        }
+        api.get('/admin/dashboard/todas-rifas')
+          .then(res => {
+            if (res.data?.success) setRaffles(res.data.data);
+          })
+          .catch(err => console.error('Error fetching raffles list:', err));
       }
 
       const endpoint = isFilter ? '/admin/dashboard/ranking-geral/filtro' : '/admin/dashboard/ranking-geral';
@@ -42,9 +43,13 @@ const Ranking = () => {
         ? await api.post(endpoint, filters)
         : await api.get(endpoint);
 
+      console.log('Ranking Response:', response.data);
+
       if (response.data && response.data.success) {
         const data = response.data.data;
         setRanking(Array.isArray(data) ? data : (data.data || []));
+      } else {
+        console.warn('Ranking fetch was not successful:', response.data);
       }
     } catch (error) {
       console.error('Error fetching ranking:', error);
