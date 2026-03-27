@@ -17,6 +17,8 @@
   # SPA Routing
   RewriteRule ^index\.html$ - [L]
   
+  # Ignorar subdomínio dash e pastas de sistema
+  RewriteCond %{HTTP_HOST} ^dash\. [NC,OR]
   RewriteCond %{REQUEST_URI} ^/(api|dash|assets|storage|check_pedidos\.php) [NC]
   RewriteRule ^ - [L]
 
