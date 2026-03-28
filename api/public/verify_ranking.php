@@ -38,6 +38,12 @@ try {
         echo "Raw Error: " . $e->getMessage() . "\n";
     }
 
+    echo "\n3. Rifas Status counts:\n";
+    $stats = DB::table('rifas')->select('status', DB::raw('count(*) as count'))->groupBy('status')->get();
+    foreach ($stats as $s) {
+        echo "Status: '{$s->status}' -> Count: {$s->count}\n";
+    }
+
 } catch (\Exception $e) {
     echo "ERRO: " . $e->getMessage() . "\n";
 }
