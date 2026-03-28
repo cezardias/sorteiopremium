@@ -1,72 +1,87 @@
 <?php
 header('Content-Type: text/plain');
-echo "--- ANTIGRAVITY SELF-FIX SCRIPT ---\n";
+echo "--- ANTIGRAVITY FULL DEPLOY & FIX SCRIPT ---\n";
 
-function safe_write($path, $content) {
-    echo "Writing to: $path ... ";
-    if (file_put_contents($path, $content)) {
-        echo "SUCCESS!\n";
-    } else {
-        echo "FAILED! Check permissions.\n";
-    }
+$root_dir = realpath($_SERVER['DOCUMENT_ROOT']);
+if (strpos($root_dir, '/dash') !== false) {
+    $root_dir = dirname($root_dir);
 }
 
-// 1. .htaccess da RAIZ (public_html)
+echo "Root Directory: $root_dir\n";
+
+function run_cmd($cmd, $cwd = null) {
+    if ($cwd) chdir($cwd);
+    echo "Running: $cmd ...\n";
+    $output = shell_exec($cmd . " 2>&1");
+    echo "Output: " . ($output ?: "None") . "\n";
+    return $output;
+}
+
+// 1. Force Git Sync
+echo "\n--- GIT SYNC ---\n";
+run_cmd("git fetch origin main", $root_dir);
+run_cmd("git reset --hard origin/main", $root_dir);
+
+// 2. Fix Assets & Routing (Root)
+echo "\n--- HTACCESS REPAIR (ROOT) ---\n";
 $root_htaccess = '<IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
   RewriteCond %{HTTPS} off
   RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-  RewriteRule "(^|/)\.(?!well-known)" - [F]
-  RewriteRule "^(composer\.json|composer\.lock|package\.json|package-lock\.json|vite\.config\.js|tailwind\.config\.js|tsconfig\.json)$" - [F]
-  DirectoryIndex index.html
-  RewriteRule ^index\.html$ - [L]
   
-  # BYPASS PARA SUBDOMÍNIO DASH
+  # BYPASS PARA SUBDOMÍNIO DASH E API
   RewriteCond %{HTTP_HOST} ^dash\. [NC,OR]
-  RewriteCond %{REQUEST_URI} ^/(api|dash|assets|storage|check_pedidos\.php) [NC]
+  RewriteCond %{REQUEST_URI} ^/(api|dash|assets|storage) [NC]
   RewriteRule ^ - [L]
 
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteCond %{REQUEST_FILENAME} !-l
   RewriteRule . /index.html [L]
 </IfModule>';
+file_put_contents($root_dir . '/.htaccess', $root_htaccess);
 
-// 2. .htaccess do DASH
+// 3. Fix Dash Routing (Subdomain)
+echo "\n--- HTACCESS REPAIR (DASH) ---\n";
 $dash_htaccess = '<IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
   RewriteRule ^index\.html$ - [L]
   
-  # IGNORAR SCRIPTS DE DIAGNÓSTICO
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteCond %{REQUEST_URI} ^/(check_.*|verify_.*|fix_.*|where_.*)\.php$ [NC]
-  RewriteRule ^ - [L]
-
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
+  # Ignore PHP files so we can run diagnostics
+  RewriteCond %{REQUEST_URI} !\.php$ [NC]
   RewriteRule . index.html [L]
 </IfModule>';
+file_put_contents($root_dir . '/dash/.htaccess', $dash_htaccess);
 
-// Localização dos arquivos baseada no DOCUMENT_ROOT
-$root_dir = $_SERVER['DOCUMENT_ROOT'];
-if (strpos($root_dir, '/dash') !== false) {
-    $root_dir = dirname($root_dir);
+// 4. Cache Clear (API)
+echo "\n--- LARAVEL CACHE CLEAR ---\n";
+$api_dir = $root_dir . '/api';
+run_cmd("php artisan route:clear", $api_dir);
+run_cmd("php artisan config:clear", $api_dir);
+run_cmd("php artisan cache:clear", $api_dir);
+
+// 5. Database Diagnostic
+echo "\n--- DB DIAGNOSTIC ---\n";
+try {
+    require $api_dir . '/vendor/autoload.php';
+    $app = require_once $api_dir . '/bootstrap/app.php';
+    $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
+    $kernel->handle(Illuminate\Http\Request::capture());
+    
+    $db = \Illuminate\Support\Facades\DB::connection()->getDatabaseName();
+    $rifas = \Illuminate\Support\Facades\DB::table('rifas')->count();
+    $status = \Illuminate\Support\Facades\DB::table('rifas')->select('status', \Illuminate\Support\Facades\DB::raw('count(*) as count'))->groupBy('status')->get();
+    
+    echo "Database: $db\n";
+    echo "Rifas Count: $rifas\n";
+    foreach ($status as $s) {
+        echo " - Status: {$s->status} -> {$s->count}\n";
+    }
+} catch (\Exception $e) {
+    echo "DB Error: " . $e->getMessage() . "\n";
 }
 
-safe_write($root_dir . '/.htaccess', $root_htaccess);
-safe_write($root_dir . '/dash/.htaccess', $dash_htaccess);
-
-// 3. Tentar Git Pull via PHP (se o deploy da Hostinger estiver travado)
-echo "\nAttempting Git Pull...\n";
-exec('git fetch origin main && git reset --hard origin/main 2>&1', $output, $return_var);
-foreach ($output as $line) {
-    echo "$line\n";
-}
-
-echo "\n--- SYSTEM CHECK ---\n";
-echo "Root .htaccess size: " . filesize($root_dir . '/.htaccess') . " bytes\n";
-echo "Dash .htaccess size: " . filesize($root_dir . '/dash/.htaccess') . " bytes\n";
-echo "Done! Limpe o cache do seu navegador (Ctrl + F5).\n";
+echo "\nDone! All fixes applied. Limpe cache (Ctrl+F5).\n";
