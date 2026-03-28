@@ -11,7 +11,8 @@ import {
   CreditCard, 
   Globe, 
   Camera,
-  CheckCircle2
+  CheckCircle2,
+  TrendingUp
 } from 'lucide-react';
 
 const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
