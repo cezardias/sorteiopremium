@@ -158,6 +158,24 @@ Route::get('client/pedido/{id}', 'App\Http\Controllers\V1\ClientController@getOr
 Route::post("/get-numbers", 'App\Http\Controllers\V1\ClientController@getNumbers');
 Route::get("/config", "App\Http\Controllers\V1\SiteConfigController@getUserSiteConfig");
 Route::get("/test-route", function() { return "OK"; });
+Route::get("/db-check", function() {
+    $db = DB::connection()->getDatabaseName();
+    $rifas = DB::table('rifas')->count();
+    $rifas_pay = DB::table('rifas_pay')->count();
+    $users = DB::table('users')->count();
+    $status = DB::table('rifas')->select('status', DB::raw('count(*) as count'))->groupBy('status')->get();
+    
+    return response()->json([
+        'database' => $db,
+        'counts' => [
+            'rifas' => $rifas,
+            'rifas_pay' => $rifas_pay,
+            'users' => $users
+        ],
+        'rifas_status' => $status,
+        'app_key' => substr(env('APP_KEY'), 0, 15) . '...'
+    ]);
+});
 Route::get("/public-settings", "App\Http\Controllers\V1\SiteConfigController@getSettings");
 Route::post("/pix", [\App\Http\Controllers\V1\CyberPaymentController::class, "buyRifa"]);
 Route::post('cyber-webhook', [\App\Http\Controllers\V1\CyberPaymentController::class, 'webhook']);
