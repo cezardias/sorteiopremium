@@ -12,7 +12,7 @@ import {
   Medal,
   Crown
 } from 'lucide-react';
-import { clsx } from 'clsx';
+import clsx from 'clsx';
 
 const Ranking = () => {
   const [ranking, setRanking] = useState([]);

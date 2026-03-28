@@ -40,11 +40,45 @@ const NotFound = () => (
   </div>
 );
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error("React Error:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-20 bg-red-900/20 border border-red-500 rounded-xl m-10 text-center">
+          <h1 className="text-2xl font-bold text-red-500 mb-4 uppercase">Ops! Ocorreu um erro no sistema</h1>
+          <p className="text-gray-300 font-mono text-sm mb-4">{this.state.error?.toString()}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-6 py-2 bg-red-500 text-white font-bold uppercase rounded-lg"
+          >
+            Tentar Recarregar
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function App() {
   return (
-    <BrowserRouter basename="/">
-      <Suspense fallback={<div className="p-20 text-center text-green-500 font-bold tracking-widest animate-pulse">Carregando...</div>}>
-        <Routes>
+    <ErrorBoundary>
+      <BrowserRouter basename="/">
+        <Suspense fallback={<div className="p-20 text-center text-green-500 font-bold tracking-widest animate-pulse">Carregando...</div>}>
+          <div className="fixed bottom-4 right-4 z-[9999] bg-black/80 text-[8px] text-gray-500 p-1 rounded font-mono pointer-events-none">
+            Production Build v2.2 - Layout & Auth Debug
+          </div>
+          <Routes>
           <Route path="/login" element={<Login />} />
           
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -72,7 +106,8 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
-    </BrowserRouter>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 

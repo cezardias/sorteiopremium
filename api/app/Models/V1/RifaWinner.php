@@ -11,6 +11,7 @@ use App\Models\V1\{Rifas, Clients};
 class RifaWinner extends Model
 {
     use HasFactory;
+    protected $table = 'rifas_winners';
 
     protected $fillable = [
         'img',
