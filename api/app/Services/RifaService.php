@@ -6,7 +6,7 @@ use App\Models\Afiliado;
 use App\Models\GanhoAfiliado;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Models\V1\{Cotas, Rifas, RifasOthers, RifasAwarded, RifasPayment, RifaNumber, Clients, RifaPay, AwardedQuota, RifaImage};
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
