@@ -57,7 +57,7 @@ const RaffleDetail = () => {
 
   if (!raffle) return null;
 
-  const pricePerCota = parseFloat((raffle?.discountPackage || raffle?.discount_package)?.[0]?.value_cota || 0);
+  const pricePerCota = parseFloat(raffle?.price || (raffle?.discountPackage || raffle?.discount_package)?.[0]?.value_cota || 0);
   const totalPrice = (pricePerCota * quantity).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   const cotasAtivas = ((raffle.awardedQuota || raffle.awarded_quota) || []).filter(a =>

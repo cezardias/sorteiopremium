@@ -283,7 +283,7 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
 
   if (!isOpen) return null;
 
-  const pricePerCota = parseFloat((raffle?.discountPackage || raffle?.discount_package)?.[0]?.value_cota || 0);
+  const pricePerCota = parseFloat(raffle?.price || (raffle?.discountPackage || raffle?.discount_package)?.[0]?.value_cota || 0);
   const totalPriceValue = pricePerCota * quantity;
   const totalPrice = totalPriceValue.toLocaleString('pt-BR', {
     style: 'currency',

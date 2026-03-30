@@ -119,7 +119,7 @@ const Home = () => {
                   <div className="flex items-center justify-between pt-6 border-t border-white/5">
                     <div className="flex flex-col">
                       <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Bilhete</span>
-                      <span className="text-2xl font-black text-primary italic leading-none">R$ {parseFloat((raffle.discountPackage || raffle.discount_package)?.[0]?.value_cota || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                      <span className="text-2xl font-black text-primary italic leading-none">R$ {parseFloat(raffle?.price || raffle?.price_cota || (raffle.discountPackage || raffle.discount_package)?.[0]?.value_cota || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
                     </div>
                     <button 
                       onClick={() => {
