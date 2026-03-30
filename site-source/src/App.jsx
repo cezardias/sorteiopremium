@@ -26,29 +26,24 @@ const ProtectedRoute = ({ children }) => {
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, errorStack: '' };
   }
   static getDerivedStateFromError(error) {
     return { hasError: true };
   }
   componentDidCatch(error, errorInfo) {
     console.error("UI Error:", error, errorInfo);
-    try {
-      const errStr = error.toString() + "\n" + (errorInfo.componentStack || '');
-      fetch('https://sorteiospremiummultimarcas.com.br/log.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'err=' + encodeURIComponent(errStr)
-      });
-    } catch (e) { console.error("Logger failed", e); }
+    this.setState({ errorStack: error.toString() + "\n" + (errorInfo.componentStack || '') });
   }
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-dark text-white p-8 text-center">
-          <div className="max-w-md space-y-4">
-            <h1 className="text-2xl font-black uppercase tracking-tighter text-primary">Ops! Algo deu errado.</h1>
-            <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">Ocorreu um erro ao carregar a interface. Tente recarregar.</p>
+        <div className="min-h-screen flex items-center justify-center bg-dark text-white p-8 text-center overflow-auto">
+          <div className="max-w-4xl w-full space-y-4">
+            <h1 className="text-2xl font-black uppercase text-primary">Ops! Algo deu errado.</h1>
+            <div className="text-left bg-red-900/50 text-red-100 p-4 rounded text-[10px] font-mono whitespace-pre-wrap break-all border border-red-500/50">
+              {this.state.errorStack || 'Erro desconhecido. Veja o console.'}
+            </div>
             <button onClick={() => window.location.reload()} className="px-8 py-3 bg-primary text-black font-bold uppercase rounded-xl">Recarregar</button>
           </div>
         </div>
