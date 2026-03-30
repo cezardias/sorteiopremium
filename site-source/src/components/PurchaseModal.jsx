@@ -33,7 +33,11 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
     try {
       const response = await api.get(`/produtos/detalhes/${raffleId}`);
       if (response.data?.success) {
-        setRaffle(response.data.data.rifa);
+        const fetchedRaffle = response.data.data.rifa;
+        setRaffle(fetchedRaffle);
+        
+        const minOrder = parseInt(fetchedRaffle?.cota?.qntd_cota_min_order) || 1;
+        setQuantity(minOrder);
       } else {
         toast.error('Sorteio não encontrado');
       }
