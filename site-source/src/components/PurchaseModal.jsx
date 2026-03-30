@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, X, Minus, Plus, Loader2, Copy, CheckCircle2, ChevronRight, AlertCircle, ShieldCheck, ChevronDown, ChevronUp, Star, Smile } from 'lucide-react';
+import { ShoppingBag, X, Minus, Plus, Loader2, Copy, CheckCircle2, ChevronRight, AlertCircle, ShieldCheck, ChevronDown, ChevronUp, Star, Smile, Zap } from 'lucide-react';
 import api from '../api/api';
 import toast from 'react-hot-toast';
 
