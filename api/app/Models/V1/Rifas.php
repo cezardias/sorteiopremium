@@ -144,7 +144,7 @@ class Rifas extends Model
     }
     public static function getAllRifas()
     {
-        return self::with(['cota', 'rifaAwarded', 'rifaOthers', 'rifaPayment', 'AwardedQuota.client', 'rifaImage', 'rifaPay', 'AwardedQuotaClient'])
+        return self::with(['cota', 'rifaAwarded', 'rifaOthers', 'rifaPayment', 'AwardedQuota.client', 'rifaImage', 'AwardedQuotaClient'])
             ->where(function ($query) {
                 $query->where('show_site', 'sim')
                     ->orWhere('show_site', '1')

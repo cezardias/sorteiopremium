@@ -33,7 +33,10 @@ const Ranking = () => {
       if (raffles.length === 0) {
         api.get('/admin/dashboard/todas-rifas')
           .then(res => {
-            if (res.data?.success) setRaffles(res.data.data);
+            if (res.data?.success) {
+              const data = res.data.data;
+              setRaffles(Array.isArray(data) ? data : (data.data || []));
+            }
           })
           .catch(err => console.error('Error fetching raffles list:', err));
       }

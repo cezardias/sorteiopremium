@@ -220,3 +220,31 @@ Route::get('/run-migrations', function () {
         return "Erro: " . $e->getMessage();
     }
 });
+
+Route::get('/fix-database', function() {
+    try {
+        // 1. Create Winners Table if missing
+        if (!Schema::hasTable('rifas_winners')) {
+            Schema::create('rifas_winners', function ($table) {
+                $table->id();
+                $table->string('img')->nullable();
+                $table->string('name')->nullable();
+                $table->string('ticket')->nullable();
+                $table->unsignedBigInteger('rifas_id');
+                $table->unsignedBigInteger('client_id');
+                $table->timestamps();
+            });
+            $msg[] = "Table 'rifas_winners' created.";
+        } else {
+            $msg[] = "Table 'rifas_winners' already exists.";
+        }
+
+        // 2. Fix Raffle #4 Visibility
+        $updated = DB::table('rifas')->where('id', 4)->update(['show_site' => 'sim']);
+        $msg[] = "Raffle #4 visibility updated: " . ($updated ? 'Done' : 'Already sim or not found');
+
+        return response()->json(['success' => true, 'messages' => $msg]);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'error' => $e->getMessage()]);
+    }
+});

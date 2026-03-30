@@ -89,26 +89,26 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
           qntd_cota_max_client: raffle.cota?.qntd_cota_max_client || 1000,
         },
         rifa_awarded: {
-          cotas_double: raffle.rifa_awarded?.cotas_double || 'nao',
-          text_cotas_double: raffle.rifa_awarded?.text_cotas_double || '',
-          title_cotas_awarded: raffle.rifa_awarded?.title_cotas_awarded || '',
-          description_cotas_awarded: raffle.rifa_awarded?.description_cotas_awarded || '',
-          title_upsell: raffle.rifa_awarded?.title_upsell || '',
-          description_upsell: raffle.rifa_awarded?.description_upsell || ''
+          cotas_double: (raffle.rifaAwarded || raffle.rifa_awarded)?.cotas_double || 'nao',
+          text_cotas_double: (raffle.rifaAwarded || raffle.rifa_awarded)?.text_cotas_double || '',
+          title_cotas_awarded: (raffle.rifaAwarded || raffle.rifa_awarded)?.title_cotas_awarded || '',
+          description_cotas_awarded: (raffle.rifaAwarded || raffle.rifa_awarded)?.description_cotas_awarded || '',
+          title_upsell: (raffle.rifaAwarded || raffle.rifa_awarded)?.title_upsell || '',
+          description_upsell: (raffle.rifaAwarded || raffle.rifa_awarded)?.description_upsell || ''
         },
         rifa_others: {
-          facebook_pixel: raffle.rifa_others?.facebook_pixel || '',
-          facebook_token: raffle.rifa_others?.facebook_token || '',
-          tiktok_pixel: raffle.rifa_others?.tiktok_pixel || '',
-          whatsapp_group: raffle.rifa_others?.whatsapp_group || '',
-          link_ebook: raffle.rifa_others?.link_ebook || '',
-          nota_fiscal: raffle.rifa_others?.nota_fiscal || ''
+          facebook_pixel: (raffle.rifaOthers || raffle.rifa_others)?.facebook_pixel || '',
+          facebook_token: (raffle.rifaOthers || raffle.rifa_others)?.facebook_token || '',
+          tiktok_pixel: (raffle.rifaOthers || raffle.rifa_others)?.tiktok_pixel || '',
+          whatsapp_group: (raffle.rifaOthers || raffle.rifa_others)?.whatsapp_group || '',
+          link_ebook: (raffle.rifaOthers || raffle.rifa_others)?.link_ebook || '',
+          nota_fiscal: (raffle.rifaOthers || raffle.rifa_others)?.nota_fiscal || ''
         },
         rifa_payment: {
-          gateway: raffle.rifa_payment?.gateway || 'cyber',
-          time_pay: raffle.rifa_payment?.time_pay || 15,
-          service_charge: raffle.rifa_payment?.service_charge || 0,
-          text_service_charge: raffle.rifa_payment?.text_service_charge || ''
+          gateway: (raffle.rifaPayment || raffle.rifa_payment)?.gateway || 'cyber',
+          time_pay: (raffle.rifaPayment || raffle.rifa_payment)?.time_pay || 15,
+          service_charge: (raffle.rifaPayment || raffle.rifa_payment)?.service_charge || 0,
+          text_service_charge: (raffle.rifaPayment || raffle.rifa_payment)?.text_service_charge || ''
         }
       });
     }

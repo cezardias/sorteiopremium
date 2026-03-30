@@ -106,7 +106,7 @@ const Products = () => {
               >
                 <div className="h-56 overflow-hidden relative">
                   <img 
-                    src={raffle.rifa_image?.[0]?.path ? `/api/img/rifas/${raffle.rifa_image[0].path}` : 'https://placehold.co/800x600?text=Foto+do+Prêmio'} 
+                    src={(raffle.rifaImage || raffle.rifa_image)?.[0]?.path ? `/api/img/rifas/${(raffle.rifaImage || raffle.rifa_image)[0].path}` : 'https://placehold.co/800x600?text=Foto+do+Prêmio'} 
                     alt={raffle.title} 
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
@@ -127,7 +127,7 @@ const Products = () => {
                     <div className="mt-auto pt-6 border-t border-white/5 flex items-center justify-between">
                       <div className="flex flex-col">
                         <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Bilhete</span>
-                        <span className="text-2xl font-black text-primary italic leading-none">R$ {parseFloat(raffle.discount_package?.[0]?.value_cota || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                        <span className="text-2xl font-black text-primary italic leading-none">R$ {parseFloat((raffle.discountPackage || raffle.discount_package)?.[0]?.value_cota || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
                       </div>
                       <button 
                         onClick={() => {

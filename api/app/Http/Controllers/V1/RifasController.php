@@ -41,7 +41,8 @@ class RifasController extends Controller
     public function index()
     {
         try {
-            $rifasData = Rifas::getAllRifasActivas()->where('emphasis', 'sim')->first();
+            $activeRifas = Rifas::getAllRifasActivas();
+            $rifasData = $activeRifas->where('emphasis', 'sim')->first() ?? $activeRifas->first();
 
             return response()->json(["success" => true, "data" => $rifasData], $this->success);
         } catch (Exception $e) {

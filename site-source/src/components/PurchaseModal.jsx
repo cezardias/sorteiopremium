@@ -283,15 +283,15 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
 
   if (!isOpen) return null;
 
-  const pricePerCota = parseFloat(raffle?.discount_package?.[0]?.value_cota || 0);
+  const pricePerCota = parseFloat((raffle?.discountPackage || raffle?.discount_package)?.[0]?.value_cota || 0);
   const totalPriceValue = pricePerCota * quantity;
   const totalPrice = totalPriceValue.toLocaleString('pt-BR', {
     style: 'currency',
     currency: 'BRL'
   });
 
-  const cotasAtivas = (raffle?.awarded_quota || []).filter(q => q.status === 'imediato' || q.status === 'bloqueada');
-  const cotasResgatadas = (raffle?.awarded_quota || []).filter(q => q.status === 'resgatada');
+  const cotasAtivas = ((raffle?.awardedQuota || raffle?.awarded_quota) || []).filter(q => q.status === 'imediato' || q.status === 'bloqueada');
+  const cotasResgatadas = ((raffle?.awardedQuota || raffle?.awarded_quota) || []).filter(q => q.status === 'resgatada');
 
   const stripHtml = (html) => {
     if (!html) return '';
@@ -485,7 +485,7 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
                     <div className="flex items-center gap-4">
                       <div className="w-20 h-20 rounded-2xl overflow-hidden glass border border-white/10 flex-shrink-0">
                         <img 
-                          src={raffle?.rifa_image?.[0]?.path ? `/api/img/rifas/${raffle.rifa_image[0].path}` : 'https://placehold.co/200?text=Rifa'} 
+                          src={(raffle?.rifaImage || raffle?.rifa_image)?.[0]?.path ? `/api/img/rifas/${(raffle.rifaImage || raffle.rifa_image)[0].path}` : 'https://placehold.co/200?text=Rifa'} 
                           alt="" 
                           className="w-full h-full object-cover"
                         />
@@ -534,13 +534,13 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
                     </div>
 
                     {/* Promotional Packages */}
-                    {raffle?.discount_package?.length > 0 && (
+                    {(raffle?.discountPackage || raffle?.discount_package)?.length > 0 && (
                       <div className="space-y-4">
                         <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
                             <Zap size={12} className="text-red-600" /> Pacotes Promocionais
                         </h4>
                         <div className="grid grid-cols-4 gap-2">
-                          {raffle.discount_package.map(pkg => {
+                          {(raffle.discountPackage || raffle.discount_package).map(pkg => {
                             const isSelected = quantity === parseInt(pkg.qntd_cota);
                             const isPopular = pkg.popular === 'sim';
                             return (

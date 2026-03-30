@@ -57,13 +57,13 @@ const RaffleDetail = () => {
 
   if (!raffle) return null;
 
-  const pricePerCota = parseFloat(raffle?.discount_package?.[0]?.value_cota || 0);
+  const pricePerCota = parseFloat((raffle?.discountPackage || raffle?.discount_package)?.[0]?.value_cota || 0);
   const totalPrice = (pricePerCota * quantity).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-  const cotasAtivas = (raffle.awarded_quota || []).filter(a =>
+  const cotasAtivas = ((raffle.awardedQuota || raffle.awarded_quota) || []).filter(a =>
     a.status === 'imediato' || a.status === 'bloqueada'
   );
-  const cotasResgatadas = (raffle.awarded_quota || []).filter(a => a.status === 'resgatada');
+  const cotasResgatadas = ((raffle.awardedQuota || raffle.awarded_quota) || []).filter(a => a.status === 'resgatada');
   const currentAwards = awardedTab === 'ativas' ? cotasAtivas : cotasResgatadas;
 
   const stripHtml = (html) => {
@@ -85,8 +85,8 @@ const RaffleDetail = () => {
       {/* Hero Image */}
       <div className="w-full rounded-[32px] overflow-hidden aspect-video relative">
         <img
-          src={raffle.rifa_image?.[0]?.path
-            ? `/api/img/rifas/${raffle.rifa_image[0].path}`
+          src={(raffle.rifaImage || raffle.rifa_image)?.[0]?.path
+            ? `/api/img/rifas/${(raffle.rifaImage || raffle.rifa_image)[0].path}`
             : 'https://placehold.co/800x450?text=Foto+do+Prêmio'}
           alt={raffle.title}
           className="w-full h-full object-cover"
@@ -159,13 +159,13 @@ const RaffleDetail = () => {
         </div>
 
         {/* Promotional Packages */}
-        {raffle.discount_package?.length > 0 && (
+        {(raffle.discountPackage || raffle.discount_package)?.length > 0 && (
           <div className="space-y-4">
             <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] flex items-center gap-2">
               <Zap size={12} className="text-red-600" /> Pacotes Promocionais
             </p>
             <div className="grid grid-cols-4 gap-3">
-              {raffle.discount_package.map((pkg) => {
+              {(raffle.discountPackage || raffle.discount_package).map((pkg) => {
                 const isSelected = quantity === parseInt(pkg.qntd_cota);
                 const isPopular = pkg.popular === 'sim';
                 return (
