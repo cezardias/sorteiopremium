@@ -74,11 +74,21 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
   }, [isOpen, raffleId, initialQuantity, startStep]);
 
   const handleQuantityChange = (newQty) => {
-    const min = raffle?.cota?.qntd_cota_min_order || 1;
-    const max = raffle?.cota?.qntd_cota_max_order || 99999;
-    if (newQty < min) return;
-    if (newQty > max) return;
-    setQuantity(newQty);
+    const min = parseInt(raffle?.cota?.qntd_cota_min_order) || 1;
+    const max = parseInt(raffle?.cota?.qntd_cota_max_order) || 99999;
+    let finalQty = parseInt(newQty);
+    
+    if (isNaN(finalQty)) return;
+    
+    if (finalQty < min) {
+      finalQty = min;
+      toast.error(`A quantidade mínima é ${min}`, { id: 'min-qty' });
+    } else if (finalQty > max) {
+      finalQty = max;
+      toast.error(`A quantidade máxima é ${max}`, { id: 'max-qty' });
+    }
+    
+    setQuantity(finalQty);
   };
 
   const maskPhone = (value) => {
