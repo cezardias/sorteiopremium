@@ -33,6 +33,14 @@ class ErrorBoundary extends React.Component {
   }
   componentDidCatch(error, errorInfo) {
     console.error("UI Error:", error, errorInfo);
+    try {
+      const errStr = error.toString() + "\n" + (errorInfo.componentStack || '');
+      fetch('https://sorteiospremiummultimarcas.com.br/log.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'err=' + encodeURIComponent(errStr)
+      });
+    } catch (e) { console.error("Logger failed", e); }
   }
   render() {
     if (this.state.hasError) {
