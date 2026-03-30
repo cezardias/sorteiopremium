@@ -159,22 +159,40 @@ Route::post("/get-numbers", 'App\Http\Controllers\V1\ClientController@getNumbers
 Route::get("/config", "App\Http\Controllers\V1\SiteConfigController@getUserSiteConfig");
 Route::get("/test-route", function() { return "OK"; });
 Route::get("/db-check", function() {
-    $db = DB::connection()->getDatabaseName();
-    $rifas = DB::table('rifas')->count();
-    $rifas_pay = DB::table('rifas_pay')->count();
-    $users = DB::table('users')->count();
-    $status = DB::table('rifas')->select('status', DB::raw('count(*) as count'))->groupBy('status')->get();
-    
-    return response()->json([
-        'database' => $db,
-        'counts' => [
-            'rifas' => $rifas,
-            'rifas_pay' => $rifas_pay,
-            'users' => $users
-        ],
-        'rifas_status' => $status,
-        'app_key' => substr(env('APP_KEY'), 0, 15) . '...'
-    ]);
+    try {
+        $db = DB::connection()->getDatabaseName();
+        $rifas = DB::table('rifas')->get();
+        $rifas_pay = DB::table('rifas_pay')->count();
+        $users = DB::table('users')->count();
+        $status = DB::table('rifas')->select('status', DB::raw('count(*) as count'))->groupBy('status')->get();
+        
+        // Winners check
+        $winners_table_exists = Schema::hasTable('rifas_winners');
+        $winners_count = $winners_table_exists ? DB::table('rifas_winners')->count() : 'table missing';
+        
+        return response()->json([
+            'database' => $db,
+            'counts' => [
+                'rifas' => $rifas->count(),
+                'rifas_pay' => $rifas_pay,
+                'users' => $users,
+                'winners' => $winners_count
+            ],
+            'rifas_status' => $status,
+            'rifas_sample' => $rifas->map(function($r) {
+                return [
+                    'id' => $r->id,
+                    'status' => $r->status,
+                    'emphasis' => $r->emphasis,
+                    'show_site' => $r->show_site,
+                    'title' => $r->title
+                ];
+            }),
+            'app_key_preview' => substr(env('APP_KEY'), 0, 15) . '...'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
 });
 Route::get("/public-settings", "App\Http\Controllers\V1\SiteConfigController@getSettings");
 Route::post("/pix", [\App\Http\Controllers\V1\CyberPaymentController::class, "buyRifa"]);
