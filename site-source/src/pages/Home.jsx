@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/api';
 import PurchaseModal from '../components/PurchaseModal';
+import { useSite } from '../contexts/SiteContext';
 
 const Home = () => {
   const [raffles, setRaffles] = useState([]);
@@ -12,6 +13,7 @@ const Home = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedRaffleId, setSelectedRaffleId] = useState(null);
   const navigate = useNavigate();
+  const { settings } = useSite();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,7 +56,7 @@ const Home = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-4xl md:text-7xl font-black italic text-white uppercase tracking-tighter mb-4 leading-none"
           >
-            Sua Sorte Começa <span className="text-primary italic">Aqui</span>.
+            {settings?.product_title || 'Sua Sorte Começa'} <span className="text-primary italic">{settings?.product_subtitle || 'Aqui.'}</span>
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
@@ -156,7 +158,9 @@ const Home = () => {
             Estamos prontos para te ajudar em todas as etapas da sua participação. Entre em contato agora pelo WhatsApp.
           </p>
           <a 
-            href="#" 
+            href={settings?.whatsapp_number || "#"} 
+            target="_blank" 
+            rel="noopener noreferrer"
             className="flex items-center gap-3 bg-[#25d366] hover:bg-[#22c35e] text-black font-black uppercase px-10 py-5 rounded-2xl transition-all shadow-[0_10px_25px_rgba(37,211,102,0.3)] transform hover:scale-105"
           >
             <MessageCircle size={24} fill="currentColor" />
