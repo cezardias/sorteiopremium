@@ -56,21 +56,25 @@ class Clients extends Authenticatable implements JWTSubject
     {
         $normalized = self::normalizeCellphone($cellphone);
         
-        // 1. Tenta buscar o exato
+        // 1. Tenta buscar o exato (pode ser com máscara ou sem)
         $client = self::where('cellphone', $cellphone)->first();
         if ($client) return $client;
 
-        // 2. Tenta buscar apenas os dígitos
-        $client = self::whereRaw("REGEXP_REPLACE(cellphone, '[^0-9]', '') = ?", [$normalized])->first();
+        // 2. Tenta buscar apenas os dígitos (caso esteja salvo formatado no DB)
+        $client = self::where('cellphone', $normalized)->first();
         if ($client) return $client;
 
-        // 3. Tenta lidar com o prefixo 55
+        // 3. Busca por LIKE como fallback (menos performático, mas seguro)
+        $client = self::where('cellphone', 'like', "%$normalized%")->first();
+        if ($client) return $client;
+
+        // 4. Tenta lidar com o prefixo 55
         if (substr($normalized, 0, 2) === '55') {
             $without55 = substr($normalized, 2);
-            $client = self::whereRaw("REGEXP_REPLACE(cellphone, '[^0-9]', '') = ?", [$without55])->first();
+            $client = self::where('cellphone', 'like', "%$without55%")->first();
         } else {
             $with55 = '55' . $normalized;
-            $client = self::whereRaw("REGEXP_REPLACE(cellphone, '[^0-9]', '') = ?", [$with55])->first();
+            $client = self::where('cellphone', 'like', "%$with55%")->first();
         }
         
         return $client;

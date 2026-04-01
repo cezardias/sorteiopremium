@@ -175,7 +175,8 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
           const response = await api.post('/client/cadastro', formData);
           if (response.data?.message === 'Novo cliente criado.' || response.status === 201) {
               toast.success('Cadastro realizado!');
-              const loginRes = await api.post('/client/login', { cellphone: formData.cellphone });
+              const normalizedPhone = formData.cellphone.replace(/\D/g, '');
+              const loginRes = await api.post('/client/login', { cellphone: normalizedPhone });
               if (loginRes.data?.access_token) {
                   localStorage.setItem('client_token', loginRes.data.access_token);
                   localStorage.setItem('client_user', JSON.stringify(loginRes.data.user));
@@ -185,7 +186,8 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
               toast.error(response.data?.message || 'Erro no cadastro. Verifique se o telefone já existe.');
           }
       } else {
-          const response = await api.post('/client/login', { cellphone: formData.cellphone });
+          const normalizedPhone = formData.cellphone.replace(/\D/g, '');
+          const response = await api.post('/client/login', { cellphone: normalizedPhone });
           if (response.data?.access_token) {
               localStorage.setItem('client_token', response.data.access_token);
               localStorage.setItem('client_user', JSON.stringify(response.data.user));
