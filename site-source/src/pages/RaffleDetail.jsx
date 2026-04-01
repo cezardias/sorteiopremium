@@ -272,7 +272,14 @@ const RaffleDetail = () => {
                 />
                 <div className="text-xs font-black text-white">{award.number_cota?.toLocaleString('pt-BR')}</div>
                 <div className="text-[9px] font-black text-primary">
-                  R$ {parseFloat(award.award || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  R$ {(function() {
+                    const val = award.award || 0;
+                    if (typeof val === 'number') return val.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                    // Clean string: remove "R$", dots (thousands), and replace comma with dot (decimal)
+                    const cleaned = String(val).replace(/R\$\s?/g, '').replace(/\./g, '').replace(',', '.').trim();
+                    const parsed = parseFloat(cleaned);
+                    return isNaN(parsed) ? '0,00' : parsed.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                  })()}
                 </div>
                 {award.client && (
                   <div className="text-[8px] text-gray-500 font-bold truncate w-full text-center italic">

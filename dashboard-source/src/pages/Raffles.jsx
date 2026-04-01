@@ -76,8 +76,19 @@ const Raffles = () => {
     fetchRifas();
     
     const handleClickOutside = () => setOpenMenuId(null);
+    const handleOpenPrizes = (e) => {
+      const { id, title } = e.detail;
+      setSelectedRifa({ id, title });
+      setIsPrizesOpen(true);
+    };
+
     document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    window.addEventListener('openRafflePrizes', handleOpenPrizes);
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      window.removeEventListener('openRafflePrizes', handleOpenPrizes);
+    };
   }, []);
 
   const handleToggleStatus = async (id, currentStatus) => {

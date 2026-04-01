@@ -15,7 +15,7 @@ foreach ($tables_list as $table_obj) {
 }
 
 echo "\n--- CHECKING SELECTED SCHEMAS ---\n";
-$tables = ['rifas', 'cotas', 'rifas_awarded', 'rifas_others', 'rifas_payment', 'rifas_pay', 'rifa_pays', 'rifa_numbers', 'rifas_numbers'];
+$tables = ['rifas', 'cotas', 'rifas_awardeds', 'rifas_others', 'rifas_payments', 'rifas_pay', 'rifa_pays', 'rifa_numbers', 'rifas_numbers'];
 
 foreach ($tables as $table) {
     if (!Schema::hasTable($table)) {
