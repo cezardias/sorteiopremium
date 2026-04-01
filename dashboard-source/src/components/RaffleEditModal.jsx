@@ -169,6 +169,7 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
     { id: 'info', label: 'Informações', icon: <Info size={14} /> },
     { id: 'cotas', label: 'Cotas', icon: <Layers size={14} /> },
     { id: 'premios', label: 'Premiação', icon: <Trophy size={14} /> },
+    { id: 'promocoes', label: 'Promoções', icon: <Package size={14} className="text-purple-500" /> },
     { id: 'winners', label: 'Cotas Premiadas', icon: <Trophy size={14} className="text-yellow-500" /> },
     { id: 'retro', label: 'Rastreio', icon: <Target size={14} /> },
     { id: 'pagamento', label: 'Pagamento', icon: <CreditCard size={14} /> },
@@ -485,6 +486,44 @@ const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
                         <input type="text" name="rifa_payment.text_service_charge" value={formData.rifa_payment.text_service_charge} onChange={handleChange} placeholder="Ex: Taxa de processamento" className="w-full bg-[#0f111a] border border-[#2a2d3e] text-white text-xs font-bold p-4 rounded-2xl focus:outline-none focus:border-green-500/50" />
                     </div>
                   </div>
+               </div>
+            </div>
+          )}
+
+          {/* TAB: PROMOÇÕES (INSTRUÇÕES) */}
+          {activeTab === 'promocoes' && (
+            <div className="space-y-6 animate-in slide-in-from-right-4 duration-300 h-full flex flex-col justify-center">
+               <div className="bg-purple-500/10 border border-purple-500/20 p-8 rounded-[40px] flex flex-col items-center text-center gap-6 max-w-lg mx-auto">
+                 <div className="w-20 h-20 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-500">
+                    <Package size={40} />
+                 </div>
+                 <div>
+                    <h3 className="text-xl font-black text-white uppercase tracking-tighter mb-2">Pacotes de Desconto</h3>
+                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">
+                      Configure combos e descontos progressivos para aumentar suas vendas.<br/>
+                      <span className="text-purple-500">Salve as alterações da campanha primeiro.</span>
+                    </p>
+                 </div>
+
+                 {!formData.id ? (
+                   <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-[9px] font-black uppercase tracking-widest">
+                      Você precisa salvar a rifa antes de cadastrar promoções.
+                   </div>
+                 ) : (
+                   <button 
+                     type="button"
+                     onClick={() => {
+                        onClose();
+                        setTimeout(() => {
+                          const event = new CustomEvent('openRafflePackages', { detail: { id: formData.id, title: formData.title } });
+                          window.dispatchEvent(event);
+                        }, 100);
+                     }}
+                     className="w-full bg-purple-500 hover:bg-purple-600 text-white px-10 py-5 rounded-3xl font-black uppercase text-xs tracking-widest shadow-2xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-3"
+                   >
+                     <Plus size={20} /> Configurar Pacotes de Oferta
+                   </button>
+                 )}
                </div>
             </div>
           )}

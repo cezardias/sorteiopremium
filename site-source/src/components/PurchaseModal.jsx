@@ -307,7 +307,7 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
     currency: 'BRL'
   });
 
-  const cotasAtivas = ((raffle?.awardedQuota || raffle?.awarded_quota) || []).filter(q => q.status === 'imediato' || q.status === 'bloqueada');
+  const cotasAtivas = ((raffle?.awardedQuota || raffle?.awarded_quota) || []).filter(q => q.status === 'imediato' || q.status === 'bloqueada' || q.status === 'disponivel');
   const cotasResgatadas = ((raffle?.awardedQuota || raffle?.awarded_quota) || []).filter(q => q.status === 'resgatada');
 
   const stripHtml = (html) => {

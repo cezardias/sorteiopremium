@@ -61,7 +61,7 @@ const RaffleDetail = () => {
   const totalPrice = (pricePerCota * quantity).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   const cotasAtivas = ((raffle.awardedQuota || raffle.awarded_quota) || []).filter(a =>
-    a.status === 'imediato' || a.status === 'bloqueada'
+    a.status === 'imediato' || a.status === 'bloqueada' || a.status === 'disponivel'
   );
   const cotasResgatadas = ((raffle.awardedQuota || raffle.awarded_quota) || []).filter(a => a.status === 'resgatada');
   const currentAwards = awardedTab === 'ativas' ? cotasAtivas : cotasResgatadas;

@@ -81,13 +81,20 @@ const Raffles = () => {
       setSelectedRifa({ id, title });
       setIsPrizesOpen(true);
     };
+    const handleOpenPackages = (e) => {
+      const { id, title } = e.detail;
+      setSelectedRifa({ id, title });
+      setIsPackagesOpen(true);
+    };
 
     document.addEventListener('click', handleClickOutside);
     window.addEventListener('openRafflePrizes', handleOpenPrizes);
+    window.addEventListener('openRafflePackages', handleOpenPackages);
 
     return () => {
       document.removeEventListener('click', handleClickOutside);
       window.removeEventListener('openRafflePrizes', handleOpenPrizes);
+      window.removeEventListener('openRafflePackages', handleOpenPackages);
     };
   }, []);
 
