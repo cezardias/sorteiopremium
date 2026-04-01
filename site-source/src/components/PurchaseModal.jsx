@@ -172,7 +172,7 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
               toast.error('Você precisa aceitar os termos');
               return;
           }
-          const response = await api.post('/client/register', formData);
+          const response = await api.post('/client/cadastro', formData);
           if (response.data?.message === 'Novo cliente criado.' || response.status === 201) {
               toast.success('Cadastro realizado!');
               const loginRes = await api.post('/client/login', { cellphone: formData.cellphone });
@@ -211,7 +211,8 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
           }
       }
     } catch (error) {
-        toast.error('Erro na autenticação. Verifique os dados.');
+        const errorMsg = error.response?.data?.error || error.response?.data?.message || 'Erro na autenticação. Verifique os dados.';
+        toast.error(errorMsg);
     } finally {
         setLoadingAuth(false);
     }

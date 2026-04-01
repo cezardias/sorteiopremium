@@ -19,6 +19,7 @@ use App\Models\V1\RifaNumber;
 
 Route::group(['prefix' => 'client', 'namespace' => 'App\Http\Controllers\V1'], function () {
     Route::post("/cadastro", "AuthController@register")->name('client.register');
+    Route::post("/register", "AuthController@register")->name('client.register.alias');
     Route::post("/login", "AuthController@login")->middleware('throttle:10,1')->name('client.login');
     Route::get("/login", "AuthController@logar")->name('login');
     Route::middleware(['auth.client', 'throttle:10,1'])->post("/logout", "AuthController@logout")->name('client.logout');
