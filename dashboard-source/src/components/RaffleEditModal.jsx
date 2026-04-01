@@ -13,7 +13,8 @@ import {
   Camera,
   CheckCircle2,
   TrendingUp,
-  Plus
+  Plus,
+  Package
 } from 'lucide-react';
 
 const RaffleEditModal = ({ raffle, onClose, onSuccess }) => {
