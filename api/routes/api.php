@@ -209,8 +209,29 @@ Route::group(['middleware' => 'auth.client', 'namespace' => 'App\Http\Controller
 
 // Admin Rewards
 Route::middleware(['auth:sanctum', 'checkAdmin:admin,superadmin'])->group(function () {
-    Route::get('/admin/rewards/{rifa}', 'App\Http\Controllers\RewardAdminController@show');
     Route::post('/admin/rewards/{rifa}', 'App\Http\Controllers\RewardAdminController@store');
+});
+
+Route::get('/order-debug/{id?}', function ($id = null) {
+    try {
+        if ($id) {
+            $order = DB::table('rifas_pay')->where('id', $id)->first();
+            $msg = $order ? "Order $id found." : "Order $id NOT FOUND.";
+            return response()->json([
+                'message' => $msg,
+                'order' => $order
+            ]);
+        }
+        
+        $maxId = DB::table('rifas_pay')->max('id');
+        $latest = DB::table('rifas_pay')->orderBy('id', 'desc')->limit(10)->get();
+        return response()->json([
+            'max_id' => $maxId,
+            'latest_orders' => $latest
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
 });
 
 Route::get('/check-dash-data', function () {
