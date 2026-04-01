@@ -326,24 +326,21 @@ class RifasController extends Controller
     public function getAllBilhetePremiado($id)
     {
         try {
-            $nomeRifa = Rifas::where('id', $id)->first();
-
             $rifa = Rifas::find($id);
-            if ($rifa == []) {
-                return response()->json(['response' => false, 'msg' => 'Bilhete não encontrada'], 404);
+            if (!$rifa) {
+                return response()->json(['success' => false, 'msg' => 'Rifa não encontrada'], 404);
             }
 
             $qntdCotaExist = AwardedQuota::getAllBilhetePremiado($id);
-            if ($qntdCotaExist->isEmpty()) {
-                return response()->json(['response' => false, 'msg' => 'Bilhete não encontrada'], 404);
-            }
-            return response()->json(["success" => true, "data" => $qntdCotaExist, 'nomeRifa' => $nomeRifa], 200);
-
-
-
+            // Return success:true even if empty, so the frontend can show "zero prizes" instead of an error alert
+            return response()->json([
+                "success" => true, 
+                "data" => $qntdCotaExist ?: [], 
+                'nomeRifa' => $rifa
+            ], 200);
 
         } catch (Exception $e) {
-            return response()->json(["response" => false, "msg" => "Ocorreu um erro interno ao cadastrar a rifa", "error" => $e->getMessage()], 500);
+            return response()->json(["success" => false, "msg" => "Ocorreu um erro interno", "error" => $e->getMessage()], 500);
         }
     }
     public function getBilhetePremiadoFiltro(Request $request, $id)
