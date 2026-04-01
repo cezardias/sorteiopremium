@@ -60,22 +60,18 @@ class Clients extends Authenticatable implements JWTSubject
         $client = self::where('cellphone', $cellphone)->first();
         if ($client) return $client;
 
-        // 2. Tenta buscar apenas os dígitos (caso esteja salvo formatado no DB)
+        // 2. Tenta buscar apenas os dígitos
         $client = self::where('cellphone', $normalized)->first();
         if ($client) return $client;
 
-        // 3. Busca por LIKE como fallback (menos performático, mas seguro)
-        $client = self::where('cellphone', 'like', "%$normalized%")->first();
+        // 3. Busca limpando símbolos comuns no SQL (compatível com a maioria das versões de MySQL/MariaDB)
+        // Isso remove ( ) - e espaço
+        $client = self::whereRaw("REPLACE(REPLACE(REPLACE(REPLACE(cellphone, '(', ''), ')', ''), '-', ''), ' ', '') = ?", [$normalized])->first();
         if ($client) return $client;
 
         // 4. Tenta lidar com o prefixo 55
-        if (substr($normalized, 0, 2) === '55') {
-            $without55 = substr($normalized, 2);
-            $client = self::where('cellphone', 'like', "%$without55%")->first();
-        } else {
-            $with55 = '55' . $normalized;
-            $client = self::where('cellphone', 'like', "%$with55%")->first();
-        }
+        $without55 = (substr($normalized, 0, 2) === '55') ? substr($normalized, 2) : $normalized;
+        $client = self::whereRaw("REPLACE(REPLACE(REPLACE(REPLACE(cellphone, '(', ''), ')', ''), '-', ''), ' ', '') LIKE ?", ["%$without55"])->first();
         
         return $client;
     }
