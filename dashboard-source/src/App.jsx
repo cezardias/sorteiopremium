@@ -76,7 +76,7 @@ function App() {
       <BrowserRouter basename="/">
         <Suspense fallback={<div className="p-20 text-center text-green-500 font-bold tracking-widest animate-pulse">Carregando...</div>}>
           <div className="fixed bottom-4 right-4 z-[9999] bg-black/80 text-[8px] text-gray-500 p-1 rounded font-mono pointer-events-none">
-            Production Build v2.2 - Layout & Auth Debug
+            Production Build v2.3 - Global Theme Update
           </div>
           <Routes>
           <Route path="/login" element={<Login />} />
