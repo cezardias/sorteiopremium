@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, X, Minus, Plus, Loader2, Copy, CheckCircle2, ChevronRight, AlertCircle, ShieldCheck, ChevronDown, ChevronUp, Star, Smile, Zap } from 'lucide-react';
-import api from '../api/api';
+import api, { IMAGE_BASE_URL } from '../api/api';
 import toast from 'react-hot-toast';
 
 const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startStep = 'selection' }) => {
@@ -502,7 +502,7 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
                     <div className="flex items-center gap-4">
                       <div className="w-20 h-20 rounded-2xl overflow-hidden glass border border-white/10 flex-shrink-0">
                         <img 
-                          src={(raffle?.rifaImage || raffle?.rifa_image)?.[0]?.path ? `/api/img/rifas/${(raffle.rifaImage || raffle.rifa_image)[0].path}` : 'https://placehold.co/200?text=Rifa'} 
+                          src={raffle?.img ? `${IMAGE_BASE_URL}/${raffle.img}` : (raffle?.rifaImage || raffle?.rifa_image)?.[0]?.path ? `${IMAGE_BASE_URL}/${(raffle.rifaImage || raffle.rifa_image)[0].path}` : 'https://placehold.co/200?text=Rifa'} 
                           alt="" 
                           className="w-full h-full object-cover"
                         />

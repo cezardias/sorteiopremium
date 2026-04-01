@@ -21,4 +21,6 @@ api.interceptors.request.use(
   }
 );
 
+export const IMAGE_BASE_URL = 'https://api.sorteiospremiummultimarcas.com.br/img/rifas';
+
 export default api;

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ShoppingBag, Shield, Zap, Target, Star, ChevronLeft, Plus, Minus, Loader2, ChevronDown, ChevronUp, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import api from '../api/api';
+import api, { IMAGE_BASE_URL } from '../api/api';
 import toast from 'react-hot-toast';
 import PurchaseModal from '../components/PurchaseModal';
 
@@ -85,8 +85,8 @@ const RaffleDetail = () => {
       {/* Hero Image */}
       <div className="w-full rounded-[32px] overflow-hidden aspect-video relative">
         <img
-          src={(raffle.rifaImage || raffle.rifa_image)?.[0]?.path
-            ? `/api/img/rifas/${(raffle.rifaImage || raffle.rifa_image)[0].path}`
+          src={raffle.img ? `${IMAGE_BASE_URL}/${raffle.img}` : (raffle.rifaImage || raffle.rifa_image)?.[0]?.path
+            ? `${IMAGE_BASE_URL}/${(raffle.rifaImage || raffle.rifa_image)[0].path}`
             : 'https://placehold.co/800x450?text=Foto+do+Prêmio'}
           alt={raffle.title}
           className="w-full h-full object-cover"
