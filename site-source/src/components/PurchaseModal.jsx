@@ -284,10 +284,10 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
                 window.location.href = '#/meus-pedidos';
             }, 3000);
         } else {
-            toast.error('Pagamento ainda não detectado. Aguarde alguns instantes.');
+            toast.error('Pagamento ainda não detectado. O Pix pode levar até 2 minutos para confirmar. Por favor, aguarde um momento e tente novamente.');
         }
     } catch (e) {
-        toast.error('Erro ao verificar status.');
+        toast.error('Não foi possível verificar agora. Se você já pagou, aguarde 1 minuto ou verifique a seção "Meus Pedidos" no menu principal.');
     } finally {
         setBuying(false);
     }
