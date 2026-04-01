@@ -119,7 +119,7 @@ const RaffleDetail = () => {
           </div>
 
           {/* Big +/- controls matching reference */}
-          <div className="flex items-center justify-center gap-2 sm:gap-4 my-6">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 my-6">
             <button
               onClick={() => handleQuantityChange(quantity - 5)}
               className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-primary hover:bg-primary hover:text-black transition-all font-black text-sm"
@@ -149,6 +149,24 @@ const RaffleDetail = () => {
               className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-primary hover:bg-primary hover:text-black transition-all font-black text-sm"
             >
               +5
+            </button>
+            <button
+              onClick={() => handleQuantityChange(quantity + 10)}
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-primary hover:bg-primary hover:text-black transition-all font-black text-sm"
+            >
+              +10
+            </button>
+             <button
+              onClick={() => handleQuantityChange(quantity + 50)}
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-primary hover:bg-primary hover:text-black transition-all font-black text-sm"
+            >
+              +50
+            </button>
+             <button
+              onClick={() => handleQuantityChange(quantity + 100)}
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-primary hover:bg-primary hover:text-black transition-all font-black text-sm"
+            >
+              +100
             </button>
           </div>
 
@@ -361,7 +379,7 @@ const RaffleDetail = () => {
         onClose={() => setModalOpen(false)}
         raffleId={raffle.id}
         initialQuantity={quantity}
-        startStep="selection"
+        startStep="auth"
       />
     </div>
   );

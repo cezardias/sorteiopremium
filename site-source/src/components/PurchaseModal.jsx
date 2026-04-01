@@ -37,7 +37,8 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
         setRaffle(fetchedRaffle);
         
         const minOrder = parseInt(fetchedRaffle?.cota?.qntd_cota_min_order) || 1;
-        setQuantity(minOrder);
+        // Only set quantity to minOrder if current quantity is less than minOrder
+        setQuantity(current => Math.max(current, minOrder));
       } else {
         toast.error('Sorteio não encontrado');
       }
@@ -69,6 +70,15 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
               cpf: clientInfo.cpf || ''
           }));
       }
+
+      // If bypassing selection, try to trigger handleBuy (which checks auth)
+      if (startStep !== 'selection') {
+        const token = localStorage.getItem('client_token');
+        if (!token || !clientInfo.id || !clientInfo.cpf || !clientInfo.email) {
+          setStep('auth');
+        }
+        // If they are logged in, handleBuy will be triggered by the effect below once raffle is loaded
+      }
     } else {
         setStep('selection');
         setQuantity(initialQuantity || 1);
@@ -76,6 +86,17 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
         setStatusPooling(false);
     }
   }, [isOpen, raffleId, initialQuantity, startStep]);
+
+  // Auto-buy effect when skipping selection
+  useEffect(() => {
+    if (isOpen && startStep !== 'selection' && raffle && !buying && !paymentData) {
+      const token = localStorage.getItem('client_token');
+      const clientInfo = JSON.parse(localStorage.getItem('client_user') || '{}');
+      if (token && clientInfo.id && clientInfo.cpf && clientInfo.email) {
+        handleBuy();
+      }
+    }
+  }, [isOpen, startStep, raffle, buying, paymentData]);
 
   const handleQuantityChange = (newQty) => {
     const min = parseInt(raffle?.cota?.qntd_cota_min_order) || 1;
