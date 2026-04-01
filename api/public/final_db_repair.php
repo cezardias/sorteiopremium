@@ -35,6 +35,9 @@ $changes = [
     'cotas' => [
         ['column' => 'qntd_cota_digit', 'type' => 'INT DEFAULT 0 AFTER qntd_cota'],
     ],
+    'site_settings' => [
+        ['column' => 'theme', 'type' => "VARCHAR(255) DEFAULT 'dark'"],
+    ],
 ];
 
 foreach ($changes as $table => $columns) {

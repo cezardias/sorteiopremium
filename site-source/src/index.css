@@ -3,8 +3,38 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-dark: #0f111a;
+    --color-dark-secondary: #141523;
+    --color-dark-accent: #1e2130;
+    --color-primary: #1db954;
+    --color-secondary: #1ed760;
+    --color-accent: #ef4444;
+    --color-text: #e5e7eb;
+    --color-white: #ffffff;
+    --color-black: #000000;
+    --color-glass-bg: rgba(255, 255, 255, 0.05);
+    --color-glass-border: rgba(255, 255, 255, 0.1);
+  }
+
+  [data-theme="light"] {
+    --color-dark: #f9fafb; /* Gray 50 background */
+    --color-dark-secondary: #ffffff; /* White cards */
+    --color-dark-accent: #f3f4f6; /* Gray 100 accents */
+    --color-primary: #dc2626; /* Red 600 */
+    --color-secondary: #b91c1c; /* Red 700 */
+    --color-accent: #ea580c; /* Orange accent */
+    --color-text: #111827; /* Gray 900 text */
+    --color-white: #111827; /* Invert text-white to black */
+    --color-black: #ffffff; /* Invert text-black to white */
+    --color-glass-bg: rgba(255, 255, 255, 1);
+    --color-glass-border: rgba(0, 0, 0, 0.05);
+  }
+
   body {
-    @apply bg-dark text-gray-200 antialiased min-h-screen;
+    background-color: var(--color-dark);
+    color: var(--color-text);
+    @apply antialiased min-h-screen transition-colors duration-500;
     font-family: 'Inter', sans-serif;
     overflow-x: hidden;
   }
@@ -17,7 +47,9 @@
 
 @layer components {
   .glass {
-    @apply bg-white/5 backdrop-blur-md border border-white/10;
+    background-color: var(--color-glass-bg);
+    border-color: var(--color-glass-border);
+    @apply backdrop-blur-md border transition-colors duration-500;
   }
   
   .btn-primary {

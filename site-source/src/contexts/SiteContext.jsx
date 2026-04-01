@@ -16,6 +16,7 @@ export const SiteProvider = ({ children }) => {
         email: '',
         logo_dark: '/assets/images/logos/logo.png',
         logo_light: '/assets/images/logos/logo.png',
+        theme: 'dark',
         product_title: 'Sorteios Exclusivos',
         product_subtitle: 'Sua Sorte Começa Aqui.',
         footer_company: 'PREMIUM MULTIMARCAS',
@@ -35,6 +36,7 @@ export const SiteProvider = ({ children }) => {
                         instagram_link: data.instagram_link || 'https://instagram.com',
                         helpdesk_url: data.helpdesk_url || '',
                         email: data.email || 'contato@premium.com',
+                        theme: data.theme || 'dark',
                         logo_dark: data.logo_dark || data.logo || '/assets/images/logos/logo.png',
                         logo_light: data.logo_light || data.logo || '/assets/images/logos/logo.png',
                         product_title: data.product_title || 'Sorteio Premium MultiMarca',
@@ -47,6 +49,9 @@ export const SiteProvider = ({ children }) => {
                     if (data.site_name) {
                         document.title = `${data.site_name} | Realizando Sonhos`;
                     }
+                    
+                    // Update global CSS theme dataset
+                    document.documentElement.setAttribute('data-theme', data.theme || 'dark');
                 }
             } catch (error) {
                 console.error('Error fetching public settings:', error);

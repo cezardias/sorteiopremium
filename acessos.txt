@@ -8,3 +8,34 @@ Nome de usuário do FTP	u434605668.sorteiospremiummultimarcas.com.br
 Porta do FTP	21
 Pasta para upload de arquivos	public_html
 senha 4T4l@d405
+
+
+
+sudo certbot --nginx -d evo.chamaforte.com
+
+
+SELECT 
+  count(*) filter (WHERE embedding IS NULL) as faltam_processar,
+  count(*) filter (WHERE embedding IS NOT NULL) as já_estão_prontos,
+  count(*) as total_de_produtos
+FROM produtos_tecnicos;
+
+
+curl -X POST "https://evo.chamaforte.com/webhook/set/chamaforte" \
+-H "Content-Type: application/json" \
+-H "apikey: 476968BC4C977415CAAFCCE10F7D57E11" \
+-d '{
+  "webhook": {
+    "enabled": true,
+    "url": "https://auto.chamaforte.com/webhook/chamaforte_rag_visao",
+    "webhook_by_events": false,
+    "events": [
+      "MESSAGES_UPSERT",
+      "MESSAGES_UPDATE",
+      "MESSAGES_SET",
+      "SEND_MESSAGE",
+      "CHATS_UPDATE",
+      "PRESENCE_UPDATE"
+    ]
+  }
+}'

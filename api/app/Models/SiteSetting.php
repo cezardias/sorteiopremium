@@ -27,6 +27,7 @@ class SiteSetting extends Model
         'whatsapp_group_url',
         'instagram',
         'helpdesk_url',
-        'email'
+        'email',
+        'theme'
     ];
 }

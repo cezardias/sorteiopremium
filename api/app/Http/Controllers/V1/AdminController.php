@@ -1767,7 +1767,7 @@ class AdminController extends Controller
                 'footer_company', 'google_analytics', 'webhook_url', 
                 'product_title', 'product_subtitle', 'author', 'site_keywords', 
                 'social_share_title', 'description', 'whatsapp_number', 
-                'whatsapp_group_url', 'instagram_link', 'helpdesk_url', 'email'
+                'whatsapp_group_url', 'instagram_link', 'helpdesk_url', 'email', 'theme'
             ]);
 
             // Map frontend names to database names if they differ

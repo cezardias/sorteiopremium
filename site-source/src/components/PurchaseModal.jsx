@@ -519,14 +519,14 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
                         <div className="flex items-center gap-4">
                           <button 
                             onClick={() => handleQuantityChange(quantity - 1)} 
-                            className="w-10 h-10 rounded-full bg-red-600/10 hover:bg-red-600/20 flex items-center justify-center text-red-600 transition-colors border border-red-600/20"
+                            className="w-10 h-10 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center text-primary transition-colors border border-primary/20"
                           >
                             <Minus size={20} />
                           </button>
                           <span className="text-2xl font-black text-white w-12 text-center">{quantity}</span>
                           <button 
                             onClick={() => handleQuantityChange(quantity + 1)}
-                            className="w-10 h-10 rounded-full bg-red-600/10 hover:bg-red-600/20 flex items-center justify-center text-red-600 transition-colors border border-red-600/20"
+                            className="w-10 h-10 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center text-primary transition-colors border border-primary/20"
                           >
                             <Plus size={20} />
                           </button>
@@ -539,7 +539,7 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
                           <button
                             key={qty}
                             onClick={() => handleQuantityChange(quantity + qty)}
-                            className="py-2.5 bg-dark text-gray-400 border border-white/5 rounded-xl text-[10px] font-black uppercase hover:border-red-600/50 transition-all hover:text-white"
+                            className="py-2.5 bg-dark text-gray-400 border border-white/5 rounded-xl text-[10px] font-black uppercase hover:border-primary/50 transition-all hover:text-white"
                           >
                             +{qty}
                           </button>
@@ -551,7 +551,7 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
                     {(raffle?.discountPackage || raffle?.discount_package)?.length > 0 && (
                       <div className="space-y-4">
                         <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                            <Zap size={12} className="text-red-600" /> Pacotes Promocionais
+                            <Zap size={12} className="text-primary" /> Pacotes Promocionais
                         </h4>
                         <div className="grid grid-cols-4 gap-2">
                           {(raffle.discountPackage || raffle.discount_package).map(pkg => {
@@ -563,24 +563,24 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
                                 onClick={() => setQuantity(parseInt(pkg.qntd_cota))}
                                 className={`relative flex flex-col items-center justify-center p-2 pt-5 rounded-xl border text-center transition-all ${
                                   isSelected
-                                    ? 'border-red-600 bg-red-600/10 shadow-[0_0_10px_rgba(220,38,38,0.2)]'
+                                    ? 'border-primary bg-primary/10 shadow-[0_0_10px_var(--color-primary)]'
                                     : isPopular
-                                      ? 'border-red-600/50 bg-white/5 hover:border-red-400'
+                                      ? 'border-primary/50 bg-white/5 hover:border-primary'
                                       : 'border-white/5 bg-dark hover:border-white/20'
                                 }`}
                               >
                                 {isPopular && (
-                                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter whitespace-nowrap shadow-lg">
+                                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-black text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter whitespace-nowrap shadow-lg">
                                     Mais popular
                                   </div>
                                 )}
-                                <span className={`text-[13px] font-black leading-tight ${isSelected ? 'text-red-600' : 'text-white'}`}>
+                                <span className={`text-[13px] font-black leading-tight ${isSelected ? 'text-primary' : 'text-white'}`}>
                                   {parseInt(pkg.qntd_cota).toLocaleString('pt-BR')}
                                 </span>
-                                <span className="text-[7px] font-black text-red-600/70 line-through leading-none">
+                                <span className="text-[7px] font-black text-primary/70 line-through leading-none">
                                   R$ {(pricePerCota * parseInt(pkg.qntd_cota)).toFixed(2)}
                                 </span>
-                                <span className={`text-[10px] font-black leading-none ${isSelected ? 'text-white' : 'text-red-600'}`}>
+                                <span className={`text-[10px] font-black leading-none ${isSelected ? 'text-white' : 'text-primary'}`}>
                                   R$ {parseFloat(pkg.valor_total).toFixed(2)}
                                 </span>
                               </button>
@@ -600,7 +600,7 @@ const PurchaseModal = ({ isOpen, onClose, raffleId, initialQuantity = 1, startSt
                       <button 
                         onClick={handleBuy}
                         disabled={buying}
-                        className="w-full bg-red-600 hover:bg-red-700 text-white font-black uppercase py-5 rounded-full transition-all shadow-[0_10px_30px_rgba(220,38,38,0.3)] flex items-center justify-center gap-3 disabled:opacity-50"
+                        className="w-full bg-primary hover:bg-secondary text-black font-black uppercase py-5 rounded-full transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                       >
                         {buying ? <Loader2 className="animate-spin" /> : <>Continuar <ChevronRight size={18} /></>}
                       </button>

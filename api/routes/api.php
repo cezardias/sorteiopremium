@@ -211,3 +211,12 @@ Route::middleware(['auth:sanctum', 'checkAdmin:admin,superadmin'])->group(functi
     Route::get('/admin/rewards/{rifa}', 'App\Http\Controllers\RewardAdminController@show');
     Route::post('/admin/rewards/{rifa}', 'App\Http\Controllers\RewardAdminController@store');
 });
+
+Route::get('/check-dash-data', function () {
+    return response()->json([
+        'afiliados' => Schema::hasTable('afiliados') ? DB::table('afiliados')->count() : 'table missing',
+        'rifas_winners' => Schema::hasTable('rifas_winners') ? DB::table('rifas_winners')->count() : 'table missing',
+        'clients_count' => Schema::hasTable('clients') ? DB::table('clients')->count() : 'table missing',
+        'users_count' => Schema::hasTable('users') ? DB::table('users')->count() : 'table missing'
+    ]);
+});

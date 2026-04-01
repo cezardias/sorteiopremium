@@ -7,12 +7,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        dark: "#0f111a",
-        "dark-secondary": "#141523",
-        "dark-accent": "#1e2130",
-        primary: "#1db954",
-        secondary: "#1ed760",
-        accent: "#ef4444",
+        dark: "var(--color-dark)",
+        "dark-secondary": "var(--color-dark-secondary)",
+        "dark-accent": "var(--color-dark-accent)",
+        primary: "var(--color-primary)",
+        secondary: "var(--color-secondary)",
+        accent: "var(--color-accent)",
+        white: "var(--color-white, #ffffff)",
+        black: "var(--color-black, #000000)",
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],

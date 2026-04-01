@@ -6,6 +6,7 @@ import { toast } from 'react-hot-toast';
 const SiteSettings = () => {
   const [formData, setFormData] = useState({
     // CONFIGURAÇÕES
+    theme: 'dark',
     site_name: '',
     url_logo_site: null,
     url_logo_site_white: null,
@@ -48,6 +49,7 @@ const SiteSettings = () => {
           const data = response.data.data;
           setFormData({
             ...formData,
+            theme: data.theme || 'dark',
             site_name: data.site_name || '',
             footer_company: data.footer_company || '',
             google_analytics: data.google_analytics || '',
@@ -135,6 +137,31 @@ const SiteSettings = () => {
               <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Configurações</h2>
             </div>
             <div className="p-6 space-y-4">
+              <div className="space-y-2 mb-4 bg-dark-accent p-4 rounded-lg border border-[#2a2d3e]">
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center justify-between">
+                  Aparência do Site Público
+                  <span className={formData.theme === 'light' ? 'text-green-500' : 'text-gray-400'}>
+                    {formData.theme === 'light' ? 'TEMA CLARO' : 'TEMA ESCURO'}
+                  </span>
+                </label>
+                <div className="flex bg-[#0f111a] rounded-lg p-1 border border-[#2a2d3e]">
+                  <button 
+                    type="button" 
+                    onClick={() => setFormData({...formData, theme: 'dark'})}
+                    className={`flex-1 py-2 text-xs font-bold uppercase tracking-widest rounded-md transition-all ${formData.theme === 'dark' ? 'bg-[#1db954] text-black shadow-lg shadow-green-500/20' : 'text-gray-500 hover:text-white'}`}
+                  >
+                    Escuro
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => setFormData({...formData, theme: 'light'})}
+                    className={`flex-1 py-2 text-xs font-bold uppercase tracking-widest rounded-md transition-all ${formData.theme === 'light' ? 'bg-white text-black shadow-lg shadow-white/20' : 'text-gray-500 hover:text-white'}`}
+                  >
+                    Claro
+                  </button>
+                </div>
+              </div>
+
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-gray-600 uppercase">Título do Site</label>
                 <input type="text" className="w-full bg-transparent border border-[#2a2d3e] rounded px-3 py-2 text-xs text-gray-300 focus:outline-none focus:border-green-500/50 transition-colors" value={formData.site_name} onChange={(e) => setFormData({...formData, site_name: e.target.value})} />
