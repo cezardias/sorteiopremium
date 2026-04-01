@@ -16,7 +16,19 @@ const Navbar = () => {
   const token = localStorage.getItem('client_token');
   const isLoggedIn = !!token;
   const { settings } = useSite();
-  const logo = settings?.logo_dark || "/assets/images/logos/logo.png";
+  const [logoError, setLogoError] = useState(false);
+
+  const localLogo = "/assets/images/logos/logo.png";
+  
+  // Decide which logo to use based on theme and error state
+  let logo = localLogo;
+  if (!logoError && settings) {
+    if (settings.theme === 'light') {
+      logo = settings.logo_light || settings.logo_dark || localLogo;
+    } else {
+      logo = settings.logo_dark || settings.logo_light || localLogo;
+    }
+  }
 
   const handleLogout = () => {
     localStorage.removeItem('client_token');
@@ -60,7 +72,12 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-20">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0">
-                <img src={logo} alt={settings?.site_name || "Premium Multimarcas"} className="h-14 w-auto transform hover:scale-105 transition-transform" />
+                <img 
+                  src={logo} 
+                  alt={settings?.site_name || "Premium Multimarcas"} 
+                  className="h-14 w-auto transform hover:scale-105 transition-transform"
+                  onError={() => setLogoError(true)}
+                />
               </Link>
           </div>
 
