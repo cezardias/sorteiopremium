@@ -118,14 +118,8 @@ const RaffleDetail = () => {
             <span className="text-xs font-black text-gray-500 uppercase tracking-widest">Quantidade · max {(raffle?.cota?.qntd_cota_max_order || 1000).toLocaleString('pt-BR')}</span>
           </div>
 
-          {/* Big +/- controls matching reference */}
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 my-6">
-            <button
-              onClick={() => handleQuantityChange(quantity - 5)}
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-primary hover:bg-primary hover:text-black transition-all font-black text-sm"
-            >
-              -5
-            </button>
+          {/* Big +/- controls */}
+          <div className="flex items-center justify-center gap-2 sm:gap-4 my-6">
             <button
               onClick={() => handleQuantityChange(quantity - 1)}
               className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-primary hover:bg-primary hover:text-black transition-all text-2xl font-black"
@@ -144,30 +138,19 @@ const RaffleDetail = () => {
             >
               <Plus size={22} />
             </button>
-            <button
-              onClick={() => handleQuantityChange(quantity + 5)}
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-primary hover:bg-primary hover:text-black transition-all font-black text-sm"
-            >
-              +5
-            </button>
-            <button
-              onClick={() => handleQuantityChange(quantity + 10)}
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-primary hover:bg-primary hover:text-black transition-all font-black text-sm"
-            >
-              +10
-            </button>
-             <button
-              onClick={() => handleQuantityChange(quantity + 50)}
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-primary hover:bg-primary hover:text-black transition-all font-black text-sm"
-            >
-              +50
-            </button>
-             <button
-              onClick={() => handleQuantityChange(quantity + 100)}
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-primary hover:bg-primary hover:text-black transition-all font-black text-sm"
-            >
-              +100
-            </button>
+          </div>
+
+          {/* Quick add buttons - Grid like in modal */}
+          <div className="grid grid-cols-4 gap-2 mb-6">
+            {[5, 10, 50, 100].map(qty => (
+              <button
+                key={qty}
+                onClick={() => handleQuantityChange(quantity + qty)}
+                className="py-2.5 bg-dark text-gray-400 border border-white/5 rounded-xl text-[10px] font-black uppercase hover:border-primary/50 transition-all hover:text-white"
+              >
+                +{qty}
+              </button>
+            ))}
           </div>
 
           {/* Slider */}
